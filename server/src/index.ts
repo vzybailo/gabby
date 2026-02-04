@@ -10,6 +10,7 @@ import { File } from 'node:buffer';
 globalThis.File = File as any;
 
 const app = express();
+const PORT = parseInt(process.env.PORT || '3001', 10); // Render сам подставит нужное число в process.env.PORT
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -57,4 +58,7 @@ app.use((req, res) => {
   res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });
 
-app.listen(3001, () => console.log('Server running'));
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
