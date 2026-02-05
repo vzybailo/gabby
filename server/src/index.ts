@@ -6,13 +6,12 @@ import chatRouter from './routes/chat';
 import transcribeRouter from './routes/transcribe';
 import { generateSpeech, assessLevel } from './services/ai'; 
 import { File } from 'node:buffer';
-import TelegramBot from 'node-telegram-bot-api';
+import './telegramBot'; 
 
 globalThis.File = File as any;
 
 const app = express();
 
-// 1. Исправляем порт: Render всегда дает порт в process.env.PORT
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001; 
 
 app.use(express.json({ limit: '50mb' }));
@@ -24,12 +23,12 @@ app.use('/audio', express.static(path.resolve('audio')));
 app.use('/chat', chatRouter);
 app.use('/api', transcribeRouter);
 
-// Хелсчек для Render (чтобы ссылка открывалась без ошибки)
+// Хелсчек для Render
 app.get('/', (req, res) => {
-  res.send('Say It Bot Server is running!');
+  res.send('Say It Bot Server is running and Bot is Active!');
 });
 
-// Твои API эндпоинты
+// Твои API эндпоинты (они нужны, так как бот делает к ним запросы)
 app.post('/api/assess-level', async (req, res) => {
   try {
     const { text } = req.body;
@@ -54,46 +53,11 @@ app.post('/api/tts', async (req, res) => {
   }
 });
 
-// Обработка 404 (переместил в конец)
+// Обработка 404
 app.use((req, res, next) => {
-  if (req.path === '/') return next(); // Пропускаем корень
+  if (req.path === '/') return next(); 
   res.status(404).json({ error: `Route ${req.originalUrl} not found` });
 });
-
-// --- TELEGRAM BOT SECTION ---
-const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-
-if (!telegramToken) {
-  console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: TELEGRAM_BOT_TOKEN не установлен в Environment Variables!');
-} else {
-  const bot = new TelegramBot(telegramToken, { polling: true });
-
-  bot.getMe().then((me) => {
-      console.log(`✅ Бот успешно авторизован: @${me.username}`);
-  }).catch((err) => {
-      console.error("❌ ОШИБКА АВТОРИЗАЦИИ ТЕЛЕГРАМ:", err.message);
-  });
-
-  // Добавь простой обработчик сообщений для теста
-  // bot.on('message', (msg) => {
-  //   console.log(`Получено сообщение от ${msg.from?.username}: ${msg.text}`);
-  //   if (msg.text === '/start') {
-  //     bot.sendMessage(msg.chat.id, 'Привет! Бот на Render работает!');
-  //   }
-  // });
-
-  bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    console.log("!!! МАГИЯ: Я ПОЛУЧИЛ СООБЩЕНИЕ:", msg.text);
-    
-    try {
-      await bot.sendMessage(chatId, "БОТ ЖИВ! Я тебя вижу.");
-      console.log("!!! УСПЕХ: Ответ отправлен в Telegram");
-    } catch (e) {
-      console.error("!!! ОШИБКА ОТПРАВКИ:", e);
-    }
-  });
-}
 
 // Запуск сервера
 app.listen(PORT, '0.0.0.0', () => {
