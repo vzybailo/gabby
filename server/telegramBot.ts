@@ -58,120 +58,14 @@ bot.onText(/\/reset/, async (msg) => {
 // --- ОСНОВНОЙ ОБРАБОТЧИК ---
 
 bot.on('message', async (msg) => {
-  if (msg.text?.startsWith('/')) return;
   const chatId = msg.chat.id;
-  if (!msg.text && !msg.voice) return;
-
-  console.log(`[LOG] Сообщение от ${msg.from?.username || chatId}: ${msg.text || '[Голос]'}`);
-
+  console.log("!!! МАГИЯ: Я ПОЛУЧИЛ СООБЩЕНИЕ:", msg.text);
+  
   try {
-    // 1. Эхо-ответ для проверки жизни бота
-    await bot.sendChatAction(chatId, 'typing');
-    
-    const currentState = userState.get(chatId.toString()) || 'IDLE';
-    const hasLevel = userSettings.has(chatId.toString());
-
-    // 2. Проверка уровня (без MarkdownV2 для стабильности)
-    if (currentState !== 'TESTING' && !hasLevel) {
-      console.log(`[LOG] Спрашиваю уровень у ${chatId}`);
-      await bot.sendMessage(chatId, '⛔️ Please select your English level first to start chatting:', {
-        reply_markup: LEVEL_KEYBOARD
-      });
-      return;
-    }
-
-    let userText = msg.text;
-
-    // 3. Обработка голосового сообщения
-    if (msg.voice) {
-      const fileLink = await bot.getFileLink(msg.voice.file_id);
-      const oggIn = path.join(TMP_DIR, `in_${msg.voice.file_id}.ogg`);
-      
-      const response = await axios.get(fileLink, { responseType: 'arraybuffer' });
-      fs.writeFileSync(oggIn, response.data);
-
-      const formData = new FormData();
-      formData.append('audio', fs.createReadStream(oggIn), { filename: 'voice.ogg' });
-
-      console.log(`[API] Запрос на STT: ${BACKEND_URL}/api/transcribe`);
-      try {
-        const tRes = await axios.post(`${BACKEND_URL}/api/transcribe`, formData, {
-          headers: { ...formData.getHeaders() }
-        });
-        userText = tRes.data.text;
-      } catch (sttErr: any) {
-        throw new Error(`STT Failed: ${sttErr.message}`);
-      } finally {
-        if (fs.existsSync(oggIn)) fs.unlinkSync(oggIn);
-      }
-    }
-
-    if (!userText || userText.trim().length < 2) {
-      await bot.sendMessage(chatId, '👂 I couldn\'t hear you clearly. Please try again.');
-      return;
-    }
-
-    // 4. Режим тестирования
-    if (currentState === 'TESTING') {
-      console.log(`[API] Запрос на Assess: ${BACKEND_URL}/api/assess-level`);
-      const res = await axios.post(`${BACKEND_URL}/api/assess-level`, { text: userText });
-      const result = res.data;
-      
-      userSettings.set(chatId.toString(), result.level);
-      userState.set(chatId.toString(), 'IDLE'); 
-
-      await bot.sendMessage(chatId, `🎯 Assessment Complete!\nLevel: ${result.level}\n${result.reply || ''}`);
-      return; 
-    }
-
-    // 5. Основная логика чата
-    const currentLevel = userSettings.get(chatId.toString())!;
-    console.log(`[API] Запрос в Чат: ${BACKEND_URL}/chat (Level: ${currentLevel})`);
-    
-    const chatRes = await axios.post(`${BACKEND_URL}/chat`, {
-      messages: [{ role: 'user', content: userText }],
-      level: currentLevel
-    });
-
-    const aiMessage = chatRes.data.message;
-    const analysis = aiMessage.analysis;
-    sessionStore.set(chatId.toString(), analysis);
-
-    // 6. TTS и Ответ
-    if (aiMessage.content) {
-       try {
-         const ttsRes = await axios.post(`${BACKEND_URL}/api/tts`, { text: aiMessage.content });
-         if (ttsRes.data.audioUrl) {
-           await bot.sendVoice(chatId, `${BACKEND_URL}${ttsRes.data.audioUrl}`);
-         }
-       } catch (e) {
-         console.error('[LOG] TTS Error:', e);
-       }
-       await bot.sendMessage(chatId, aiMessage.content);
-    }
-
-    // 7. Показ исправлений (анализ)
-    if (analysis) {
-        const isPerfect = analysis.is_perfect;
-        const msgText = isPerfect ? `✅ ${userText}` : `💡 ${analysis.diff_view || aiMessage.corrected_text}`;
-        
-        let buttons = [];
-        if (!isPerfect && analysis.user_errors?.length > 0) {
-            buttons.push([{ text: 'Why? (Mistakes)', callback_data: 'explain_mistakes' }]);
-        }
-        if (isPerfect && analysis.better_alternatives?.length > 0) {
-            buttons.push([{ text: '✨ Native style', callback_data: 'show_alternatives' }]);
-        }
-
-        await bot.sendMessage(chatId, msgText, {
-            reply_markup: buttons.length > 0 ? { inline_keyboard: buttons } : undefined
-        });
-    }
-
-  } catch (err: any) {
-    console.error('❌ ПОЛНАЯ ОШИБКА БОТА:', err.message);
-    // Отправляем ошибку без Markdown, чтобы она точно дошла
-    await bot.sendMessage(chatId, `⚠️ System error: ${err.message}`);
+    await bot.sendMessage(chatId, "БОТ ЖИВ! Я тебя вижу.");
+    console.log("!!! УСПЕХ: Ответ отправлен в Telegram");
+  } catch (e) {
+    console.error("!!! ОШИБКА ОТПРАВКИ:", e);
   }
 });
 
