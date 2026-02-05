@@ -58,7 +58,7 @@ bot.on('message', async (msg) => {
 
     if (currentState !== 'TESTING' && !hasLevel) {
       await bot.sendMessage(chatId, '⛔️ *Please select your English level first\\!*', {
-        parse_mode: 'MarkdownV2',
+        //parse_mode: 'MarkdownV2',
         reply_markup: LEVEL_KEYBOARD
       });
       return;
