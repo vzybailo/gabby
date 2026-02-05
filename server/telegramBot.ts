@@ -8,7 +8,9 @@ import axios from 'axios';
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const BACKEND_URL = process.env.SERVER_URL; 
 
+// Инициализация бота
 const bot = new TelegramBot(TOKEN, { polling: true });
+
 const TMP_DIR = path.resolve('./tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
@@ -16,9 +18,9 @@ const sessionStore = new Map<string, any>();
 const userSettings = new Map<string, string>(); 
 const userState = new Map<string, 'IDLE' | 'TESTING'>(); 
 
+// Функция экранирования для MarkdownV2
 function escapeMd(text: string | undefined | null) {
   if (!text) return '';
-
   return text.replace(/[_\[\]()>`#+\-=|{}.!\\]/g, '\\$&');
 }
 
@@ -30,13 +32,19 @@ const LEVEL_KEYBOARD = {
   ]
 };
 
+// --- КОМАНДЫ ---
+
 bot.onText(/\/start|\/level/, async (msg) => {
   const chatId = msg.chat.id;
   userState.set(chatId.toString(), 'IDLE');
-  await bot.sendMessage(chatId, '👋 *Welcome\\! Let\'s set up your profile\\.* \n\nSelect your English level or take a quick test:', {
-    parse_mode: 'MarkdownV2',
-    reply_markup: LEVEL_KEYBOARD
-  });
+  try {
+    await bot.sendMessage(chatId, '👋 *Welcome\\! Let\'s set up your profile\\.* \n\nSelect your English level or take a quick test:', {
+      parse_mode: 'MarkdownV2',
+      reply_markup: LEVEL_KEYBOARD
+    });
+  } catch (e) {
+    console.error('[LOG] Ошибка в /start:', e);
+  }
 });
 
 bot.onText(/\/reset/, async (msg) => {
@@ -44,21 +52,29 @@ bot.onText(/\/reset/, async (msg) => {
   userSettings.delete(chatId);
   userState.delete(chatId);
   sessionStore.delete(chatId);
-  await bot.sendMessage(chatId, '🔄 *Memory cleared\\!* \n\nYou are now a new user\\. Type /start to begin\\.', { parse_mode: 'MarkdownV2' });
+  await bot.sendMessage(chatId, '🔄 Memory cleared! Type /start to begin.');
 });
+
+// --- ОСНОВНОЙ ОБРАБОТЧИК ---
 
 bot.on('message', async (msg) => {
   if (msg.text?.startsWith('/')) return;
   const chatId = msg.chat.id;
   if (!msg.text && !msg.voice) return;
 
+  console.log(`[LOG] Получено сообщение от ${msg.from?.username || chatId}: ${msg.text || '[VOICE]'}`);
+
   try {
+    // Подтверждаем получение сообщения пользователю
+    await bot.sendChatAction(chatId, 'typing');
+    
     const currentState = userState.get(chatId.toString()) || 'IDLE';
     const hasLevel = userSettings.has(chatId.toString());
 
+    // 1. Проверка выбора уровня
     if (currentState !== 'TESTING' && !hasLevel) {
-      await bot.sendMessage(chatId, '⛔️ *Please select your English level first\\!*', {
-        //parse_mode: 'MarkdownV2',
+      console.log(`[LOG] Пользователь ${chatId} не выбрал уровень.`);
+      await bot.sendMessage(chatId, '⛔️ Please select your English level first to start chatting:', {
         reply_markup: LEVEL_KEYBOARD
       });
       return;
@@ -66,234 +82,149 @@ bot.on('message', async (msg) => {
 
     let userText = msg.text;
 
+    // 2. Обработка голоса через STT
     if (msg.voice) {
-      await bot.sendChatAction(chatId, 'typing');
-      
+      console.log(`[LOG] Обработка голосового сообщения...`);
       const fileLink = await bot.getFileLink(msg.voice.file_id);
       const oggIn = path.join(TMP_DIR, `in_${msg.voice.file_id}.ogg`);
       
-      console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
-      const response = await fetch(fileLink);
-      const arrayBuffer = await response.arrayBuffer();
-      fs.writeFileSync(oggIn, Buffer.from(arrayBuffer));
+      const voiceFile = await axios.get(fileLink, { responseType: 'arraybuffer' });
+      fs.writeFileSync(oggIn, Buffer.from(voiceFile.data));
 
       const formData = new FormData();
-      const fileBuffer = fs.readFileSync(oggIn); 
-
-      formData.append('audio', fileBuffer, {
-        filename: 'voice.ogg',
-        contentType: 'audio/ogg', 
-      });
+      formData.append('audio', fs.createReadStream(oggIn), { filename: 'voice.ogg' });
 
       try {
         const tRes = await axios.post(`${BACKEND_URL}/api/transcribe`, formData, {
-          headers: {
-            ...formData.getHeaders(), 
-            'Content-Length': formData.getLengthSync() 
-          },
-          maxContentLength: Infinity,
-          maxBodyLength: Infinity
+          headers: { ...formData.getHeaders() }
         });
         userText = tRes.data.text;
-      } catch (axiosError: any) {
-        throw new Error(`STT Upload Error: ${axiosError.response?.status || 'Network'} | ${axiosError.message}`);
+        console.log(`[API] STT результат: ${userText}`);
+      } catch (err: any) {
+        throw new Error(`STT API Error: ${err.message}`);
       } finally {
         if (fs.existsSync(oggIn)) fs.unlinkSync(oggIn);
       }
     }
 
     if (!userText || userText.trim().length < 2) {
-      await bot.sendMessage(chatId, '👂 *I couldn\'t hear you clearly\\.* Please try again\\.', { parse_mode: 'MarkdownV2' });
+      await bot.sendMessage(chatId, '👂 I couldn\'t hear you clearly. Please try again.');
       return;
     }
 
+    // 3. Логика теста уровня
     if (currentState === 'TESTING') {
-      if (userText.length < 15) {
-        await bot.sendMessage(chatId, '📉 *Too short\\!* Please speak for at least 10 seconds\\.', { parse_mode: 'MarkdownV2' });
-        return;
-      }
-      await bot.sendChatAction(chatId, 'typing');
-      
-      console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
-      const res = await fetch(`${BACKEND_URL}/api/assess-level`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: userText })
-      });
-      
-      if (!res.ok) throw new Error(`Assess API Error: ${res.status}`);
-      const result: any = await res.json(); 
+      console.log(`[API] Запрос на Assess: ${BACKEND_URL}/api/assess-level`);
+      const res = await axios.post(`${BACKEND_URL}/api/assess-level`, { text: userText });
+      const result = res.data;
       
       userSettings.set(chatId.toString(), result.level);
       userState.set(chatId.toString(), 'IDLE'); 
 
-      const reply = `🎯 *Assessment Complete\\!*
-      
-📊 Your Level: *${escapeMd(result.level)}*
-📝 Feedback: _${escapeMd(result.reply || "Good job!")}_
-
-✅ Level set to *${escapeMd(result.level)}*\\. Let's chat\\!`;
-
-      await bot.sendMessage(chatId, reply, { parse_mode: 'MarkdownV2' });
+      await bot.sendMessage(chatId, `🎯 Assessment Complete!\nYour Level: ${result.level}\n${result.reply || ''}`);
       return; 
     }
 
-    await bot.sendChatAction(chatId, 'typing');
+    // 4. Основной Чат (AI ответ)
     const currentLevel = userSettings.get(chatId.toString())!;
-
-    console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
-    const chatRes = await fetch(`${BACKEND_URL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: userText }], level: currentLevel }),
+    console.log(`[API] Отправка в Чат: ${BACKEND_URL}/chat (Level: ${currentLevel})`);
+    
+    const chatRes = await axios.post(`${BACKEND_URL}/chat`, {
+      messages: [{ role: 'user', content: userText }],
+      level: currentLevel
     });
 
-    if (!chatRes.ok) throw new Error(`Chat API Error: ${chatRes.status}`);
-
-    const data: any = await chatRes.json();
-    const aiMessage = data.message;
+    const aiMessage = chatRes.data.message;
     const analysis = aiMessage.analysis;
-
     sessionStore.set(chatId.toString(), analysis);
 
+    // 5. TTS (Озвучка)
     if (aiMessage.content) {
-       await bot.sendChatAction(chatId, 'record_voice');
        try {
-         console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
-         const ttsRes = await fetch(`${BACKEND_URL}/api/tts`, {
-           method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({ text: aiMessage.content })
-         });
-         const ttsData: any = await ttsRes.json();
-         
-         if (ttsData.audioUrl) {
-           const audioUrl = `${BACKEND_URL}${ttsData.audioUrl}`;
-           await bot.sendVoice(chatId, audioUrl);
+         console.log(`[API] Запрос на TTS...`);
+         const ttsRes = await axios.post(`${BACKEND_URL}/api/tts`, { text: aiMessage.content });
+         if (ttsRes.data.audioUrl) {
+           await bot.sendVoice(chatId, `${BACKEND_URL}${ttsRes.data.audioUrl}`);
          }
        } catch (e) {
-         console.error('TTS Error:', e);
+         console.error('[LOG] TTS Error:', e);
        }
+       // Отправляем текст AI
+       await bot.sendMessage(chatId, aiMessage.content);
     }
 
-    if (aiMessage.content) {
-        await bot.sendMessage(chatId, aiMessage.content);
-    }
-
+    // 6. Анализ ошибок и исправления
     if (analysis) {
+        const isPerfect = analysis.is_perfect;
+        const msgText = isPerfect ? `✅ ${userText}` : `💡 ${analysis.diff_view || aiMessage.corrected_text}`;
+        
         let buttons = [];
-
-        if (analysis.is_perfect) {
-            const cleanUserText = escapeMd(userText); 
-            const msgText = `✅ _${cleanUserText}_`;
-            
-            if (analysis.better_alternatives && analysis.better_alternatives.length > 0) {
-                buttons.push([{ text: '✨ Native style', callback_data: 'show_alternatives' }]);
-            }
-
-            await bot.sendMessage(chatId, msgText, {
-                parse_mode: 'MarkdownV2',
-                reply_markup: { inline_keyboard: buttons }
-            });
-
-        } 
-        else {
-            const rawDiff = analysis.diff_view || aiMessage.corrected_text;
-            const safeDiff = escapeMd(rawDiff);
-            const msgText = `💡 _${safeDiff}_`;
-
-            if (analysis.user_errors && analysis.user_errors.length > 0) {
-                buttons.push([{ text: 'Why?', callback_data: 'explain_mistakes' }]);
-            }
-
-            await bot.sendMessage(chatId, msgText, {
-                parse_mode: 'MarkdownV2',
-                reply_markup: { inline_keyboard: buttons }
-            });
+        if (!isPerfect && analysis.user_errors?.length > 0) {
+            buttons.push([{ text: 'Why? (Mistakes)', callback_data: 'explain_mistakes' }]);
         }
+        if (isPerfect && analysis.better_alternatives?.length > 0) {
+            buttons.push([{ text: '✨ Native style', callback_data: 'show_alternatives' }]);
+        }
+
+        await bot.sendMessage(chatId, msgText, {
+            reply_markup: buttons.length > 0 ? { inline_keyboard: buttons } : undefined
+        });
     }
 
   } catch (err: any) {
-    console.error('❌ ПОЛНАЯ ОШИБКА БОТА:', err);
-    await bot.sendMessage(chatId, `⚠️ Oops, something went wrong.\nError: ${err.message}`, { parse_mode: undefined });
-    userState.set(chatId.toString(), 'IDLE');
+    console.error('❌ ПОЛНАЯ ОШИБКА БОТА:', err.message);
+    await bot.sendMessage(chatId, `⚠️ Oops, something went wrong on the server.\nError: ${err.message}`);
   }
 });
+
+// --- ОБРАБОТКА КНОПОК ---
 
 bot.on('callback_query', async (query) => {
   const chatId = query.message?.chat.id;
   if (!chatId) return;
   const action = query.data;
 
-  if (action === 'start_test') {
-    userState.set(chatId.toString(), 'TESTING');
-    const text = `🧐 *Time for a quick test\\!*
-    
-Please record a voice message answering this question:
-👉 _"Tell me about your favorite hobby\\. Why do you like it?"_
-
-\\(Speak for at least 10\\-20 seconds\\)`; 
-    await bot.sendMessage(chatId, text, { parse_mode: 'MarkdownV2' });
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-
-  if (action?.startsWith('set_level_')) {
-    const newLevel = action.replace('set_level_', '');
-    userSettings.set(chatId.toString(), newLevel);
-    userState.set(chatId.toString(), 'IDLE'); 
-    await bot.sendMessage(chatId, `✅ Level set to *${newLevel}*\\. I will adjust my answers\\.`, { parse_mode: 'MarkdownV2' });
-    await bot.answerCallbackQuery(query.id);
-    return;
-  }
-
-  const analysis = sessionStore.get(chatId.toString());
-  
-  if (!analysis) {
-    await bot.answerCallbackQuery(query.id, { text: 'Session expired (old message)', show_alert: true });
-    return;
-  }
-
   try {
-    if (action === 'explain_mistakes') {
-      const errors = analysis.user_errors;
-
-      if (!errors || errors.length === 0) {
-         await bot.answerCallbackQuery(query.id, { text: 'No detailed errors found.', show_alert: true });
-         return;
-      }
-
-      let text = '❌ *Mistakes Analysis:*';
-      
-      errors.forEach((err: any) => {
-          text += `\n\n🔻 *Wrong:* ${escapeMd(err.error_part)}`;
-          text += `\n✅ *Correct:* ${escapeMd(err.correction)}`;
-          text += `\nℹ️ _${escapeMd(err.explanation)}_`;
-      });
-      
-      await bot.sendMessage(chatId, text, { parse_mode: 'MarkdownV2' });
+    if (action === 'start_test') {
+      userState.set(chatId.toString(), 'TESTING');
+      await bot.sendMessage(chatId, '🧐 Record a voice message: "Tell me about your favorite hobby. Why do you like it?"');
       await bot.answerCallbackQuery(query.id);
+    } 
+    else if (action?.startsWith('set_level_')) {
+      const level = action.replace('set_level_', '');
+      userSettings.set(chatId.toString(), level);
+      userState.set(chatId.toString(), 'IDLE');
+      await bot.sendMessage(chatId, `✅ Level set to ${level}. I'm ready to chat!`);
+      await bot.answerCallbackQuery(query.id);
+    }
+    
+    // Остальная логика Explain/Alternatives подтягивается из sessionStore
+    const analysis = sessionStore.get(chatId.toString());
+    if (!analysis && (action === 'explain_mistakes' || action === 'show_alternatives')) {
+        await bot.answerCallbackQuery(query.id, { text: 'Session expired.', show_alert: true });
+        return;
+    }
+
+    if (action === 'explain_mistakes') {
+        let text = '❌ Mistakes Analysis:\n';
+        analysis.user_errors.forEach((err: any) => {
+            text += `\n• Wrong: ${err.error_part}\n• Correct: ${err.correction}\n• Info: ${err.explanation}\n`;
+        });
+        await bot.sendMessage(chatId, text);
+        await bot.answerCallbackQuery(query.id);
     }
 
     if (action === 'show_alternatives') {
-      const alts = analysis.better_alternatives;
-
-      if (!alts || alts.length === 0) {
-        await bot.answerCallbackQuery(query.id, { text: 'No alternatives available.', show_alert: true });
-        return;
-      }
-
-      let text = '✨ *Native ways to say it:*';
-      alts.forEach((alt: string) => {
-          text += `\n\n🔹 _${escapeMd(alt)}_`;
-      });
-
-      await bot.sendMessage(chatId, text, { parse_mode: 'MarkdownV2' });
-      await bot.answerCallbackQuery(query.id);
+        let text = '✨ Native ways to say it:\n';
+        analysis.better_alternatives.forEach((alt: string) => {
+            text += `\n🔹 ${alt}`;
+        });
+        await bot.sendMessage(chatId, text);
+        await bot.answerCallbackQuery(query.id);
     }
 
-  } catch (err) {
-    console.error('Callback Error:', err);
-    await bot.sendMessage(chatId, "⚠️ Error showing details.");
+  } catch (e: any) {
+    console.error('[LOG] Callback Error:', e);
+    await bot.answerCallbackQuery(query.id, { text: 'Error.' });
   }
 });
