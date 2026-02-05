@@ -4,9 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
 import axios from 'axios'; 
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 
-const ffmpegPath = ffmpegInstaller.path;
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const BACKEND_URL = process.env.SERVER_URL; 
 
@@ -74,6 +72,7 @@ bot.on('message', async (msg) => {
       const fileLink = await bot.getFileLink(msg.voice.file_id);
       const oggIn = path.join(TMP_DIR, `in_${msg.voice.file_id}.ogg`);
       
+      console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
       const response = await fetch(fileLink);
       const arrayBuffer = await response.arrayBuffer();
       fs.writeFileSync(oggIn, Buffer.from(arrayBuffer));
@@ -115,6 +114,7 @@ bot.on('message', async (msg) => {
       }
       await bot.sendChatAction(chatId, 'typing');
       
+      console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
       const res = await fetch(`${BACKEND_URL}/api/assess-level`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,6 +141,7 @@ bot.on('message', async (msg) => {
     await bot.sendChatAction(chatId, 'typing');
     const currentLevel = userSettings.get(chatId.toString())!;
 
+    console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
     const chatRes = await fetch(`${BACKEND_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -158,6 +159,7 @@ bot.on('message', async (msg) => {
     if (aiMessage.content) {
        await bot.sendChatAction(chatId, 'record_voice');
        try {
+         console.log(`Отправляю запрос на: ${BACKEND_URL}/chat`);
          const ttsRes = await fetch(`${BACKEND_URL}/api/tts`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
@@ -212,7 +214,7 @@ bot.on('message', async (msg) => {
     }
 
   } catch (err: any) {
-    console.error('❌ Bot Flow Error:', err.message);
+    console.error('❌ ПОЛНАЯ ОШИБКА БОТА:', err);
     await bot.sendMessage(chatId, `⚠️ Oops, something went wrong.\nError: ${err.message}`, { parse_mode: undefined });
     userState.set(chatId.toString(), 'IDLE');
   }
