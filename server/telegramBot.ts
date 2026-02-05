@@ -134,6 +134,9 @@ bot.on('message', async (msg) => {
       level: currentLevel
     });
 
+    console.log(`[LOG] Статус ответа API: ${chatRes.status}`);
+    console.log(`[LOG] Тело ответа API:`, JSON.stringify(chatRes.data));
+
     const aiMessage = chatRes.data.message;
     const analysis = aiMessage.analysis;
     sessionStore.set(chatId.toString(), analysis);
