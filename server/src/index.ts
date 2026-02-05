@@ -75,10 +75,22 @@ if (!telegramToken) {
   });
 
   // Добавь простой обработчик сообщений для теста
-  bot.on('message', (msg) => {
-    console.log(`Получено сообщение от ${msg.from?.username}: ${msg.text}`);
-    if (msg.text === '/start') {
-      bot.sendMessage(msg.chat.id, 'Привет! Бот на Render работает!');
+  // bot.on('message', (msg) => {
+  //   console.log(`Получено сообщение от ${msg.from?.username}: ${msg.text}`);
+  //   if (msg.text === '/start') {
+  //     bot.sendMessage(msg.chat.id, 'Привет! Бот на Render работает!');
+  //   }
+  // });
+
+  bot.on('message', async (msg) => {
+    const chatId = msg.chat.id;
+    console.log("!!! МАГИЯ: Я ПОЛУЧИЛ СООБЩЕНИЕ:", msg.text);
+    
+    try {
+      await bot.sendMessage(chatId, "БОТ ЖИВ! Я тебя вижу.");
+      console.log("!!! УСПЕХ: Ответ отправлен в Telegram");
+    } catch (e) {
+      console.error("!!! ОШИБКА ОТПРАВКИ:", e);
     }
   });
 }
