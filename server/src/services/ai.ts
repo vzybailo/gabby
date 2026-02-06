@@ -45,10 +45,10 @@ export async function assessLevel(text: string): Promise<AssessmentResult> {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: systemPrompt + '\n\nTASK: Just assess the level (A1-C2) and write a short welcome reply. JSON: { "level": "...", "reply": "..." }' },
           { role: 'user', content: text }
         ],
-        temperature: 0.2,
+        temperature: 0.4, 
         response_format: { type: "json_object" }
       }),
     });
@@ -58,7 +58,7 @@ export async function assessLevel(text: string): Promise<AssessmentResult> {
     
     return {
         level: parsedContent.level || 'A1',
-        reply: parsedContent.reply || parsedContent.corrected
+        reply: parsedContent.reply || 'Welcome!'
     };
 
   } catch (e) {
@@ -74,7 +74,7 @@ export async function getAIResponse(messages: ChatMessage[], level: string = 'B1
     .filter(m => typeof m.content === 'string' && m.content.trim() !== '')
     .map(m => ({ role: m.role, content: m.content }));
 
-  const levelInstruction = `User level: ${level}. Adjust your "reply" complexity to match ${level}. But correct grammar strictly.`;
+  const levelInstruction = `User's English Level: ${level}. Adjust your vocabulary in "reply" to match ${level}, but keep the American "vibe".`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -86,13 +86,21 @@ export async function getAIResponse(messages: ChatMessage[], level: string = 'B1
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [{ role: 'system', content: `${systemPrompt}\n\n${levelInstruction}` }, ...validMessages],
-        temperature: 0.6,
+        temperature: 0.8,     
         response_format: { type: "json_object" }
       }),
     });
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    const parsed = JSON.parse(data.choices[0].message.content);
+
+    return {
+      corrected: parsed.corrected || '',
+      is_correct: parsed.is_correct ?? true,
+      reply: parsed.reply || "I'm interesting in hearing more!",
+      user_errors: parsed.user_errors || [],
+      better_alternatives: parsed.better_alternatives || []
+    };
 
   } catch (e) {
     console.error('AI REQUEST FAILED:', e);

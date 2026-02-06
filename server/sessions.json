@@ -1,0 +1,1838 @@
+{
+  "342056538": {
+    "is_perfect": true,
+    "corrected_text": "No. Only about my duties.",
+    "diff_view": "No. Only about my duties.",
+    "user_errors": [],
+    "better_alternatives": [
+      "I'm just talking about my responsibilities.",
+      "It's all about my tasks."
+    ],
+    "_user_text_cache": "No. Only about my duties."
+  },
+  "342056538_913": {
+    "is_perfect": true,
+    "corrected_text": "What?",
+    "diff_view": "What?",
+    "user_errors": [],
+    "better_alternatives": [
+      "Could you clarify that?",
+      "I'm not sure I understand!"
+    ],
+    "_user_text_cache": "What?"
+  },
+  "342056538_917": {
+    "is_perfect": true,
+    "corrected_text": "About AI.",
+    "diff_view": "About AI.",
+    "user_errors": [],
+    "better_alternatives": [
+      "When it comes to AI",
+      "AI technology"
+    ],
+    "_user_text_cache": "About AI."
+  },
+  "342056538_926": {
+    "is_perfect": true,
+    "corrected_text": "Okay",
+    "diff_view": "Okay",
+    "user_errors": [],
+    "better_alternatives": [
+      "Sounds good!",
+      "Alrighty!"
+    ],
+    "_user_text_cache": "Okay"
+  },
+  "342056538_929": {
+    "is_perfect": true,
+    "corrected_text": "I'm just *working.*",
+    "diff_view": "I'm just *** working. ***",
+    "user_errors": [],
+    "better_alternatives": [
+      "I'm just grinding away.",
+      "I'm just getting stuff done."
+    ],
+    "_user_text_cache": "I'm just working."
+  },
+  "342056538_933": {
+    "is_perfect": false,
+    "corrected_text": "You are *doing* good.",
+    "diff_view": "You are **doing** good.",
+    "user_errors": [
+      {
+        "error_part": "good",
+        "correction": "doing good",
+        "explanation": "In this context, it's more natural to say 'doing good' to describe how someone is performing or feeling."
+      }
+    ],
+    "better_alternatives": [
+      "You're awesome!",
+      "You're killing it!"
+    ],
+    "_user_text_cache": "You are good."
+  },
+  "342056538_936": {
+    "is_perfect": false,
+    "corrected_text": "What's wrong with you?",
+    "diff_view": "What's wrong with you ~&~ *?*",
+    "user_errors": [
+      {
+        "error_part": "&",
+        "correction": "?",
+        "explanation": "Use a question mark to indicate you're asking a question."
+      }
+    ],
+    "better_alternatives": [
+      "What's going on with you?",
+      "Is everything okay?"
+    ],
+    "_user_text_cache": "What's wrong with you&"
+  },
+  "342056538_940": {
+    "message": {
+      "id": "11980a76-1292-47f5-be47-34770a6ddfd2",
+      "role": "assistant",
+      "content": "It seems like your message was a bit short! Did you mean to talk about a ban on something specific? For example, here in the U.S., there have been discussions about banning certain types of plastic. It's a big topic because people are trying to protect the environment. What's your opinion on bans? Are there things in your country that are banned or restricted?",
+      "analysis": {
+        "is_perfect": false,
+        "corrected_text": "Ban",
+        "diff_view": "Ban",
+        "user_errors": [],
+        "better_alternatives": [
+          "That's a no-go.",
+          "We're putting the kibosh on that."
+        ]
+      }
+    },
+    "audioUrl": "/audio/2658c876-1d6e-4608-ad14-69e91ef50c3e.ogg",
+    "_user_text_cache": "Ban"
+  },
+  "342056538_943": {
+    "message": {
+      "id": "0177c306-e977-43fb-8b22-4e3864a46a5e",
+      "role": "assistant",
+      "content": "It looks like you asked, \"What's wrong?\" It’s a good question! Are you feeling okay? Sometimes things can feel a bit off, and it's important to talk about it. If you’re comfortable, I’d love to hear what's on your mind! Have you had a tough day or is there something bothering you?",
+      "analysis": {
+        "is_perfect": false,
+        "corrected_text": "What's wrong?",
+        "diff_view": "~Waht~ *What*'s wrong ~&~ *?*",
+        "user_errors": [
+          {
+            "error_part": "Waht's",
+            "correction": "What's",
+            "explanation": "Make sure to use the correct spelling of 'What's', which is a contraction of 'What is'."
+          },
+          {
+            "error_part": "&",
+            "correction": "?",
+            "explanation": "Use a question mark (?) instead of an ampersand (&) to indicate a question."
+          }
+        ],
+        "better_alternatives": [
+          "What's up?",
+          "Everything okay?"
+        ]
+      }
+    },
+    "audioUrl": "/audio/94087b3e-7799-4b58-a909-33579ba323f2.ogg",
+    "_user_text_cache": "Waht's wrong&"
+  },
+  "342056538_948": {
+    "is_perfect": false,
+    "corrected_text": "about work",
+    "diff_view": "about work",
+    "user_errors": [],
+    "better_alternatives": [
+      "Let's chat about work life!",
+      "What’s the scoop on your job?"
+    ],
+    "_user_text_cache": "about work"
+  },
+  "342056538_953": {
+    "is_perfect": true,
+    "corrected_text": "double check",
+    "diff_view": "double check",
+    "user_errors": [],
+    "better_alternatives": [
+      "Take a second look",
+      "Give it a once-over"
+    ],
+    "_user_text_cache": "double check"
+  },
+  "342056538_965": {
+    "is_perfect": false,
+    "corrected_text": "because I don't *launch* here as a server.",
+    "diff_view": "because I don't *** launch *** here as a server.",
+    "user_errors": [
+      {
+        "error_part": "launch",
+        "correction": "work",
+        "explanation": "The word 'launch' is usually used for starting something like a project or a product, but here, 'work' or 'serve' would fit better."
+      }
+    ],
+    "better_alternatives": [
+      "I don't work as a server here.",
+      "I don't serve food here."
+    ],
+    "_user_text_cache": "because I don't launch here as a server."
+  },
+  "342056538_968": {
+    "is_perfect": true,
+    "corrected_text": "Do it now.",
+    "diff_view": "Do it now.",
+    "user_errors": [],
+    "better_alternatives": [
+      "Get it done ASAP!",
+      "Let's tackle it right away!"
+    ],
+    "_user_text_cache": "Do it now."
+  },
+  "342056538_971": {
+    "is_perfect": true,
+    "corrected_text": "Hey, I'm just checking in. What are you doing now?",
+    "diff_view": "Hey, I'm just checking in. What are you doing now?",
+    "user_errors": [],
+    "better_alternatives": [
+      "Just touching base!",
+      "What's cooking?"
+    ],
+    "_user_text_cache": "Hey, I'm just checking in. What are you doing now?"
+  },
+  "342056538_978": {
+    "is_perfect": true,
+    "corrected_text": "Hey, are you here?",
+    "diff_view": "Hey, are you here?",
+    "user_errors": [],
+    "better_alternatives": [
+      "Hey, you around?",
+      "What's up? Are you there?"
+    ],
+    "_user_text_cache": "Hey, are you here?"
+  },
+  "342056538_981": {
+    "is_perfect": true,
+    "corrected_text": "hey there",
+    "diff_view": "hey there",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it hanging?"
+    ],
+    "_user_text_cache": "hey there"
+  },
+  "342056538_984": {
+    "is_perfect": false,
+    "corrected_text": "Hey there.",
+    "diff_view": "Hey there *.*",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it going?"
+    ],
+    "_user_text_cache": "Hey there"
+  },
+  "342056538_987": {
+    "is_perfect": true,
+    "corrected_text": "Hey there",
+    "diff_view": "Hey there",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it going?"
+    ],
+    "_user_text_cache": "Hey there"
+  },
+  "342056538_996": {
+    "is_perfect": true,
+    "corrected_text": "hey",
+    "diff_view": "hey",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it hanging?"
+    ],
+    "_user_text_cache": "hey"
+  },
+  "342056538_1001": {
+    "is_perfect": true,
+    "corrected_text": "I work.",
+    "diff_view": "I work *.*",
+    "user_errors": [],
+    "better_alternatives": [
+      "I'm employed.",
+      "I have a job."
+    ],
+    "_user_text_cache": "I work"
+  },
+  "342056538_1014": {
+    "is_perfect": false,
+    "corrected_text": "Hello, man.",
+    "diff_view": "Hello *,* man *.*",
+    "user_errors": [
+      {
+        "error_part": "Hello man",
+        "correction": "Hello, man.",
+        "explanation": "Add a comma to separate the greeting from the noun to make it more natural."
+      }
+    ],
+    "better_alternatives": [
+      "Hey dude!",
+      "What's up, buddy?"
+    ],
+    "_user_text_cache": "Hello man"
+  },
+  "342056538_1019": {
+    "is_perfect": false,
+    "corrected_text": "I *am working* here.",
+    "diff_view": "I **am* working *** here *.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "Use the present continuous tense, which requires the verb 'to be' (am) for ongoing actions."
+      }
+    ],
+    "better_alternatives": [
+      "I'm on the job right now!",
+      "I'm clocked in at work!"
+    ],
+    "_user_text_cache": "I working here"
+  },
+  "342056538_1022": {
+    "is_perfect": false,
+    "corrected_text": "I ~working~ *am working* here.",
+    "diff_view": "~And you&~ *I ~working~ *am working* here.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "You need to use the correct form of the verb 'to be' for the present continuous tense."
+      }
+    ],
+    "better_alternatives": [
+      "I'm currently employed here.",
+      "I'm on the job here."
+    ],
+    "_user_text_cache": "And you&"
+  },
+  "342056538_1026": {
+    "is_perfect": true,
+    "corrected_text": "hello",
+    "diff_view": "hello",
+    "user_errors": [],
+    "better_alternatives": [
+      "Hi there!",
+      "Hey!"
+    ],
+    "_user_text_cache": "hello"
+  },
+  "342056538_1038": {
+    "is_perfect": true,
+    "corrected_text": "Hello",
+    "diff_view": "Hello",
+    "user_errors": [],
+    "better_alternatives": [
+      "Hey there!",
+      "What's up?"
+    ],
+    "_user_text_cache": "Hello"
+  },
+  "342056538_1046": {
+    "is_perfect": true,
+    "corrected_text": "Hey there",
+    "diff_view": "Hey there",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it hanging?"
+    ],
+    "_user_text_cache": "Hey there"
+  },
+  "342056538_1049": {
+    "is_perfect": true,
+    "corrected_text": "I'm good.",
+    "diff_view": "I'm good *.*",
+    "user_errors": [],
+    "better_alternatives": [
+      "I'm doing great!",
+      "Feeling fantastic!"
+    ],
+    "_user_text_cache": "I'm good"
+  },
+  "342056538_1055": {
+    "is_perfect": true,
+    "corrected_text": "Hey!",
+    "diff_view": "Hey!",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it going?"
+    ],
+    "_user_text_cache": "Hey!"
+  },
+  "342056538_1061": {
+    "is_perfect": true,
+    "corrected_text": "Hey",
+    "diff_view": "Hey",
+    "user_errors": [],
+    "better_alternatives": [
+      "What's up?",
+      "How's it hanging?"
+    ],
+    "_user_text_cache": "Hey"
+  },
+  "342056538_1066": {
+    "is_perfect": false,
+    "corrected_text": "Shirt",
+    "diff_view": "Shirt",
+    "user_errors": [],
+    "better_alternatives": [
+      "T-shirt",
+      "Button-up shirt"
+    ],
+    "_user_text_cache": "Shirt"
+  },
+  "342056538_1080": {
+    "is_perfect": true,
+    "corrected_text": "Hey",
+    "diff_view": "Hey",
+    "user_errors": [],
+    "better_alternatives": [
+      "Hi there!",
+      "What's up?"
+    ],
+    "_user_text_cache": "Hey"
+  },
+  "342056538_1084": {
+    "is_perfect": true,
+    "corrected_text": "Are you OK?",
+    "diff_view": "Are you OK?",
+    "user_errors": [],
+    "better_alternatives": [
+      "How's it going?",
+      "You good?"
+    ],
+    "_user_text_cache": "Are you OK?"
+  },
+  "342056538_1087": {
+    "is_perfect": false,
+    "corrected_text": "I ~working~ *am working*.",
+    "diff_view": "I *~* working *~ *am working*.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "You need the verb 'to be' to form the present continuous tense. It should be 'I am working'."
+      }
+    ],
+    "better_alternatives": [
+      "I'm on the job right now!",
+      "I'm clocked in at work!"
+    ],
+    "_user_text_cache": "I working"
+  },
+  "342056538_1106": {
+    "is_perfect": false,
+    "corrected_text": "I must *do* it until Monday.",
+    "diff_view": "I must ~to~ **do** it until Monday.",
+    "user_errors": [
+      {
+        "error_part": "must to it",
+        "correction": "must do it",
+        "explanation": "The verb 'must' is followed directly by the base form of the verb, without 'to.'"
+      }
+    ],
+    "better_alternatives": [
+      "I have to get it done by Monday.",
+      "I need to wrap it up before Monday."
+    ],
+    "_user_text_cache": "I must to it until Monday."
+  },
+  "342056538_1114": {
+    "is_perfect": false,
+    "corrected_text": "Why are ~answer~ *you answering* me twice?",
+    "diff_view": "Why are *~* answer *~ *you answering** me twice?",
+    "user_errors": [
+      {
+        "error_part": "answer",
+        "correction": "you answering",
+        "explanation": "Use a form of 'to be' plus the -ing form of a verb to ask about an ongoing action."
+      }
+    ],
+    "better_alternatives": [
+      "Why are you replying to me again?",
+      "Why are you getting back to me again?"
+    ],
+    "_user_text_cache": "Why are answer me twice?"
+  },
+  "342056538_1125": {
+    "is_perfect": false,
+    "corrected_text": "My name is Vitali.",
+    "diff_view": "My ~Name~ *name* is Vitali.",
+    "user_errors": [
+      {
+        "error_part": "Name",
+        "correction": "name",
+        "explanation": "The word 'name' should not be capitalized unless it starts a sentence."
+      }
+    ],
+    "better_alternatives": [
+      "You can say, 'My name's Vitali.'",
+      "Or simply, 'I'm Vitali.'"
+    ],
+    "_user_text_cache": "My Name is Vitali."
+  },
+  "342056538_1129": {
+    "is_perfect": false,
+    "corrected_text": "Yep. I'm *implementing* this bot.",
+    "diff_view": "Yep. I'm ~implemeting~ **implementing** this bot.",
+    "user_errors": [
+      {
+        "error_part": "implemeting",
+        "correction": "implementing",
+        "explanation": "Make sure to spell the word 'implementing' correctly; it means putting a plan or idea into action."
+      }
+    ],
+    "better_alternatives": [
+      "I'm rolling out this bot.",
+      "I'm setting up this bot."
+    ],
+    "_user_text_cache": "Yep. I'm implemeting this bot."
+  },
+  "342056538_1133": {
+    "is_perfect": false,
+    "corrected_text": "What?",
+    "diff_view": "What ~&~ *?*",
+    "user_errors": [
+      {
+        "error_part": "What&",
+        "correction": "What?",
+        "explanation": "The '&' symbol is not needed here. A question mark '?' is used to indicate a question."
+      }
+    ],
+    "better_alternatives": [
+      "What do you mean?",
+      "Can you clarify that?"
+    ],
+    "_user_text_cache": "What&"
+  },
+  "342056538_1139": {
+    "is_perfect": false,
+    "corrected_text": "Sure! About our context.",
+    "diff_view": "Sure! About our context *.*",
+    "user_errors": [
+      {
+        "error_part": "About our context",
+        "correction": "Can you share more about our context?",
+        "explanation": "The phrase needs to be more of a question or a complete sentence to invite discussion."
+      }
+    ],
+    "better_alternatives": [
+      "Can you elaborate on our context?",
+      "What context are you referring to?"
+    ],
+    "_user_text_cache": "Sure! About our context"
+  },
+  "342056538_1140": {
+    "is_perfect": true,
+    "corrected_text": "no",
+    "diff_view": "no",
+    "user_errors": [],
+    "better_alternatives": [
+      "Nah, I'm good!",
+      "Not really, thanks!"
+    ],
+    "_user_text_cache": "no"
+  },
+  "342056538_1144": {
+    "is_perfect": true,
+    "corrected_text": "listen",
+    "diff_view": "listen",
+    "user_errors": [],
+    "better_alternatives": [
+      "Tune in",
+      "Catch the sound"
+    ],
+    "_user_text_cache": "listen"
+  },
+  "342056538_1154": {
+    "is_perfect": true,
+    "corrected_text": "What?",
+    "diff_view": "What?",
+    "user_errors": [],
+    "better_alternatives": [
+      "What did you say?",
+      "Huh?"
+    ],
+    "_user_text_cache": "What?",
+    "reply": "Hey there! It seems like you might be surprised or confused about something. Is there a specific topic or question on your mind? I’m all ears and happy to help! What are you thinking about?",
+    "_translation": "Привет! Похоже, ты можешь быть удивлён или озадачен чем-то. Есть ли какая-то конкретная тема или вопрос, который тебя беспокоит? Я готов выслушать и с радостью помочь! О чём ты думаешь?"
+  },
+  "342056538_1160": {
+    "is_perfect": true,
+    "corrected_text": "Hey",
+    "diff_view": "Hey",
+    "user_errors": [],
+    "better_alternatives": [
+      "Hiya!",
+      "What's up?"
+    ],
+    "_user_text_cache": "Hey",
+    "reply": "Hey there! How's your day going? I love starting conversations with a friendly 'Hey!' It just makes everything feel more relaxed. Do you have anything exciting planned for today?",
+    "_translation": "Привет! Как проходит твой день? Мне нравится начинать разговоры с дружелюбного «Привет!» Это делает все более расслабленным. У тебя есть что-то интересное запланированное на сегодня?"
+  },
+  "342056538_1163": {
+    "is_perfect": false,
+    "corrected_text": "I *am* working.",
+    "diff_view": "I **am** working *.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "You need to use the correct form of 'to be' with the present continuous tense."
+      }
+    ],
+    "better_alternatives": [
+      "I'm on the grind right now.",
+      "I'm busy hustling."
+    ],
+    "_user_text_cache": "I working",
+    "reply": "It sounds like you're busy! Working on something interesting? I remember when I was in college, I juggled work and classes. It was challenging, but I learned a lot about time management. What kind of work are you doing right now?",
+    "_translated_errors": "Ошибка: working -> Исправление: am working. Объяснение: Вам нужно использовать правильную форму глагола 'to be' с настоящим продолженным временем.",
+    "_translation": "Звучит так, будто ты занят! Работаешь над чем-то интересным? Я помню, когда учился в колледже, я совмещал работу и занятия. Это было сложно, но я многому научился в управлении временем. Над какой работой ты сейчас занимаешься?"
+  },
+  "342056538_1174": {
+    "is_perfect": false,
+    "corrected_text": "I *am* working here.",
+    "diff_view": "I **am** working here *.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "You need to use the correct form of 'to be' (am) with the present continuous tense."
+      }
+    ],
+    "better_alternatives": [
+      "I'm on the job here.",
+      "I'm clocking in at this place."
+    ],
+    "_user_text_cache": "I working here",
+    "reply": "That's great! It sounds like you're doing something interesting. What kind of work do you do? I always think it's fun to hear about different jobs and experiences. Have you met any interesting people at work?"
+  },
+  "342056538_1175": {
+    "is_perfect": false,
+    "corrected_text": "I *am* working here.",
+    "diff_view": "I **am** working here *.*",
+    "user_errors": [
+      {
+        "error_part": "working",
+        "correction": "am working",
+        "explanation": "You need to use the correct form of 'to be' (am) with the present continuous tense."
+      }
+    ],
+    "better_alternatives": [
+      "I'm on the job here.",
+      "I'm clocking in at this place."
+    ],
+    "_user_text_cache": "I working here",
+    "reply": "That's great! It sounds like you're doing something interesting. What kind of work do you do? I always think it's fun to hear about different jobs and experiences. Have you met any interesting people at work?"
+  },
+  "342056538_1177": {
+    "is_perfect": false,
+    "corrected_text": "I must *go* to school.",
+    "diff_view": "I must ~to~ *** go *** to school.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "'Must' is a modal verb and should be followed directly by the base form of the verb without 'to'."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go to school.",
+      "I need to head to school."
+    ],
+    "_user_text_cache": "I must to go to school.",
+    "reply": "That's great that you have school! Education is so important. Are you excited about learning something new? School can be a lot of fun, especially when you get to meet friends and do interesting projects. What grade are you in, and what’s your favorite subject?"
+  },
+  "342056538_1178": {
+    "is_perfect": false,
+    "corrected_text": "I must *go* to school.",
+    "diff_view": "I must ~to~ *** go *** to school.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "'Must' is a modal verb and should be followed directly by the base form of the verb without 'to'."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go to school.",
+      "I need to head to school."
+    ],
+    "_user_text_cache": "I must to go to school.",
+    "reply": "That's great that you have school! Education is so important. Are you excited about learning something new? School can be a lot of fun, especially when you get to meet friends and do interesting projects. What grade are you in, and what’s your favorite subject?"
+  },
+  "342056538_1185": {
+    "is_perfect": false,
+    "corrected_text": "Hello.",
+    "diff_view": "~Helo~ *Hello.*",
+    "user_errors": [
+      {
+        "error_part": "Helo",
+        "correction": "Hello",
+        "explanation": "Make sure to spell words correctly to be better understood.",
+        "explanation_ru": "Убедитесь, что вы правильно пишете слова, чтобы вас лучше понимали."
+      }
+    ],
+    "better_alternatives": [
+      "Hi there!",
+      "Hey!"
+    ],
+    "_user_text_cache": "Helo",
+    "reply": "Hey there! It's great to see you! How's your day going so far? Have you been up to anything fun lately?",
+    "_translation": "Привет! Здорово тебя видеть! Как проходит твой день? Занимался чем-то интересным в последнее время?"
+  },
+  "342056538_1186": {
+    "is_perfect": false,
+    "corrected_text": "Hello.",
+    "diff_view": "~Helo~ *Hello.*",
+    "user_errors": [
+      {
+        "error_part": "Helo",
+        "correction": "Hello",
+        "explanation": "Make sure to spell words correctly to be better understood.",
+        "explanation_ru": "Убедитесь, что вы правильно пишете слова, чтобы вас лучше понимали."
+      }
+    ],
+    "better_alternatives": [
+      "Hi there!",
+      "Hey!"
+    ],
+    "_user_text_cache": "Helo",
+    "reply": "Hey there! It's great to see you! How's your day going so far? Have you been up to anything fun lately?",
+    "_translation": "Привет! Здорово тебя видеть! Как проходит твой день? Занимался чем-то интересным в последнее время?"
+  },
+  "342056538_1188": {
+    "is_perfect": false,
+    "corrected_text": "I ~happy~ *am happy* to hear it now.",
+    "diff_view": "I *~* happy *~ *am happy** to hear it now.",
+    "user_errors": [
+      {
+        "error_part": "happy",
+        "correction": "am happy",
+        "explanation": "You need to use 'am' to form the present simple tense with 'I'.",
+        "explanation_ru": "Вам нужно использовать 'am', чтобы образовать настоящее простое время с 'I'."
+      }
+    ],
+    "better_alternatives": [
+      "I'm thrilled to hear that!",
+      "That's music to my ears!"
+    ],
+    "_user_text_cache": "I happy to hear it now.",
+    "reply": "I'm glad to hear that you're happy! It's always nice to share good news. It reminds me of how I felt when I recently heard that my friend got a new job. We celebrated with some pizza! Do you have any recent good news to share?"
+  },
+  "342056538_1189": {
+    "is_perfect": false,
+    "corrected_text": "I ~happy~ *am happy* to hear it now.",
+    "diff_view": "I *~* happy *~ *am happy** to hear it now.",
+    "user_errors": [
+      {
+        "error_part": "happy",
+        "correction": "am happy",
+        "explanation": "You need to use 'am' to form the present simple tense with 'I'.",
+        "explanation_ru": "Вам нужно использовать 'am', чтобы образовать настоящее простое время с 'I'."
+      }
+    ],
+    "better_alternatives": [
+      "I'm thrilled to hear that!",
+      "That's music to my ears!"
+    ],
+    "_user_text_cache": "I happy to hear it now.",
+    "reply": "I'm glad to hear that you're happy! It's always nice to share good news. It reminds me of how I felt when I recently heard that my friend got a new job. We celebrated with some pizza! Do you have any recent good news to share?"
+  },
+  "342056538_1191": {
+    "is_perfect": false,
+    "corrected_text": "I *am* happy to hear it now.",
+    "diff_view": "I **am** happy to hear it now.",
+    "user_errors": [
+      {
+        "error_part": "happy",
+        "correction": "am happy",
+        "explanation": "You need to use the verb 'to be' to express how you feel, so it should be 'I am happy.'",
+        "explanation_ru": "Вам нужно использовать глагол 'быть', чтобы выразить, как вы себя чувствуете, поэтому должно быть 'Я счастлив(а).'"
+      }
+    ],
+    "better_alternatives": [
+      "I'm thrilled to hear that!",
+      "I'm so stoked about this!"
+    ],
+    "_user_text_cache": "I happy to hear it now.",
+    "reply": "I’m so glad to hear that! It's always nice to share good news with friends, right? It reminds me of a time when my friend got a promotion at work, and we celebrated with a surprise party. Do you have any recent good news that makes you happy?",
+    "_translation": "Я так рад это слышать! Всегда приятно делиться хорошими новостями с друзьями, правда? Это напоминает мне о том времени, когда мой друг получил повышение на работе, и мы отпраздновали это с сюрпризом. У тебя есть какие-нибудь недавние хорошие новости, которые делают тебя счастливым?"
+  },
+  "342056538_1192": {
+    "is_perfect": false,
+    "corrected_text": "I *am* happy to hear it now.",
+    "diff_view": "I **am** happy to hear it now.",
+    "user_errors": [
+      {
+        "error_part": "happy",
+        "correction": "am happy",
+        "explanation": "You need to use the verb 'to be' to express how you feel, so it should be 'I am happy.'",
+        "explanation_ru": "Вам нужно использовать глагол 'быть', чтобы выразить, как вы себя чувствуете, поэтому должно быть 'Я счастлив(а).'"
+      }
+    ],
+    "better_alternatives": [
+      "I'm thrilled to hear that!",
+      "I'm so stoked about this!"
+    ],
+    "_user_text_cache": "I happy to hear it now.",
+    "reply": "I’m so glad to hear that! It's always nice to share good news with friends, right? It reminds me of a time when my friend got a promotion at work, and we celebrated with a surprise party. Do you have any recent good news that makes you happy?",
+    "_translation": "Я так рад это слышать! Всегда приятно делиться хорошими новостями с друзьями, правда? Это напоминает мне о том времени, когда мой друг получил повышение на работе, и мы отпраздновали это с сюрпризом. У тебя есть какие-нибудь недавние хорошие новости, которые делают тебя счастливым?"
+  },
+  "342056538_1195": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I *woke* up early, *then* I *went* to *work* on foot because my car *is* ~breaked~ *broken*, and I felt very *bored*.",
+    "diff_view": "Yesterday ~i has wake~ *I *woke** up early, ~than i go~ **then* I *went** to ~job by~ **work* on* foot because my car *** is ** ~* breaked *~ *broken**, and ~i~ *I* felt very ~boring~ **bored**.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use the Past Simple tense to describe actions completed in the past.",
+        "explanation_ru": "Используйте прошедшее простое время, чтобы описать действия, завершенные в прошлом."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "Use 'then' to indicate the sequence of events.",
+        "explanation_ru": "Используйте 'тогда', чтобы указать последовательность событий."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use Past Simple for completed actions in the past.",
+        "explanation_ru": "Используйте прошедшее простое для завершенных действий в прошлом."
+      },
+      {
+        "error_part": "job by foot",
+        "correction": "work on foot",
+        "explanation": "Use 'work' instead of 'job' and 'on foot' instead of 'by foot' for natural phrasing.",
+        "explanation_ru": "Используйте 'работа' вместо 'работы' и 'пешком' вместо 'на ногах' для естественного звучания."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle of 'break.'",
+        "explanation_ru": "'Сломанный' - правильная форма причастия прошедшего времени от 'сломать'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "Use 'bored' to express your feeling about the situation.",
+        "explanation_ru": "Используйте 'скучаю' для выражения своих чувств по поводу ситуации."
+      }
+    ],
+    "better_alternatives": [
+      "I had to walk to work because my car broke down.",
+      "I was feeling pretty bored on my walk."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite a morning! Waking up early can be nice if you have plans, but it can be a drag if things don't go smoothly, like when your car breaks down. Walking to work can be good for you, though! Have you ever noticed how much more you see when you walk instead of drive? I remember one time I found a cute little coffee shop just a few blocks from my office while walking. What kind of job do you have? Do you like it?"
+  },
+  "342056538_1196": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I *woke* up early, *then* I *went* to *work* on foot because my car *is* ~breaked~ *broken*, and I felt very *bored*.",
+    "diff_view": "Yesterday ~i has wake~ *I *woke** up early, ~than i go~ **then* I *went** to ~job by~ **work* on* foot because my car *** is ** ~* breaked *~ *broken**, and ~i~ *I* felt very ~boring~ **bored**.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use the Past Simple tense to describe actions completed in the past.",
+        "explanation_ru": "Используйте прошедшее простое время, чтобы описать действия, завершенные в прошлом."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "Use 'then' to indicate the sequence of events.",
+        "explanation_ru": "Используйте 'тогда', чтобы указать последовательность событий."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use Past Simple for completed actions in the past.",
+        "explanation_ru": "Используйте прошедшее простое для завершенных действий в прошлом."
+      },
+      {
+        "error_part": "job by foot",
+        "correction": "work on foot",
+        "explanation": "Use 'work' instead of 'job' and 'on foot' instead of 'by foot' for natural phrasing.",
+        "explanation_ru": "Используйте 'работа' вместо 'работы' и 'пешком' вместо 'на ногах' для естественного звучания."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle of 'break.'",
+        "explanation_ru": "'Сломанный' - правильная форма причастия прошедшего времени от 'сломать'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "Use 'bored' to express your feeling about the situation.",
+        "explanation_ru": "Используйте 'скучаю' для выражения своих чувств по поводу ситуации."
+      }
+    ],
+    "better_alternatives": [
+      "I had to walk to work because my car broke down.",
+      "I was feeling pretty bored on my walk."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite a morning! Waking up early can be nice if you have plans, but it can be a drag if things don't go smoothly, like when your car breaks down. Walking to work can be good for you, though! Have you ever noticed how much more you see when you walk instead of drive? I remember one time I found a cute little coffee shop just a few blocks from my office while walking. What kind of job do you have? Do you like it?"
+  },
+  "342056538_1199": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday ~i~ *I* ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday *~* i *~ *I* ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "i",
+        "correction": "I",
+        "explanation": "Always capitalize 'I' when referring to yourself."
+      },
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for completed actions."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate time or sequence."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for actions that happened in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more natural in this context when referring to your place of employment."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use the past tense 'was' to describe a situation that occurred in the past."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle form of 'break.'"
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes your feeling, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "Instead of 'go to job,' you could say 'head to work.'",
+      "You could also say 'walked to my job.'"
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite a busy day! Waking up early can be tough, especially if you have to walk to work. I remember a time when my car broke down, and I had to walk a few miles to get to my job. It was a bit of a workout! Did you listen to music or a podcast while you were walking? That can make the time go by faster!"
+  },
+  "342056538_1200": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday ~i~ *I* ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday *~* i *~ *I* ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "i",
+        "correction": "I",
+        "explanation": "Always capitalize 'I' when referring to yourself."
+      },
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for completed actions."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate time or sequence."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for actions that happened in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more natural in this context when referring to your place of employment."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use the past tense 'was' to describe a situation that occurred in the past."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle form of 'break.'"
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes your feeling, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "Instead of 'go to job,' you could say 'head to work.'",
+      "You could also say 'walked to my job.'"
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite a busy day! Waking up early can be tough, especially if you have to walk to work. I remember a time when my car broke down, and I had to walk a few miles to get to my job. It was a bit of a workout! Did you listen to music or a podcast while you were walking? That can make the time go by faster!"
+  },
+  "342056538_1202": {
+    "is_perfect": false,
+    "corrected_text": "I ~must to~ *must* go.",
+    "diff_view": "I *~* must to *~ *must** go.",
+    "user_errors": [
+      {
+        "error_part": "to go",
+        "correction": "go",
+        "explanation": "The modal verb 'must' does not require 'to' before the main verb."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go.",
+      "I have to take off."
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "It sounds like you're ready to head out! That's great! It's always good to have places to be, right? Are you going somewhere fun or just taking care of some errands?"
+  },
+  "342056538_1203": {
+    "is_perfect": false,
+    "corrected_text": "I ~must to~ *must* go.",
+    "diff_view": "I *~* must to *~ *must** go.",
+    "user_errors": [
+      {
+        "error_part": "to go",
+        "correction": "go",
+        "explanation": "The modal verb 'must' does not require 'to' before the main verb."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go.",
+      "I have to take off."
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "It sounds like you're ready to head out! That's great! It's always good to have places to be, right? Are you going somewhere fun or just taking care of some errands?"
+  },
+  "342056538_1206": {
+    "is_perfect": false,
+    "corrected_text": "I must ~to~ *go*.",
+    "diff_view": "I must *~* to *~ ** go ***.",
+    "user_errors": [
+      {
+        "error_part": "to",
+        "correction": "",
+        "explanation": "The verb 'must' is a modal verb, so it should be followed directly by the base form of the verb without 'to'."
+      }
+    ],
+    "better_alternatives": [
+      "I have to go.",
+      "I gotta bounce!"
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "Ah, I see you need to leave! It's important to take breaks and manage your time well. Do you have any plans for where you're going? I always like to hear what people are up to!"
+  },
+  "342056538_1208": {
+    "is_perfect": false,
+    "corrected_text": "I must ~to~ *go*.",
+    "diff_view": "I must *~* to *~ ** go ***.",
+    "user_errors": [
+      {
+        "error_part": "to",
+        "correction": "",
+        "explanation": "The verb 'must' is a modal verb, so it should be followed directly by the base form of the verb without 'to'."
+      }
+    ],
+    "better_alternatives": [
+      "I have to go.",
+      "I gotta bounce!"
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "Ah, I see you need to leave! It's important to take breaks and manage your time well. Do you have any plans for where you're going? I always like to hear what people are up to!"
+  },
+  "342056538_1210": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is the correct word to indicate the next action."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for completed actions in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more commonly used when referring to a place of employment."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use 'was' to indicate a past state or condition."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle form of the verb."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes your feeling, while 'boring' describes something that causes that feeling."
+      }
+    ],
+    "better_alternatives": [
+      "I walked to work instead of driving.",
+      "I hit the road on foot because my car was acting up."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow! It sounds like you had quite a day! Waking up early can be nice, but having car trouble and walking to work must have been a bit frustrating. I remember a time when my car broke down right before a big meeting, and I had to rush to catch the bus. It was such a scramble! Do you like walking to work, or do you prefer driving? What do you usually do to pass the time while you walk?"
+  },
+  "342056538_1213": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is the correct word to indicate the next action."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for completed actions in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more commonly used when referring to a place of employment."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use 'was' to indicate a past state or condition."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle form of the verb."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes your feeling, while 'boring' describes something that causes that feeling."
+      }
+    ],
+    "better_alternatives": [
+      "I walked to work instead of driving.",
+      "I hit the road on foot because my car was acting up."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow! It sounds like you had quite a day! Waking up early can be nice, but having car trouble and walking to work must have been a bit frustrating. I remember a time when my car broke down right before a big meeting, and I had to rush to catch the bus. It was such a scramble! Do you like walking to work, or do you prefer driving? What do you usually do to pass the time while you walk?"
+  },
+  "342056538_1215": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is breaked~ *is broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is breaked *~ *is broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past simple form 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate sequence, while 'than' is for comparisons."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past simple form 'went' for actions completed in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more common as a noun in this context."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle form of 'break'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes how you felt, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "I walked to work because my car was out of commission.",
+      "My car broke down, so I hoofed it to work!"
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an adventure yesterday! Waking up early can be nice, but it’s not so fun when your car is broken. I remember a time when my car wouldn't start, and I had to take the bus to work. It felt a bit like an adventure, but also a bit annoying! How was your walk to work? Did you see anything interesting along the way?"
+  },
+  "342056538_1218": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is breaked~ *is broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is breaked *~ *is broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past simple form 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate sequence, while 'than' is for comparisons."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past simple form 'went' for actions completed in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is more common as a noun in this context."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle form of 'break'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes how you felt, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "I walked to work because my car was out of commission.",
+      "My car broke down, so I hoofed it to work!"
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an adventure yesterday! Waking up early can be nice, but it’s not so fun when your car is broken. I remember a time when my car wouldn't start, and I had to take the bus to work. It felt a bit like an adventure, but also a bit annoying! How was your walk to work? Did you see anything interesting along the way?"
+  },
+  "342056538_1220": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday ~i~ *I* ~has wake~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is breaked~ *broke down*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday *~* i *~ *I* ~* has wake *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is breaked *~ *broke down**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "i",
+        "correction": "I",
+        "explanation": "Always capitalize 'I' when referring to yourself."
+      },
+      {
+        "error_part": "has wake",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate time order, while 'than' is used for comparisons."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for actions that happened in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is a more natural way to refer to your place of employment."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "broke down",
+        "explanation": "'Broke down' is the correct past tense of 'break down'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes how you felt, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "I had to walk to work.",
+      "I hit the road on foot."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an eventful day! Waking up early can be tough, especially when your car isn't working. It’s always a hassle when transportation issues come up, isn't it? Walking to work is a good way to get some exercise, though! I remember one time my car broke down, and I had to take the bus. I got to see so many interesting things along the way! How far do you usually have to walk to get to work?"
+  },
+  "342056538_1221": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday ~i~ *I* ~has wake~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is breaked~ *broke down*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday *~* i *~ *I* ~* has wake *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is breaked *~ *broke down**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "i",
+        "correction": "I",
+        "explanation": "Always capitalize 'I' when referring to yourself."
+      },
+      {
+        "error_part": "has wake",
+        "correction": "woke",
+        "explanation": "Use the past tense 'woke' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to indicate time order, while 'than' is used for comparisons."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use the past tense 'went' for actions that happened in the past."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is a more natural way to refer to your place of employment."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "broke down",
+        "explanation": "'Broke down' is the correct past tense of 'break down'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Bored' describes how you felt, while 'boring' describes something that causes boredom."
+      }
+    ],
+    "better_alternatives": [
+      "I had to walk to work.",
+      "I hit the road on foot."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an eventful day! Waking up early can be tough, especially when your car isn't working. It’s always a hassle when transportation issues come up, isn't it? Walking to work is a good way to get some exercise, though! I remember one time my car broke down, and I had to take the bus. I got to see so many interesting things along the way! How far do you usually have to walk to get to work?"
+  },
+  "342056538_1223": {
+    "is_perfect": false,
+    "corrected_text": "I ~must to~ *must go*.",
+    "diff_view": "I *~* must to *~ *must* go ***.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "The modal verb 'must' should not be followed by 'to'. Just use 'must go'.",
+        "explanation_ru": "Модальный глагол 'must' не должен сопровождаться 'to'. Просто используйте 'must go'."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go (this is slang for 'I have to go')",
+      "I need to head out (a casual way to say you are leaving)"
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "It sounds like you need to get going somewhere! That's exciting. Where do you have to go? Sometimes, when I have to leave quickly, I feel a little rush of energy. Have you ever felt that way?",
+    "_translation": "Похоже, тебе нужно куда-то спешить! Это волнительно. Куда ты собираешься? Иногда, когда мне нужно быстро уйти, я чувствую небольшой прилив энергии. Ты когда-нибудь испытывал такое?"
+  },
+  "342056538_1224": {
+    "is_perfect": false,
+    "corrected_text": "I ~must to~ *must go*.",
+    "diff_view": "I *~* must to *~ *must* go ***.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "The modal verb 'must' should not be followed by 'to'. Just use 'must go'.",
+        "explanation_ru": "Модальный глагол 'must' не должен сопровождаться 'to'. Просто используйте 'must go'."
+      }
+    ],
+    "better_alternatives": [
+      "I gotta go (this is slang for 'I have to go')",
+      "I need to head out (a casual way to say you are leaving)"
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "It sounds like you need to get going somewhere! That's exciting. Where do you have to go? Sometimes, when I have to leave quickly, I feel a little rush of energy. Have you ever felt that way?",
+    "_translation": "Похоже, тебе нужно куда-то спешить! Это волнительно. Куда ты собираешься? Иногда, когда мне нужно быстро уйти, я чувствую небольшой прилив энергии. Ты когда-нибудь испытывал такое?"
+  },
+  "342056538_1228": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past simple 'woke' instead of 'has' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to show the order of events."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use past simple 'went' for the action of going to work."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use past tense 'was' to refer to the car in the past."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle of 'break'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "Use 'bored' to describe how you felt."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is a more natural term to refer to one's job in this context."
+      }
+    ],
+    "better_alternatives": [
+      "I was stuck walking to work.",
+      "I had to hoof it to the office."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an eventful day! Waking up early can be tough, especially when things don't go as planned. Walking to work instead of driving is a big change! Did you enjoy the fresh air, or was it more of a hassle? Sometimes walking can give you a chance to clear your mind. How do you usually get to work? "
+  },
+  "342056538_1229": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I ~has~ *woke* up early, ~than~ *then* I ~go~ *went* to ~job~ *work* by foot because my car ~is~ *was* ~breaked~ *broken*, and I felt very ~boring~ *bored*.",
+    "diff_view": "Yesterday ~i~ *I ~* has ~wake~ *~ *woke** up early, *~* than ~i~ *~ *then* I ~* go *~ *went** to *~* job *~ *work** by foot because my car *~* is *~ *was* ~* breaked *~ *broken**, and ~i~ *I* felt very *~* boring *~ *bored**.",
+    "user_errors": [
+      {
+        "error_part": "has",
+        "correction": "woke",
+        "explanation": "Use the past simple 'woke' instead of 'has' for actions completed in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "'Then' is used to show the order of events."
+      },
+      {
+        "error_part": "go",
+        "correction": "went",
+        "explanation": "Use past simple 'went' for the action of going to work."
+      },
+      {
+        "error_part": "is",
+        "correction": "was",
+        "explanation": "Use past tense 'was' to refer to the car in the past."
+      },
+      {
+        "error_part": "breaked",
+        "correction": "broken",
+        "explanation": "'Broken' is the correct past participle of 'break'."
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "Use 'bored' to describe how you felt."
+      },
+      {
+        "error_part": "job",
+        "correction": "work",
+        "explanation": "'Work' is a more natural term to refer to one's job in this context."
+      }
+    ],
+    "better_alternatives": [
+      "I was stuck walking to work.",
+      "I had to hoof it to the office."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Wow, it sounds like you had quite an eventful day! Waking up early can be tough, especially when things don't go as planned. Walking to work instead of driving is a big change! Did you enjoy the fresh air, or was it more of a hassle? Sometimes walking can give you a chance to clear your mind. How do you usually get to work? "
+  },
+  "342056538_1231": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than i go to job",
+        "correction": "then I went to work",
+        "explanation": "Use Past Simple for actions that happened after waking up and correct 'than' to 'then' for sequence."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "The correct past participle of 'break' is 'broken'."
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "'Boring' describes something that causes boredom, while 'bored' describes the feeling one has."
+      }
+    ],
+    "better_alternatives": [
+      "I woke up early yesterday, then I walked to work because my car was broken, and I felt really bored.",
+      "Yesterday, I got up early, then I went to work on foot because my car was out of order, and I felt really bored.",
+      "I woke up early yesterday, walked to my job because my car was broken, and I was really bored."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort! It sounds like you had a busy day yesterday. Waking up early can be tough, especially when plans change. Did you have a long walk to work? "
+  },
+  "342056538_1232": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than i go to job",
+        "correction": "then I went to work",
+        "explanation": "Use Past Simple for actions that happened after waking up and correct 'than' to 'then' for sequence."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "The correct past participle of 'break' is 'broken'."
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "'Boring' describes something that causes boredom, while 'bored' describes the feeling one has."
+      }
+    ],
+    "better_alternatives": [
+      "I woke up early yesterday, then I walked to work because my car was broken, and I felt really bored.",
+      "Yesterday, I got up early, then I went to work on foot because my car was out of order, and I felt really bored.",
+      "I woke up early yesterday, walked to my job because my car was broken, and I was really bored."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort! It sounds like you had a busy day yesterday. Waking up early can be tough, especially when plans change. Did you have a long walk to work? "
+  },
+  "342056538_1234": {
+    "is_perfect": false,
+    "corrected_text": "I must go.",
+    "diff_view": "I must ~to~ go.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "The modal verb 'must' should be followed directly by the base form of the verb, without 'to.'",
+        "explanation_ru": "Модальный глагол 'must' должен непосредственно следовать за основной формой глагола, без 'to.'"
+      }
+    ],
+    "better_alternatives": [
+      "I have to go.",
+      "I need to go.",
+      "I'm off."
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "You're on the right track with your sentence! Just remember, you don't need 'to' after 'must.' It's great to see you practicing! Where are you planning to go?",
+    "_translation": "Вы на правильном пути с вашим предложением! Просто помните, что после 'must' не нужно 'to'. Здорово видеть, как вы практикуетесь! Куда вы планируете поехать?"
+  },
+  "342056538_1235": {
+    "is_perfect": false,
+    "corrected_text": "I must go.",
+    "diff_view": "I must ~to~ go.",
+    "user_errors": [
+      {
+        "error_part": "must to go",
+        "correction": "must go",
+        "explanation": "The modal verb 'must' should be followed directly by the base form of the verb, without 'to.'",
+        "explanation_ru": "Модальный глагол 'must' должен непосредственно следовать за основной формой глагола, без 'to.'"
+      }
+    ],
+    "better_alternatives": [
+      "I have to go.",
+      "I need to go.",
+      "I'm off."
+    ],
+    "_user_text_cache": "I must to go.",
+    "reply": "You're on the right track with your sentence! Just remember, you don't need 'to' after 'must.' It's great to see you practicing! Where are you planning to go?",
+    "_translation": "Вы на правильном пути с вашим предложением! Просто помните, что после 'must' не нужно 'to'. Здорово видеть, как вы практикуетесь! Куда вы планируете поехать?"
+  },
+  "342056538_1237": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past.",
+        "explanation_ru": "Используйте Past Simple для завершенных действий в прошлом."
+      },
+      {
+        "error_part": "than i go",
+        "correction": "then I went",
+        "explanation": "Use Past Simple for actions that happened after waking up.",
+        "explanation_ru": "Используйте Past Simple для действий, которые произошли после пробуждения."
+      },
+      {
+        "error_part": "by foot",
+        "correction": "on foot",
+        "explanation": "'On foot' is the correct phrase to describe walking.",
+        "explanation_ru": "'На ногах' — правильная фраза для описания ходьбы."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle of 'break.'",
+        "explanation_ru": "'Сломанный' — правильная форма причастия прошедшего времени от 'сломать.'"
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "Use 'bored' to describe your feelings, not 'boring,' which describes something else.",
+        "explanation_ru": "Используйте 'скучающий' для описания своих чувств, а не 'скучный,' который описывает что-то другое."
+      }
+    ],
+    "better_alternatives": [
+      "Yesterday I got up early and walked to work because my car was broken.",
+      "I woke up early yesterday, then walked to work since my car isn't working.",
+      "I woke up early and went to work on foot because my car broke down."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort on your sentence! I can see you're trying to express your day. It's interesting that you woke up early! How did that affect your day? Did you enjoy any part of it?"
+  },
+  "342056538_1238": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past.",
+        "explanation_ru": "Используйте Past Simple для завершенных действий в прошлом."
+      },
+      {
+        "error_part": "than i go",
+        "correction": "then I went",
+        "explanation": "Use Past Simple for actions that happened after waking up.",
+        "explanation_ru": "Используйте Past Simple для действий, которые произошли после пробуждения."
+      },
+      {
+        "error_part": "by foot",
+        "correction": "on foot",
+        "explanation": "'On foot' is the correct phrase to describe walking.",
+        "explanation_ru": "'На ногах' — правильная фраза для описания ходьбы."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle of 'break.'",
+        "explanation_ru": "'Сломанный' — правильная форма причастия прошедшего времени от 'сломать.'"
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "Use 'bored' to describe your feelings, not 'boring,' which describes something else.",
+        "explanation_ru": "Используйте 'скучающий' для описания своих чувств, а не 'скучный,' который описывает что-то другое."
+      }
+    ],
+    "better_alternatives": [
+      "Yesterday I got up early and walked to work because my car was broken.",
+      "I woke up early yesterday, then walked to work since my car isn't working.",
+      "I woke up early and went to work on foot because my car broke down."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort on your sentence! I can see you're trying to express your day. It's interesting that you woke up early! How did that affect your day? Did you enjoy any part of it?"
+  },
+  "342056538_1247": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "Use 'then' for sequence in time; 'than' is for comparisons."
+      },
+      {
+        "error_part": "go to job by foot",
+        "correction": "went to work on foot",
+        "explanation": "'Went' is the past tense, and 'work' is more natural than 'job' in this context."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "The correct past participle of 'break' is 'broken.'"
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Boring' describes something that causes boredom; 'bored' describes how you felt."
+      }
+    ],
+    "better_alternatives": [
+      "I got up early yesterday, then walked to work because my car is broken, and I felt a bit bored.",
+      "Yesterday, I woke up early and walked to work since my car is out of commission, and I was feeling really bored.",
+      "I rose early yesterday, walked to work due to my car being broken, and honestly, I felt quite bored."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "It sounds like you had quite a day! Waking up early can be tough, especially when you have to walk to work. Did you enjoy the walk at least? It’s always nice to get some fresh air! Let's also chat about your car troubles—have you been able to fix it yet?"
+  },
+  "342056538_1248": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than",
+        "correction": "then",
+        "explanation": "Use 'then' for sequence in time; 'than' is for comparisons."
+      },
+      {
+        "error_part": "go to job by foot",
+        "correction": "went to work on foot",
+        "explanation": "'Went' is the past tense, and 'work' is more natural than 'job' in this context."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "The correct past participle of 'break' is 'broken.'"
+      },
+      {
+        "error_part": "boring",
+        "correction": "bored",
+        "explanation": "'Boring' describes something that causes boredom; 'bored' describes how you felt."
+      }
+    ],
+    "better_alternatives": [
+      "I got up early yesterday, then walked to work because my car is broken, and I felt a bit bored.",
+      "Yesterday, I woke up early and walked to work since my car is out of commission, and I was feeling really bored.",
+      "I rose early yesterday, walked to work due to my car being broken, and honestly, I felt quite bored."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "It sounds like you had quite a day! Waking up early can be tough, especially when you have to walk to work. Did you enjoy the walk at least? It’s always nice to get some fresh air! Let's also chat about your car troubles—have you been able to fix it yet?"
+  },
+  "342056538_1255": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than i go",
+        "correction": "then I went",
+        "explanation": "Use Past Simple for actions that happened after another action."
+      },
+      {
+        "error_part": "by foot",
+        "correction": "on foot",
+        "explanation": "'On foot' is the correct phrase to describe walking."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle of 'break'."
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "Use 'bored' to describe a feeling, while 'boring' describes something that causes that feeling."
+      }
+    ],
+    "better_alternatives": [
+      "I got up early yesterday.",
+      "I walked to work because my car was out of order.",
+      "I felt pretty uninterested."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort! It sounds like you had a long day. Waking up early can be tough, especially when your car isn't working. How was work after your interesting morning?"
+  },
+  "342056538_1256": {
+    "is_perfect": false,
+    "corrected_text": "Yesterday I woke up early, then I went to work on foot because my car is broken, and I felt very bored.",
+    "diff_view": "Yesterday ~i has wake~ *I woke* up early, ~than i go~ *then I went* to ~job by~ *work on* foot because my car is ~breaked~ *broken*, and ~i~ *I* felt very ~boring~ *bored*.",
+    "user_errors": [
+      {
+        "error_part": "has wake up",
+        "correction": "woke up",
+        "explanation": "Use Past Simple for completed actions in the past."
+      },
+      {
+        "error_part": "than i go",
+        "correction": "then I went",
+        "explanation": "Use Past Simple for actions that happened after another action."
+      },
+      {
+        "error_part": "by foot",
+        "correction": "on foot",
+        "explanation": "'On foot' is the correct phrase to describe walking."
+      },
+      {
+        "error_part": "is breaked",
+        "correction": "is broken",
+        "explanation": "'Broken' is the correct past participle of 'break'."
+      },
+      {
+        "error_part": "very boring",
+        "correction": "very bored",
+        "explanation": "Use 'bored' to describe a feeling, while 'boring' describes something that causes that feeling."
+      }
+    ],
+    "better_alternatives": [
+      "I got up early yesterday.",
+      "I walked to work because my car was out of order.",
+      "I felt pretty uninterested."
+    ],
+    "_user_text_cache": "Yesterday i has wake up early, than i go to job by foot because my car is breaked, and i felt very boring.",
+    "reply": "Great effort! It sounds like you had a long day. Waking up early can be tough, especially when your car isn't working. How was work after your interesting morning?"
+  }
+}
