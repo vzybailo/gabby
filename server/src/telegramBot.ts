@@ -18,12 +18,6 @@ const sessionStore = new Map<string, any>();
 const userSettings = new Map<string, string>(); 
 const userState = new Map<string, 'IDLE' | 'TESTING'>(); 
 
-// Функция экранирования для MarkdownV2
-function escapeMd(text: string | undefined | null) {
-  if (!text) return '';
-  return text.replace(/[_\[\]()>`#+\-=|{}.!\\]/g, '\\$&');
-}
-
 const LEVEL_KEYBOARD = {
   inline_keyboard: [
     [{ text: '🌱 A1', callback_data: 'set_level_A1' }, { text: '🌿 A2', callback_data: 'set_level_A2' }, { text: '🔥 B1', callback_data: 'set_level_B1' }],
@@ -38,8 +32,9 @@ bot.onText(/\/start|\/level/, async (msg) => {
   const chatId = msg.chat.id;
   userState.set(chatId.toString(), 'IDLE');
   try {
-    await bot.sendMessage(chatId, '👋 *Welcome\\! Let\'s set up your profile\\.* \n\nSelect your English level or take a quick test:', {
-      parse_mode: 'MarkdownV2',
+    // Используем HTML парсинг, он проще и надежнее для базового форматирования
+    await bot.sendMessage(chatId, '👋 <b>Welcome! Let\'s set up your profile.</b> \n\nSelect your English level or take a quick test:', {
+      parse_mode: 'HTML',
       reply_markup: LEVEL_KEYBOARD
     });
   } catch (e) {
@@ -65,7 +60,7 @@ bot.on('message', async (msg) => {
   console.log(`[LOG] Получено сообщение от ${msg.from?.username || chatId}: ${msg.text || '[VOICE]'}`);
 
   try {
-    // Подтверждаем получение сообщения пользователю
+    // Подтверждаем получение (статус "печатает")
     await bot.sendChatAction(chatId, 'typing');
     
     const currentState = userState.get(chatId.toString()) || 'IDLE';
@@ -82,7 +77,7 @@ bot.on('message', async (msg) => {
 
     let userText = msg.text;
 
-    // 2. Обработка голоса через STT
+    // 2. Обработка голоса (STT)
     if (msg.voice) {
       console.log(`[LOG] Обработка голосового сообщения...`);
       const fileLink = await bot.getFileLink(msg.voice.file_id);
@@ -129,54 +124,79 @@ bot.on('message', async (msg) => {
     const currentLevel = userSettings.get(chatId.toString())!;
     console.log(`[API] Отправка в Чат: ${BACKEND_URL}/chat (Level: ${currentLevel})`);
     
+    // Отправляем запрос
     const chatRes = await axios.post(`${BACKEND_URL}/chat`, {
       messages: [{ role: 'user', content: userText }],
       level: currentLevel
     });
 
     console.log(`[LOG] Статус ответа API: ${chatRes.status}`);
-    console.log(`[LOG] Тело ответа API:`, JSON.stringify(chatRes.data));
-
-    const aiMessage = chatRes.data.message;
+    
+    const data = chatRes.data;
+    const aiMessage = data.message;
     const analysis = aiMessage.analysis;
     sessionStore.set(chatId.toString(), analysis);
 
-    // 5. TTS (Озвучка)
+    // --- ИЗМЕНЕНИЕ: Сначала текст, потом голос ---
+
+    // 5. Отправляем Текстовый Ответ
     if (aiMessage.content) {
-       try {
-         console.log(`[API] Запрос на TTS...`);
-         const ttsRes = await axios.post(`${BACKEND_URL}/api/tts`, { text: aiMessage.content });
-         if (ttsRes.data.audioUrl) {
-           await bot.sendVoice(chatId, `${BACKEND_URL}${ttsRes.data.audioUrl}`);
-         }
-       } catch (e) {
-         console.error('[LOG] TTS Error:', e);
-       }
-       // Отправляем текст AI
        await bot.sendMessage(chatId, aiMessage.content);
     }
 
-    // 6. Анализ ошибок и исправления
+    // 6. Отправляем Голосовой Ответ (TTS)
+    // Сначала проверяем, прислал ли сервер готовую ссылку (data.audioUrl)
+    const audioUrl = data.audioUrl || aiMessage.audioUrl;
+
+    if (audioUrl) {
+        try {
+            // Если ссылка есть, просто пересылаем её (мгновенно)
+            const fullUrl = `${BACKEND_URL}${audioUrl}`;
+            console.log(`[LOG] Отправка готового аудио: ${fullUrl}`);
+            await bot.sendVoice(chatId, fullUrl);
+        } catch (e: any) {
+            console.error('[LOG] Ошибка отправки ссылки аудио:', e.message);
+        }
+    } else if (aiMessage.content) {
+        // Резервный вариант: если ссылки нет, пробуем сгенерировать
+        try {
+            console.log(`[API] Генерация TTS (резерв)...`);
+            const ttsRes = await axios.post(`${BACKEND_URL}/api/tts`, { text: aiMessage.content });
+            if (ttsRes.data.audioUrl) {
+                await bot.sendVoice(chatId, `${BACKEND_URL}${ttsRes.data.audioUrl}`);
+            }
+        } catch (e) {
+            console.error('[LOG] Ошибка генерации TTS:', e);
+        }
+    }
+
+    // 7. Анализ ошибок (Исправлен вывод текста)
     if (analysis) {
         const isPerfect = analysis.is_perfect;
-        const msgText = isPerfect ? `✅ ${userText}` : `💡 ${analysis.diff_view || aiMessage.corrected_text}`;
         
+        // ВАЖНО: Вместо 'diff_view' (с ~ и *) показываем чистый 'corrected_text'
+        const correctVersion = aiMessage.corrected_text || analysis.diff_view;
+        const msgText = isPerfect 
+            ? `✅ Perfect! "${userText}"` 
+            : `💡 <b>Correction:</b> ${correctVersion}`;
+
         let buttons = [];
         if (!isPerfect && analysis.user_errors?.length > 0) {
             buttons.push([{ text: 'Why? (Mistakes)', callback_data: 'explain_mistakes' }]);
         }
-        if (isPerfect && analysis.better_alternatives?.length > 0) {
+        if (analysis.better_alternatives?.length > 0) {
             buttons.push([{ text: '✨ Native style', callback_data: 'show_alternatives' }]);
         }
 
         await bot.sendMessage(chatId, msgText, {
+            parse_mode: 'HTML', // Используем HTML чтобы работало жирное выделение
             reply_markup: buttons.length > 0 ? { inline_keyboard: buttons } : undefined
         });
     }
 
   } catch (err: any) {
     console.error('❌ ПОЛНАЯ ОШИБКА БОТА:', err.message);
-    await bot.sendMessage(chatId, `⚠️ Oops, something went wrong on the server.\nError: ${err.message}`);
+    await bot.sendMessage(chatId, `⚠️ Oops, something went wrong on the server.`);
   }
 });
 
@@ -197,32 +217,36 @@ bot.on('callback_query', async (query) => {
       const level = action.replace('set_level_', '');
       userSettings.set(chatId.toString(), level);
       userState.set(chatId.toString(), 'IDLE');
-      await bot.sendMessage(chatId, `✅ Level set to ${level}. I'm ready to chat!`);
+      await bot.sendMessage(chatId, `✅ Level set to ${level}. Let's chat!`);
       await bot.answerCallbackQuery(query.id);
     }
     
-    // Остальная логика Explain/Alternatives подтягивается из sessionStore
+    // Работа с анализом ошибок
     const analysis = sessionStore.get(chatId.toString());
+    
+    // Если сессия истекла
     if (!analysis && (action === 'explain_mistakes' || action === 'show_alternatives')) {
-        await bot.answerCallbackQuery(query.id, { text: 'Session expired.', show_alert: true });
+        await bot.answerCallbackQuery(query.id, { text: 'Message too old. Please try a new one.', show_alert: true });
         return;
     }
 
     if (action === 'explain_mistakes') {
-        let text = '❌ Mistakes Analysis:\n';
+        let text = '❌ <b>Mistakes Analysis:</b>\n';
         analysis.user_errors.forEach((err: any) => {
-            text += `\n• Wrong: ${err.error_part}\n• Correct: ${err.correction}\n• Info: ${err.explanation}\n`;
+            text += `\n🔻 <b>Wrong:</b> ${err.error_part}`;
+            text += `\n✅ <b>Correct:</b> ${err.correction}`;
+            text += `\nℹ️ <i>${err.explanation}</i>\n`;
         });
-        await bot.sendMessage(chatId, text);
+        await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
         await bot.answerCallbackQuery(query.id);
     }
 
     if (action === 'show_alternatives') {
-        let text = '✨ Native ways to say it:\n';
+        let text = '✨ <b>Native ways to say it:</b>\n';
         analysis.better_alternatives.forEach((alt: string) => {
             text += `\n🔹 ${alt}`;
         });
-        await bot.sendMessage(chatId, text);
+        await bot.sendMessage(chatId, text, { parse_mode: 'HTML' });
         await bot.answerCallbackQuery(query.id);
     }
 
