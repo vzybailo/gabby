@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js", 
+    "start": "node dist/index.js",
     "dev": "tsx src/index.ts"
   },
   "keywords": [],
@@ -13,6 +13,8 @@
   "description": "",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@prisma/client": "^6.19.2",
+    "@types/node-cron": "^3.0.11",
     "axios": "^1.13.4",
     "cors": "^2.8.6",
     "diff": "^8.0.3",
@@ -20,9 +22,12 @@
     "express": "^5.2.1",
     "ffmpeg-static": "^5.3.0",
     "fluent-ffmpeg": "^2.1.3",
+    "generate": "^0.14.0",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "node-telegram-bot-api": "^0.67.0",
+    "npx": "^10.2.2",
     "openai": "^6.17.0"
   },
   "devDependencies": {
@@ -33,6 +38,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^25.1.0",
     "@types/node-telegram-bot-api": "^0.64.13",
+    "prisma": "^6.19.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
