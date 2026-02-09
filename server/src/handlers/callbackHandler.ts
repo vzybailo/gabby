@@ -53,11 +53,19 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
          if (analysis.better_alternatives?.length > 0) row1.push({ text: 'Native style', callback_data: 'show_alternatives' });
          await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1] } });
     }
+    
+    // --- CLASSIC AUDIO CAPTION ---
     if (action === 'translate_audio_caption' || action === 'show_audio_caption') {
-        let textToShow = analysis.reply;
+        // Берем стандартный ответ бота
+        let textToShow = analysis.reply; 
+        
         if (action === 'translate_audio_caption') {
-            const transRes = await axios.post(`${BACKEND_URL}/api/translate`, { text: analysis.reply, targetLang: 'Russian' });
-            textToShow = transRes.data.translation;
+            try {
+                const transRes = await axios.post(`${BACKEND_URL}/api/translate`, { text: textToShow, targetLang: 'Russian' });
+                textToShow = transRes.data.translation;
+            } catch (e) {
+                textToShow = "Translation failed.";
+            }
         }
         await bot.editMessageCaption(escapeHtml(textToShow), { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: { inline_keyboard: [[{ text: '⬅️ Hide', callback_data: 'hide_audio_caption' }]] } });
     }

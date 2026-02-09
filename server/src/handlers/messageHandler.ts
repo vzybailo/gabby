@@ -12,7 +12,6 @@ import { generateMessageText } from '../utils/textUtils.js';
 const BACKEND_URL = process.env.SERVER_URL;
 const TMP_DIR = path.resolve('./tmp');
 
-// Клавиатура выбора уровня
 const LEVEL_KEYBOARD = {
   inline_keyboard: [
     [{ text: '🌱 A1', callback_data: 'set_level_A1' }, { text: '🌿 A2', callback_data: 'set_level_A2' }, { text: '🔥 B1', callback_data: 'set_level_B1' }],
@@ -22,7 +21,7 @@ const LEVEL_KEYBOARD = {
 };
 
 export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) {
-  if (msg.text?.startsWith('/')) return; 
+  if (msg.text?.startsWith('/')) return;
   const chatId = msg.chat.id.toString();
   if (!msg.text && !msg.voice) return;
 
@@ -45,7 +44,7 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
     await bot.sendChatAction(chatId, 'typing');
     let userText = msg.text;
 
-    // STT (Voice to Text)
+    // STT
     if (msg.voice) {
       if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
       const fileLink = await bot.getFileLink(msg.voice.file_id);
@@ -101,7 +100,7 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
         await prisma.message.create({ data: { userId: chatId, role: 'assistant', content: aiMessage.content } });
     }
 
-    // SEND RESPONSE
+    // SEND RESPONSE (TEXT)
     if (analysis) {
         const msgText = generateMessageText(userText, analysis, 'simple', streakToShow);
         let row1 = [];
@@ -114,32 +113,26 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
         const sessionKey = `${chatId}_${sentMsg.message_id}`;
         analysis._user_text_cache = userText; 
         analysis._streak_cache = streakToShow; 
-        analysis.reply = aiMessage.content || analysis.reply; 
+        analysis.reply = aiMessage.content || analysis.reply; // Сохраняем полный ответ для кнопки
         sessionStore.set(sessionKey, analysis);
     }
 
-    // SMART TTS
+    // --- STANDARD TTS (Вернули как было) ---
     await bot.sendChatAction(chatId, 'record_voice');
-    
-    let textToSpeak = '';
-    if (analysis) {
-        if (!analysis.is_perfect && (analysis.corrected || analysis.corrected_text)) {
-            textToSpeak = analysis.corrected || analysis.corrected_text;
-        } else if (analysis.better_alternatives && analysis.better_alternatives.length > 0) {
-            textToSpeak = analysis.better_alternatives[0];
-        } else {
-            textToSpeak = aiMessage.content;
-        }
-    } else {
-        textToSpeak = aiMessage.content;
-    }
 
+    // Берем аудио с сервера (если оно там создается)
+    const audioUrl = data.audioUrl || aiMessage.audioUrl;
+    
+    // Или используем текст ответа
+    let textToSpeak = aiMessage.content || '';
+    
+    // Убираем Markdown для чистоты речи
     if (textToSpeak) {
         textToSpeak = textToSpeak.replace(/[*_~`]/g, '');
-        if (textToSpeak.length > 200) textToSpeak = textToSpeak.substring(0, 197) + '...';
+        // Можно оставить лимит на всякий случай, но мягче
+        if (textToSpeak.length > 800) textToSpeak = textToSpeak.substring(0, 797) + '...';
     }
 
-    const audioUrl = data.audioUrl || aiMessage.audioUrl; 
     const isLowLevel = ['A1', 'A2'].includes(currentLevel || 'B1');
     let audioKeyboard = [];
     if (isLowLevel) audioKeyboard.push([{ text: '🇷🇺 Translate', callback_data: 'translate_audio_caption' }]);
@@ -147,26 +140,33 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
 
     try {
         if (audioUrl) {
-            const cleanPath = audioUrl.replace(/^\/audio\//, ''); 
+            // Если сервер прислал файл - используем его
+            const cleanPath = audioUrl.replace(/^\/audio\//, '');
             const localFilePath = path.resolve('./audio', cleanPath);
             let audioSource: any = fs.existsSync(localFilePath) ? fs.createReadStream(localFilePath) : `${BACKEND_URL}${audioUrl}`;
-            analysis.reply = textToSpeak; 
+            
+            // В analysis.reply уже лежит полный текст ответа (см. выше)
             const sentAudioMsg = await bot.sendVoice(chatId, audioSource, { reply_markup: { inline_keyboard: audioKeyboard } });
             if (sentAudioMsg && analysis) sessionStore.set(`${chatId}_${sentAudioMsg.message_id}`, analysis);
+
         } else if (textToSpeak && textToSpeak.trim().length > 1) {
+            // Если файла нет, генерируем сами по тексту ответа
             const ttsRes = await axios.post(`${BACKEND_URL}/api/tts`, { text: textToSpeak });
             if (ttsRes.data.audioUrl) {
                 const newAudioUrl = ttsRes.data.audioUrl;
-                const cleanPath = newAudioUrl.replace(/^\/audio\//, ''); 
+                const cleanPath = newAudioUrl.replace(/^\/audio\//, '');
                 const localFilePath = path.resolve('./audio', cleanPath);
-                analysis.reply = textToSpeak; 
-                const sentAudioMsg = await bot.sendVoice(chatId, fs.createReadStream(localFilePath), { reply_markup: { inline_keyboard: audioKeyboard } });
+                
+                const sentAudioMsg = await bot.sendVoice(chatId, fs.createReadStream(localFilePath), { 
+                    reply_markup: { inline_keyboard: audioKeyboard } 
+                });
                 if (sentAudioMsg && analysis) sessionStore.set(`${chatId}_${sentAudioMsg.message_id}`, analysis);
             }
         }
     } catch (e: any) {
         console.error('TTS Error:', e.message);
     }
+
   } catch (err: any) {
     console.error('❌ Bot Error:', err.message);
     await bot.sendMessage(chatId, `⚠️ Server Error: ${err.message}`);
