@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Say It App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-grad-start: #1e1b4b;
+            --bg-grad-end: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --accent: #818cf8;
+            --accent-glow: rgba(129, 140, 248, 0.3);
+            --success: #34d399; 
+            --gold: #fbbf24;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            background: radial-gradient(circle at top, var(--bg-grad-start), var(--bg-grad-end));
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            overflow-x: hidden;
+            padding-bottom: 120px; 
+        }
+
+        /* --- ОБЩИЕ СТИЛИ --- */
+        .page-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+            padding-bottom: 20px; 
+        }
+        .page-section.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header { width: 100%; padding: 40px 20px 20px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .title { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+
+        /* --- СТИЛИ ПРОФИЛЯ --- */
+        .avatar-wrap {
+            width: 96px; height: 96px; border-radius: 50%; padding: 3px;
+            background: linear-gradient(135deg, #6366f1, #ec4899); 
+            box-shadow: 0 0 25px var(--accent-glow); margin-bottom: 15px;
+            display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .avatar-img { 
+            width: 100%; height: 100%; border-radius: 50%; object-fit: cover; 
+            border: 4px solid var(--bg-grad-end); display: none; position: absolute; top: 0; left: 0;
+        }
+        .avatar-initials {
+            width: 100%; height: 100%; border-radius: 50%; display: none;
+            align-items: center; justify-content: center;
+            font-size: 36px; font-weight: 700; color: white; 
+            background: #1e293b; border: 4px solid var(--bg-grad-end);
+        }
+        .user-name { font-size: 24px; font-weight: 800; margin: 0 0 8px 0; }
+        .level-badge {
+            background: rgba(255, 255, 255, 0.1); padding: 6px 16px; border-radius: 20px;
+            font-size: 14px; font-weight: 500; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 90%; max-width: 380px; margin-bottom: 20px; }
+        .stat-card {
+            background: var(--card-bg); padding: 16px; border-radius: 18px; text-align: center;
+            backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08);
+        }
+        .stat-val { font-size: 32px; font-weight: 800; color: white; line-height: 1.2; }
+        .stat-val.orange { background: linear-gradient(to bottom, #fbbf24, #d97706); background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 13px; color: var(--text-dim); font-weight: 500; margin-top: 4px; }
+        .calendar-card {
+            background: var(--card-bg); width: 90%; max-width: 380px; border-radius: 24px; padding: 24px;
+            box-sizing: border-box; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px;
+        }
+        .cal-header { text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .day-label { text-align: center; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+        .day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px;
+            font-size: 14px; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.03);
+        }
+        .day.active { background: var(--success); color: #064e3b; font-weight: 700; box-shadow: 0 0 12px rgba(52, 211, 153, 0.4); }
+        .day.today { border: 2px solid var(--accent); color: white; background: transparent; }
+        .day.missed { background: rgba(255,255,255,0.08); }
+
+        /* --- СТИЛИ КОМАНД --- */
+        .cmd-list { width: 90%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
+        .cmd-card {
+            background: var(--card-bg); padding: 16px; border-radius: 16px; display: flex; align-items: center; gap: 15px;
+            border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.2s, transform 0.1s;
+        }
+        .cmd-card:active { background: rgba(255,255,255,0.1); transform: scale(0.98); }
+        .cmd-icon {
+            width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .cmd-info { flex: 1; }
+        .cmd-name { font-weight: 700; font-size: 16px; color: var(--accent); margin-bottom: 4px; }
+        .cmd-desc { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+        .cmd-arrow { opacity: 0.5; font-size: 18px; }
+
+        /* --- СТИЛИ ОПЛАТЫ (PREMIUM) --- */
+        .toggle-container {
+            display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 100px;
+            margin-bottom: 20px; position: relative; width: 200px; margin-left: auto; margin-right: auto;
+        }
+        .toggle-btn {
+            flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 600;
+            color: var(--text-dim); border-radius: 100px; cursor: pointer; z-index: 2; transition: color 0.3s;
+        }
+        .toggle-btn.active { color: white; }
+        .toggle-bg {
+            position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
+            background: var(--accent); border-radius: 100px; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        .toggle-container.yearly .toggle-bg { transform: translateX(100%); }
+
+        .plan-card {
+            width: 90%; max-width: 380px; background: var(--card-bg); border-radius: 24px; padding: 24px;
+            margin-bottom: 20px; position: relative; border: 1px solid rgba(255,255,255,0.08); box-sizing: border-box;
+        }
+        .plan-card.premium { border: 1px solid var(--gold); box-shadow: 0 0 30px rgba(251, 191, 36, 0.15); }
+        
+        /* 🔥 ФИКС: Скидка поднята выше и шрифт чуть меньше */
+        .plan-save { 
+            position: absolute; 
+            top: 10px; /* Было 15px */
+            right: 12px; /* Было 15px */
+            background: #ef4444; color: white;
+            font-size: 9px; /* Чуть меньше */
+            font-weight: 800; padding: 4px 8px; border-radius: 10px; 
+            display: none; letter-spacing: 0.5px;
+        }
+
+        .plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .plan-title { font-size: 20px; font-weight: 800; }
+        .plan-price { font-size: 24px; font-weight: 800; color: var(--text-main); transition: 0.3s; }
+        .plan-features { list-style: none; padding: 0 10px; margin: 0 0 20px 0; text-align: left; }
+        .plan-features li { padding: 8px 0; color: var(--text-dim); font-size: 14px; display: flex; align-items: center; gap: 10px; }
+        .check { color: var(--success); }
+        .check.gold { color: var(--gold); }
+        
+        .actions-container { width: 90%; max-width: 380px; display: flex; flex-direction: column; gap: 10px; }
+        .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-premium { background: linear-gradient(90deg, #f59e0b, #fbbf24); color: #451a03; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
+        .btn-invite { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; }
+        .btn-close { background: transparent; color: var(--text-dim); border: 2px solid rgba(255,255,255,0.1); }
+
+        /* --- НИЖНЯЯ НАВИГАЦИЯ --- */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 380px;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+            border-radius: 24px;
+            display: flex; justify-content: space-around; padding: 12px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 100;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 11px; cursor: pointer; transition: 0.2s; width: 60px; }
+        .nav-icon { font-size: 24px; transition: 0.2s; }
+        .nav-item.active { color: white; }
+        .nav-item.active .nav-icon { transform: translateY(-2px); color: var(--accent); }
+        .nav-item.active.gold .nav-icon { color: var(--gold); }
+
+    </style>
+</head>
+<body>
+
+    <div id="tab-profile" class="page-section active">
+        <div class="header">
+            <div class="avatar-wrap">
+                <img id="userAvatar" class="avatar-img" alt="Avatar">
+                <div id="avatarInitials" class="avatar-initials">U</div>
+            </div>
+            <h1 class="user-name" id="userName">Student</h1>
+            <div class="level-badge" id="userLevel">Loading...</div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-val orange" id="streakVal">-</div><div class="stat-label">Day Streak</div></div>
+            <div class="stat-card"><div class="stat-val" id="totalDaysVal">-</div><div class="stat-label">Total Practice</div></div>
+        </div>
+        <div class="calendar-card"><div class="cal-header" id="monthName">Calendar</div><div class="cal-grid" id="calendarGrid"></div></div>
+        <div class="actions-container">
+            <button class="btn btn-invite" onclick="inviteFriends()">📩 Invite Friends</button>
+            <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        </div>
+    </div>
+
+    <div id="tab-guide" class="page-section">
+        <div class="header"><div class="title">🤖 Bot Commands</div></div>
+        <div class="cmd-list">
+            <div class="cmd-card" onclick="sendCommand('/reset')">
+                <div class="cmd-icon">🔄</div>
+                <div class="cmd-info"><div class="cmd-name">/reset</div><div class="cmd-desc">Clear context & restart</div></div>
+                <div class="cmd-arrow">➔</div>
+            </div>
+            <div class="cmd-card" onclick="sendCommand('/level')">
+                <div class="cmd-icon">📊</div>
+                <div class="cmd-info"><div class="cmd-name">/level</div><div class="cmd-desc">Change English level</div></div>
+                <div class="cmd-arrow">➔</div>
+            </div>
+            <div class="cmd-card" onclick="sendCommand('support')">
+                <div class="cmd-icon">🆘</div>
+                <div class="cmd-info"><div class="cmd-name">Support</div><div class="cmd-desc">Contact developer</div></div>
+                <div class="cmd-arrow">➔</div>
+            </div>
+        </div>
+        <div class="actions-container" style="margin-top: 20px;">
+             <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        </div>
+    </div>
+
+    <div id="tab-premium" class="page-section">
+        <div class="header"><div class="title">💎 Upgrade Plan</div></div>
+
+        <div class="toggle-container" id="priceToggle" onclick="togglePrice()">
+            <div class="toggle-bg"></div>
+            <div class="toggle-btn active" id="btnMonthly">Monthly</div>
+            <div class="toggle-btn" id="btnYearly">Yearly</div>
+        </div>
+
+        <div class="plan-card">
+            <div class="plan-header"><span class="plan-title">Free</span><span class="plan-price">$0</span></div>
+            <ul class="plan-features">
+                <li><span class="check">✔</span> 10 Voice messages / day</li>
+                <li><span class="check">✔</span> Basic correction</li>
+            </ul>
+        </div>
+
+        <div class="plan-card premium">
+            <div class="plan-save" id="saveBadge">SAVE 33%</div>
+            <div class="plan-header">
+                <span class="plan-title" style="color:var(--gold)">PRO</span>
+                <span class="plan-price" id="proPrice">$5<span style="font-size:14px; color:var(--text-dim)">/mo</span></span>
+            </div>
+            <ul class="plan-features">
+                <li><span class="check gold">✔</span> <b>Unlimited</b> messages</li>
+                <li><span class="check gold">✔</span> Detailed explanations</li>
+                <li><span class="check gold">✔</span> Priority Support</li>
+            </ul>
+            <button class="btn btn-premium" onclick="buyPremium()">🚀 Get PRO Access</button>
+        </div>
+        <div class="actions-container" style="margin-top: 10px;">
+             <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('profile', this)"><div class="nav-icon">👤</div><div>Profile</div></div>
+        <div class="nav-item" onclick="switchTab('guide', this)"><div class="nav-icon">📜</div><div>Guide</div></div>
+        <div class="nav-item gold" onclick="switchTab('premium', this)"><div class="nav-icon">💎</div><div>Premium</div></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // 🔥 ВАЖНО: Отправка команд через API (чтобы работало с Menu Button)
+        async function sendCommand(cmd) {
+            const user = tg.initDataUnsafe?.user;
+            if (!user) return; // Если открыто не в ТГ
+
+            try {
+                // Отправляем запрос на сервер
+                await fetch('/api/bot-action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: user.id.toString(), 
+                        action: cmd 
+                    })
+                });
+                
+                // Закрываем окно, чтобы пользователь увидел ответ в чате
+                tg.close();
+            } catch (e) {
+                console.error('Error sending command:', e);
+                // На всякий случай закроем
+                tg.close();
+            }
+        }
+
+        // --- ЛОГИКА UI ---
+        let isYearly = false;
+        function togglePrice() {
+            isYearly = !isYearly;
+            const container = document.getElementById('priceToggle');
+            const priceEl = document.getElementById('proPrice');
+            const saveBadge = document.getElementById('saveBadge');
+            const btnM = document.getElementById('btnMonthly');
+            const btnY = document.getElementById('btnYearly');
+
+            if (isYearly) {
+                container.classList.add('yearly');
+                priceEl.innerHTML = '$40<span style="font-size:14px; color:var(--text-dim)">/yr</span>';
+                saveBadge.style.display = 'block';
+                btnM.classList.remove('active');
+                btnY.classList.add('active');
+            } else {
+                container.classList.remove('yearly');
+                priceEl.innerHTML = '$5<span style="font-size:14px; color:var(--text-dim)">/mo</span>';
+                saveBadge.style.display = 'none';
+                btnM.classList.add('active');
+                btnY.classList.remove('active');
+            }
+        }
+
+        function switchTab(tabName, el) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function buyPremium() {
+            const plan = isYearly ? 'Yearly ($40)' : 'Monthly ($5)';
+            tg.showPopup({ title: 'Pro Plan', message: `You selected: ${plan}. Payments coming soon!`, buttons: [{type: 'ok'}] });
+        }
+
+        function inviteFriends() {
+            const botName = 'ChattyEnglishBot'; // 🔥 УКАЖИ ЗДЕСЬ ИМЯ СВОЕГО БОТА (без @)
+            const link = `https://t.me/${botName}?start=invite`;
+            tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
+        }
+
+        // --- ЗАГРУЗКА ---
+        const user = tg.initDataUnsafe?.user;
+        if (user) {
+            document.getElementById('userName').innerText = user.first_name;
+            const imgEl = document.getElementById('userAvatar');
+            const initEl = document.getElementById('avatarInitials');
+            if (user.photo_url) {
+                imgEl.src = user.photo_url; imgEl.style.display = 'block'; initEl.style.display = 'none';
+                imgEl.onerror = () => { imgEl.style.display = 'none'; initEl.style.display = 'flex'; };
+            } else {
+                imgEl.style.display = 'none'; initEl.style.display = 'flex';
+                initEl.innerText = (user.first_name[0] + (user.last_name ? user.last_name[0] : '')).toUpperCase();
+            }
+        }
+
+        async function loadData() {
+            const userId = user?.id || 'test_id';
+            try {
+                const res = await fetch(`/api/user/${userId}`);
+                const data = await res.json();
+                document.getElementById('streakVal').innerText = data.streak;
+                document.getElementById('userLevel').innerText = data.level || 'No Level';
+                document.getElementById('totalDaysVal').innerText = data.dates ? data.dates.length : 0;
+                renderCalendar(data.dates || []);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderCalendar(activeDates) {
+            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
+            ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
+                const el = document.createElement('div'); el.className = 'day-label'; el.innerText = d; grid.appendChild(el);
+            });
+            const now = new Date();
+            const year = now.getFullYear(); const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const mNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('monthName').innerText = `${mNames[month]} ${year}`;
+            let firstDayIndex = new Date(year, month, 1).getDay(); 
+            firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const activeSet = new Set(activeDates);
+            const todayDay = now.getDate();
+            for (let i=0; i<firstDayIndex; i++) grid.appendChild(Object.assign(document.createElement('div'), {className:'day empty'}));
+            for (let d=1; d<=daysInMonth; d++) {
+                const cell = document.createElement('div'); cell.className = 'day'; cell.innerText = d;
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                if (activeSet.has(dateStr)) cell.classList.add('active');
+                else if (d < todayDay) cell.classList.add('missed');
+                if (d === todayDay) cell.classList.add('today');
+                grid.appendChild(cell);
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
