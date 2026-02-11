@@ -18,7 +18,7 @@ model Message {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   role      String   // 'user' или 'assistant'
-  content   String
+  text      String
   createdAt DateTime @default(now())
 }
 
@@ -29,4 +29,7 @@ model User {
   lastActivityAt DateTime @default(now())
   createdAt      DateTime @default(now())
   messages       Message[]
+  voice          String   @default("alloy") // alloy, echo, fable, onyx, nova, shimmer
+  speakingStyle  String   @default("standard")
+  mode           String   @default("chill") // chill, grammar, roleplay
 }
