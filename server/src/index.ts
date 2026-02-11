@@ -78,7 +78,8 @@ app.post('/api/topic', async (req, res) => {
             model: "gpt-4o-mini",
             messages: [{ role: "system", content: "Give me a short, engaging conversation topic for an English learner. Just the topic/question." }]
         });
-        res.json({ topic: completion.choices[0].message.content });
+        const topic = completion.choices[0]?.message?.content || 'Unable to generate topic';
+        res.json({ topic });
     } catch (e) {
         res.status(500).json({ error: 'Topic failed' });
     }
