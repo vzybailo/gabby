@@ -19,16 +19,15 @@
         .page-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* HEADER (Reduced padding) */
         .header { width: 100%; padding: 20px 20px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .title { font-size: 20px; font-weight: 800; margin-bottom: 15px; }
         
-        /* 🔥 PREMIUM BANNER (FIXED SPACING) */
+        /* PREMIUM BANNER */
         .premium-banner {
-            width: 90%; max-width: 350px;
+            width: 90%; max-width: 380px;
             background: linear-gradient(135deg, #f59e0b, #d97706);
             border-radius: 16px; padding: 16px; 
-            margin: 10px 0 25px;
+            margin-top: 10px; margin-bottom: 25px;
             display: flex; justify-content: space-between; align-items: center;
             box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
             cursor: pointer; position: relative; overflow: hidden;
@@ -47,7 +46,7 @@
         .pb-sub { font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
         .pb-icon { font-size: 24px; z-index: 1; }
 
-        /* ACCORDIONS */
+        /* ACCORDIONS & CARDS */
         .accordion-item { width: 90%; max-width: 380px; background: var(--card-bg); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; transition: background 0.2s; }
         .accordion-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; font-size: 15px; }
         .accordion-item.open .arrow { transform: rotate(180deg); color: var(--accent); }
@@ -56,52 +55,35 @@
         .accordion-content.open { max-height: 1500px; } 
         .accordion-inner { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 
-        /* 🔥 UNIVERSAL COMPACT CARD (NO EMOJIS, THIN) */
         .option-card { 
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid rgba(255,255,255,0.05); 
-            border-radius: 10px; 
-            padding: 10px 14px; /* Компактные отступы */
-            cursor: pointer; transition: 0.2s; 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); 
+            border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: 0.2s; 
             display: flex; align-items: center; justify-content: space-between;
         }
-        .option-card.active { 
-            background: rgba(129, 140, 248, 0.15); 
-            border-color: var(--accent); 
-        }
-        
+        .option-card.active { background: rgba(129, 140, 248, 0.15); border-color: var(--accent); }
         .option-info { flex: 1; text-align: left; }
         .option-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
         .option-title { font-weight: 600; font-size: 14px; color: #fff; }
-        
         .tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
         .tag.accent { color: var(--accent); background: rgba(129, 140, 248, 0.1); }
         .tag.green { color: var(--success); background: rgba(52, 211, 153, 0.1); }
-        
         .option-desc { font-size: 11px; color: var(--text-dim); line-height: 1.2; }
-        
-        /* Галочка для выбранного элемента */
         .check-icon { display: none; color: var(--accent); font-size: 14px; }
         .option-card.active .check-icon { display: block; }
 
-        /* FEEDBACK */
+        /* INPUTS & BUTTONS */
         .feedback-input { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; padding: 12px; font-family: inherit; resize: vertical; margin-bottom: 10px; font-size: 14px; }
-
-        /* BUTTONS */
         .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
         .btn-action { background: var(--accent); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
         .btn-premium { background: linear-gradient(90deg, #f59e0b, #fbbf24); color: #451a03; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
         .btn-invite { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; }
-        
-        /* 🔥 BACK TO CHAT BUTTON (MATCHING SPACING) */
         .btn-close { 
             background: rgba(255,255,255,0.05); color: var(--text-dim); 
             border: 1px solid rgba(255,255,255,0.1); 
             width: 90%; max-width: 380px;
-            margin-top: 30px;    /* Отступ сверху */
-            margin-bottom: 30px; /* Отступ снизу */
+            margin-top: 25px; margin-bottom: 25px; /* 🔥 Отступы для кнопки выхода */
         }
 
         /* PREMIUM & NAV */
@@ -128,7 +110,7 @@
         .nav-item.active .nav-icon { transform: translateY(-2px); color: var(--accent); }
         .nav-item.active.gold .nav-icon { color: var(--gold); }
 
-        /* PROFILE */
+        /* PROFILE SPECIFIC */
         .avatar-wrap { width: 96px; height: 96px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #6366f1, #ec4899); margin: 0 auto 15px; position: relative; display: flex; justify-content: center; align-items: center; }
         .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-grad-end); display: none; }
         .avatar-initials { width: 100%; height: 100%; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; color: white; background: #1e293b; border: 4px solid var(--bg-grad-end); }
@@ -151,14 +133,21 @@
             <div style="font-size:14px; color:var(--text-dim); margin-top:5px" id="userLevelBadge">Loading...</div>
         </div>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-val orange" id="streakVal">-</div><div style="font-size:12px; color:var(--text-dim)">Day Streak</div></div>
-            <div class="stat-card"><div class="stat-val" id="totalDaysVal">-</div><div style="font-size:12px; color:var(--text-dim)">Total Practice</div></div>
+            <div class="stat-card">
+                <div class="stat-val orange" id="streakVal">0</div>
+                <div style="font-size:12px; color:var(--text-dim)">Day Streak</div>
+            </div>
+            <div class="stat-card"><div class="stat-val" id="totalDaysVal">0</div><div style="font-size:12px; color:var(--text-dim)">Total Practice</div></div>
         </div>
         <div class="calendar-card">
             <div style="text-align:center; font-weight:700; margin-bottom:15px;" id="monthName">Calendar</div>
             <div class="cal-grid" id="calendarGrid"></div>
         </div>
-        <button class="btn btn-invite" style="width:90%; max-width:380px;" onclick="inviteFriends()">📩 Invite Friends</button>
+        
+        <div style="width:90%; max-width:380px;">
+            <button class="btn btn-invite" onclick="inviteFriends()">📩 Invite Friends</button>
+            <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        </div>
     </div>
 
     <div id="tab-settings" class="page-section">
@@ -179,46 +168,22 @@
             <div class="accordion-content">
                 <div class="accordion-inner">
                     <div class="option-card active" onclick="selectVoice('alloy', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Alloy</div><div class="tag">Neutral</div></div>
-                            <div class="option-desc">Versatile and balanced tone.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Alloy</div><div class="tag">Neutral</div></div><div class="option-desc">Versatile and balanced tone.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('echo', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Echo</div><div class="tag">Male</div></div>
-                            <div class="option-desc">Warm and well-rounded.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Echo</div><div class="tag">Male</div></div><div class="option-desc">Warm and well-rounded.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('shimmer', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Shimmer</div><div class="tag">Female</div></div>
-                            <div class="option-desc">Clear and bright.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Shimmer</div><div class="tag">Female</div></div><div class="option-desc">Clear and bright.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('fable', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Fable</div><div class="tag">British</div></div>
-                            <div class="option-desc">Expressive and witty.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Fable</div><div class="tag">British</div></div><div class="option-desc">Expressive and witty.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('onyx', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Onyx</div><div class="tag">Deep</div></div>
-                            <div class="option-desc">Authoritative and direct.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Onyx</div><div class="tag">Deep</div></div><div class="option-desc">Authoritative and direct.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('nova', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Nova</div><div class="tag accent">Fast</div></div>
-                            <div class="option-desc">Energetic and fast.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Nova</div><div class="tag accent">Fast</div></div><div class="option-desc">Energetic and fast.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-top:5px;">Tap to preview sound 🔊</div>
                 </div>
@@ -232,32 +197,16 @@
             <div class="accordion-content">
                 <div class="accordion-inner">
                     <div class="option-card active" onclick="selectStyle('standard', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Standard</div><div class="tag">Normal</div></div>
-                            <div class="option-desc">Neutral speed (1.0x). Clear.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Standard</div><div class="tag">Normal</div></div><div class="option-desc">Neutral speed (1.0x). Clear.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('teacher', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">The Teacher</div><div class="tag green">Slow 0.85x</div></div>
-                            <div class="option-desc">Enunciates clearly. No abbreviations.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">The Teacher</div><div class="tag green">Slow 0.85x</div></div><div class="option-desc">Enunciates clearly. No abbreviations.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('friend', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">The Friend</div><div class="tag">Casual 1.05x</div></div>
-                            <div class="option-desc">Casual tone. Uses contractions.</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">The Friend</div><div class="tag">Casual 1.05x</div></div><div class="option-desc">Casual tone. Uses contractions.</div></div><div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('street', this)">
-                        <div class="option-info">
-                            <div class="option-top"><div class="option-title">Native Speaker</div><div class="tag accent">Fast 1.2x</div></div>
-                            <div class="option-desc">Swallows words. Uses slang (gonna).</div>
-                        </div>
-                        <div class="check-icon">✔</div>
+                        <div class="option-info"><div class="option-top"><div class="option-title">Native Speaker</div><div class="tag accent">Fast 1.2x</div></div><div class="option-desc">Swallows words. Uses slang (gonna).</div></div><div class="check-icon">✔</div>
                     </div>
                 </div>
             </div>
@@ -267,25 +216,13 @@
             <div class="accordion-header" onclick="toggleAccordion('acc-mode')">🧠 Learning Mode <span class="arrow">▼</span></div>
             <div class="accordion-content"><div class="accordion-inner">
                 <div class="option-card active" onclick="updateSetting('mode', 'chill', this)">
-                    <div class="option-info">
-                        <div class="option-top"><div class="option-title">Chill Chat</div></div>
-                        <div class="option-desc">Relaxed. Corrects only big mistakes.</div>
-                    </div>
-                    <div class="check-icon">✔</div>
+                    <div class="option-info"><div class="option-top"><div class="option-title">Chill Chat</div></div><div class="option-desc">Relaxed. Corrects only big mistakes.</div></div><div class="check-icon">✔</div>
                 </div>
                 <div class="option-card" onclick="updateSetting('mode', 'grammar', this)">
-                    <div class="option-info">
-                        <div class="option-top"><div class="option-title">Grammar Teacher</div></div>
-                        <div class="option-desc">Strict. Corrects EVERYTHING.</div>
-                    </div>
-                    <div class="check-icon">✔</div>
+                    <div class="option-info"><div class="option-top"><div class="option-title">Grammar Teacher</div></div><div class="option-desc">Strict. Corrects EVERYTHING.</div></div><div class="check-icon">✔</div>
                 </div>
                 <div class="option-card" onclick="updateSetting('mode', 'roleplay', this)">
-                    <div class="option-info">
-                        <div class="option-top"><div class="option-title">Roleplay</div></div>
-                        <div class="option-desc">Simulates a cafe/street scenario.</div>
-                    </div>
-                    <div class="check-icon">✔</div>
+                    <div class="option-info"><div class="option-top"><div class="option-title">Roleplay</div></div><div class="option-desc">Simulates a cafe/street scenario.</div></div><div class="check-icon">✔</div>
                 </div>
             </div></div>
         </div>
@@ -293,21 +230,11 @@
         <div class="accordion-item" id="acc-level">
             <div class="accordion-header" onclick="toggleAccordion('acc-level')">📊 English Level <span class="arrow">▼</span></div>
             <div class="accordion-content"><div class="accordion-inner">
-                <div class="option-card" onclick="updateLevel('A1', this)">
-                    <div class="option-info"><div class="option-title">A1 (Beginner)</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateLevel('A2', this)">
-                    <div class="option-info"><div class="option-title">A2 (Elementary)</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateLevel('B1', this)">
-                    <div class="option-info"><div class="option-title">B1 (Intermediate)</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateLevel('B2', this)">
-                    <div class="option-info"><div class="option-title">B2 (Upper-Inter)</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateLevel('C1', this)">
-                    <div class="option-info"><div class="option-title">C1 (Advanced)</div></div><div class="check-icon">✔</div>
-                </div>
+                <div class="option-card" onclick="updateLevel('A1', this)"><div class="option-info"><div class="option-title">A1 (Beginner)</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('A2', this)"><div class="option-info"><div class="option-title">A2 (Elementary)</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('B1', this)"><div class="option-info"><div class="option-title">B1 (Intermediate)</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('B2', this)"><div class="option-info"><div class="option-title">B2 (Upper-Inter)</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('C1', this)"><div class="option-info"><div class="option-title">C1 (Advanced)</div></div><div class="check-icon">✔</div></div>
             </div></div>
         </div>
 
@@ -360,7 +287,6 @@
         const tg = window.Telegram.WebApp; tg.expand();
         const user = tg.initDataUnsafe?.user; const userId = user?.id || 'test_id';
 
-        // TABS
         function switchTab(id, el) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById('tab-' + id).classList.add('active');
@@ -370,32 +296,24 @@
             window.scrollTo({top:0});
         }
 
-        // 🔥 EXCLUSIVE ACCORDION TOGGLE (Auto-close others)
+        // ACCORDION (AUTO-CLOSE)
         function toggleAccordion(id) {
             const allItems = document.querySelectorAll('.accordion-item');
             const target = document.getElementById(id);
             const isAlreadyOpen = target.classList.contains('open');
-
-            // 1. Сначала закрываем ВСЕ
             allItems.forEach(item => {
                 item.classList.remove('open');
                 item.querySelector('.accordion-content').classList.remove('open');
             });
-
-            // 2. Открываем ЦЕЛЬНОГО, если он был закрыт
             if (!isAlreadyOpen) {
                 target.classList.add('open');
                 target.querySelector('.accordion-content').classList.add('open');
-                
-                // Прокрутка к элементу (опционально, для удобства)
                 setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
             }
         }
 
-        // --- SETTINGS LOGIC ---
+        // SETTINGS LOGIC
         let currentAudio = null;
-        
-        // 1. Voice
         async function selectVoice(val, el) {
             document.querySelectorAll('#acc-voice-timbre .option-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
@@ -404,22 +322,17 @@
             currentAudio = new Audio(`/audio/${val}.mp3`);
             currentAudio.play().catch(()=>{});
         }
-
-        // 2. Speaking Style
         async function selectStyle(val, el) {
             document.querySelectorAll('#acc-style .option-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             await saveSetting({ speakingStyle: val });
         }
-
-        // 3. Mode & Level & Generic
         async function updateSetting(key, val, el) {
             const container = el.parentElement;
             container.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             await saveSetting({ [key]: val });
         }
-        
         async function updateLevel(val, el) {
             document.getElementById('userLevelBadge').innerText = val;
             const container = el.parentElement;
@@ -427,19 +340,15 @@
             el.classList.add('active');
             await saveSetting({ level: val });
         }
-
         async function saveSetting(payload) {
             try { await fetch('/api/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId: userId.toString(), ...payload }) }); } catch(e) {}
         }
-
-        // FEEDBACK
         async function sendFeedback() {
             const txt = document.getElementById('feedbackText').value; if(!txt) return;
             await fetch('/api/feedback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ userId: userId.toString(), text: txt }) });
             alert('Sent!'); document.getElementById('feedbackText').value = '';
         }
 
-        // PREMIUM
         let isYearly = false;
         function togglePrice() {
             isYearly = !isYearly;
@@ -460,30 +369,26 @@
             try {
                 const res = await fetch(`/api/user/${userId}`);
                 const data = await res.json();
-                document.getElementById('streakVal').innerText = data.streak;
+                // 🔥 FIX: Защита от undefined
+                document.getElementById('streakVal').innerText = (data.streak !== undefined) ? data.streak : 0;
                 document.getElementById('totalDaysVal').innerText = data.dates?.length || 0;
                 document.getElementById('userLevelBadge').innerText = data.level || 'A1';
                 
-                // Active States Matcher
-                // Voice
                 if(data.voice) {
                     const cards = document.querySelectorAll('#acc-voice-timbre .option-card');
                     cards.forEach(c => c.classList.remove('active'));
                     cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.voice}'`)) c.classList.add('active'); });
                 }
-                // Style
                 if(data.speakingStyle) {
                     const cards = document.querySelectorAll('#acc-style .option-card');
                     cards.forEach(c => c.classList.remove('active'));
                     cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.speakingStyle}'`)) c.classList.add('active'); });
                 }
-                // Mode
                 if(data.mode) {
                      const cards = document.querySelectorAll('#acc-mode .option-card');
                      cards.forEach(c => c.classList.remove('active'));
                      cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.mode}'`)) c.classList.add('active'); });
                 }
-                // Level
                 if(data.level) {
                      const cards = document.querySelectorAll('#acc-level .option-card');
                      cards.forEach(c => c.classList.remove('active'));
@@ -491,12 +396,16 @@
                 }
                 
                 renderCalendar(data.dates||[]);
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
         function renderCalendar(dates) {
             const g = document.getElementById('calendarGrid'); g.innerHTML='';
             ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(t=>{const d=document.createElement('div');d.innerText=t;d.style.color='var(--text-dim)';d.style.fontSize='12px';d.style.textAlign='center';g.appendChild(d)});
             const now=new Date(); const y=now.getFullYear(); const m=now.getMonth(); const lastD=new Date(y,m+1,0).getDate();
+            // 🔥 FIX: Установка названия месяца
+            const mNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+            document.getElementById('monthName').innerText = `${mNames[m]} ${y}`;
+            
             let firstD=new Date(y,m,1).getDay(); firstD=firstD===0?6:firstD-1; const active=new Set(dates);
             for(let i=0;i<firstD;i++) g.appendChild(document.createElement('div'));
             for(let d=1;d<=lastD;d++) {
