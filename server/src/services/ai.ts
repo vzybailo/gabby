@@ -2,14 +2,12 @@ import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { systemPrompt } from '../prompts/systemPrompt';
+import { systemPrompt } from '../prompts/systemPrompt.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const AUDIO_DIR = path.resolve('./audio');
 
 if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR);
-
-// --- ТИПЫ ---
 
 type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
@@ -19,8 +17,10 @@ type ChatMessage = {
 export interface UserSettings {
   mode: string;        
   level: string;       
-  voice: string;          // Тембр (Alloy, Echo...)
-  speakingStyle: string;  // Стиль (Teacher, Street...)
+  voice: string;         
+  speakingStyle: string;  
+  interviewContext?: string | null; 
+  roleplayContext?: string | null; 
 }
 
 export interface AIResponse {
@@ -41,8 +41,6 @@ export type AssessmentResult = {
   reply: string; 
 };
 
-// --- ФУНКЦИИ ---
-
 export async function assessLevel(text: string): Promise<AssessmentResult> {
   try {
     const completion = await openai.chat.completions.create({
@@ -61,16 +59,24 @@ export async function assessLevel(text: string): Promise<AssessmentResult> {
   }
 }
 
-// 🔥 ГЛАВНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ ТЕКСТА
 export async function getChatResponse(
     messages: ChatMessage[], 
     settings: UserSettings 
 ): Promise<AIResponse> {
 
+  const LENIENCY_RULE = `
+    IMPORTANT CORRECTION RULE:
+    - IGNORE capitalization errors (e.g., "i go" is fine, treat as "I go").
+    - IGNORE missing punctuation (e.g., no period at the end is fine).
+    - Mark 'is_correct' as TRUE if the only mistakes are casing or punctuation.
+    - ONLY report errors for Grammar (tense, conjugation), Vocabulary, or Word Order.
+  `;
+
+  const dialectInstruction = (settings.voice === 'fable')
+      ? "ACCENT: BRITISH ENGLISH. Use spelling like 'colour', 'favourite'. Use terms like 'lift', 'flat', 'cheers'." 
+      : "ACCENT: AMERICAN ENGLISH. Use standard US spelling and vocabulary.";
+
   let styleInstruction = "Speak normally.";
-  
-  // 🔥 ТЕХНИКА: PUNCTUATION HACKING
-  // Мы заставляем AI писать текст так, чтобы TTS читал его с нужной интонацией.
   
   switch (settings.speakingStyle) {
       case 'teacher': 
@@ -78,64 +84,108 @@ export async function getChatResponse(
             STYLE: PATIENT ESL TEACHER. 
             - Speak slowly and clearly.
             - Use pauses (...) to let information sink in.
-            - Example: "That was good... however... try this word."
             - Avoid contractions (say "I am" not "I'm").
-            - Tone: Warm, encouraging, very articulate.
+            - Tone: Warm, encouraging.
           `;
           break;
 
       case 'standard': 
           styleInstruction = `
-            STYLE: STANDARD ENGLISH / NEWS ANCHOR. 
+            STYLE: STANDARD ENGLISH. 
             - Crisp, clear, professional.
             - No slang. Standard grammar.
-            - Use standard punctuation.
           `;
           break;
 
       case 'friend': 
           styleInstruction = `
-            STYLE: BEST FRIEND / CASUAL. 
-            - REACT FIRST! If user says something sad, say "Oh no...". If happy, say "That's awesome!".
+            STYLE: CASUAL FRIEND. 
+            - REACT FIRST! (e.g., "Oh no...", "Wow!").
             - Use fillers sparingly: "Well...", "You know...".
-            - Use exclamation marks (!) for excitement.
             - Tone: Interested, supportive, casual.
           `;
           break;
 
       case 'street': 
           styleInstruction = `
-            STYLE: NATIVE FAST SPEAKER (Street/Slang). 
-            - IMPERFECTION IS KEY. DO NOT SOUND LIKE A ROBOT.
-            - Use aggressive contractions: "gonna" (going to), "wanna" (want to), "dunno" (don't know), "gotta".
-            - Use fillers to sound natural: "Like...", "Uh...", "I mean...".
-            - Start sentences with "Man,", "So, uh,", "Listen,".
-            - Use "..." for thinking pauses.
-            - Example: "Man, I dunno... that sounds kinda crazy, right?"
+            STYLE: STREET SLANG / NATIVE. 
+            - Use aggressive contractions: "gonna", "wanna", "dunno".
+            - Use fillers: "Like...", "Uh...", "I mean...".
+            - Start sentences with "Man,", "So, uh,".
+            - Example: "Man, I dunno... that sounds kinda crazy."
           `;
           break;
-      
-      default:
-          styleInstruction = "Speak normally.";
   }
 
   let modeInstruction = "";
-  if (settings.mode === 'grammar') {
-      modeInstruction = `MODE: GRAMMAR NAZI. Correct EVERY mistake strictly.`;
+  let correctionStrictness = "";
+  let temp = 0.7;
+
+  if (settings.mode === 'interview') {
+      const targetJob = settings.interviewContext || "a general professional position";
+      modeInstruction = `
+        MODE: JOB INTERVIEW SIMULATION.
+        CONTEXT: You are a professional HR Recruiter interviewing the user for the position of: "${targetJob}".
+        
+        RULES:
+        1. Ask ONE question at a time.
+        2. Give SHORT feedback (1 sentence) on their answer, then ask the NEXT question.
+        3. Keep a professional tone.
+        
+        IMPORTANT - ENDING THE SESSION:
+        If the user says "Stop", "Goodbye", "That's all", or if you have asked 5-7 questions and feel the interview is done:
+        - Do NOT ask another question.
+        - Conclude the interview professionally.
+        - EXPLICITLY say: "Interview finished! 🏁 To go back to normal chat, please open Settings and select 'Just Chat' mode."
+      `;
+      correctionStrictness = `Correct only major grammar mistakes that affect professionalism. ${LENIENCY_RULE}`;
+      temp = 0.6;
+
   } else if (settings.mode === 'roleplay') {
-      modeInstruction = `MODE: ROLEPLAY. Stay in character. Keep replies conversational.`;
+      const scenario = settings.roleplayContext || "Casual conversation with a stranger";
+      
+      modeInstruction = `
+        MODE: ROLEPLAY SIMULATION.
+        SCENARIO: ${scenario}
+        
+        RULES:
+        1. You are a character in this scenario. DO NOT say you are an AI.
+        2. Keep replies SHORT and NATURAL (under 20 words). Real people don't write essays.
+        3. IGNORE grammar mistakes unless the meaning is lost.
+        4. Focus on moving the action forward (e.g., "Anything else?", "Cash or card?").
+      `;
+
+      correctionStrictness = `Ignore mistakes. Focus on the scene. ${LENIENCY_RULE}`;
+      temp = 0.9;
+
+  } else if (settings.mode === 'grammar') {
+      modeInstruction = `MODE: GRAMMAR TEACHER (STRICT). Correct EVERY mistake including punctuation.`;
+      correctionStrictness = "STRICT: Mark 'is_correct' as FALSE for any tiny mistake.";
+      temp = 0.5;
+
   } else {
-      modeInstruction = `MODE: CHILL CHAT. Only correct mistakes that destroy meaning.`;
+      modeInstruction = `
+        MODE: CHILL CHAT.
+        1. Focus on the conversation flow. 
+        2. Only correct MAJOR mistakes that confuse the meaning. Ignore missing commas or minor typos.
+        3. Be supportive and conversational.
+      `;
+
+      correctionStrictness = `Correct only critical errors. ${LENIENCY_RULE}`;
+      temp = 0.75;
   }
 
   const fullSystemPrompt = `${systemPrompt}
   
   --- CURRENT SETTINGS ---
   User Level: ${settings.level}
+  ${dialectInstruction}
   ${styleInstruction}
-  ${modeInstruction}
   
-  IMPORTANT: Return JSON response. The 'reply' field must match the STYLE instructions exactly (include the slang/pauses).`;
+  ${modeInstruction}
+  Correction Policy: ${correctionStrictness}
+  
+  IMPORTANT: Return JSON response. The 'reply' field must match the STYLE instructions exactly.`;
 
   const validMessages = messages
     .filter(m => typeof m.content === 'string' && m.content.trim() !== '')
@@ -145,7 +195,7 @@ export async function getChatResponse(
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'system', content: fullSystemPrompt }, ...validMessages],
-      temperature: 0.85, // Чуть выше для креативности и живости
+      temperature: temp, 
       response_format: { type: "json_object" }
     });
 
@@ -168,28 +218,25 @@ export async function getChatResponse(
   }
 }
 
-// 🔥 ГЕНЕРАЦИЯ РЕЧИ (ПРИНИМАЕТ ГОЛОС И СТИЛЬ)
 export async function generateSpeech(text: string, voice: string, style: string = 'standard'): Promise<{ audioUrl: string }> {
   const fileName = `${randomUUID()}.mp3`;
   const filePath = path.join(AUDIO_DIR, fileName);
 
-  // 1. Карта скоростей (зависит от стиля)
   const speedMap: Record<string, number> = {
-    'teacher': 0.9,   // Чуть медленнее
-    'standard': 1.0,  // Норма
-    'friend': 1.05,   // Живо
-    'street': 1.15    // Быстро, но читаемость сохраняется за счет сленга в тексте
+    'teacher': 0.9,   
+    'standard': 1.0,  
+    'friend': 1.05,   
+    'street': 1.15    
   };
 
   const speed = speedMap[style] || 1.0;
 
-  // 2. Валидация голоса (OpenAI voices)
   const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
   const selectedVoice = validVoices.includes(voice) ? voice : 'alloy';
 
   try {
     const mp3 = await openai.audio.speech.create({
-      model: 'tts-1', // tts-1 звучит более "живо" и "грязно", чем tts-1-hd
+      model: 'tts-1',
       voice: selectedVoice as any,
       input: text,
       speed: speed,

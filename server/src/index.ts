@@ -5,9 +5,10 @@ import path from 'path';
 import { File } from 'node:buffer';
 import OpenAI from 'openai';
 import { prisma } from './lib/prisma.js';
-import chatRouter from './routes/chat.js'; // Убедись, что расширение .js или без него, в зависимости от твоего tsconfig
-import transcribeRouter from './routes/transcribe.js'; // Если этот файл существует
+import chatRouter from './routes/chat.js';
+import transcribeRouter from './routes/transcribe.js'; // Если есть
 import { bot, triggerAction } from './telegramBot.js'; 
+import { calculateReview } from './services/srs.js'; 
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 globalThis.File = File as any;
@@ -15,38 +16,60 @@ globalThis.File = File as any;
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001; 
 
-// Увеличиваем лимиты для аудио-файлов
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors());
 
-// Статика
 const publicPath = path.join(process.cwd(), 'public');
 app.use(express.static(publicPath));
 app.use('/audio', express.static(path.resolve('audio')));
 
-// Подключаем роуты
 app.use('/chat', chatRouter);
-app.use('/api', transcribeRouter); // Убедись, что transcribeRouter экспортирован корректно
+app.use('/api', transcribeRouter);
 
-// --- 🔥 API МАРШРУТЫ ---
-
-// 1. Сохранение настроек (Обновлено: voice, mode, level, speakingStyle)
 app.post('/api/settings', async (req, res) => {
     try {
         const { userId, voice, mode, level, speakingStyle } = req.body;
+        const oldUser = await prisma.user.findUnique({ where: { id: userId } });
         
-        // Используем update, так как юзер скорее всего уже создан при входе в бота
-        // Если юзера нет, можно использовать upsert, но обычно он есть
         await prisma.user.update({
             where: { id: userId },
             data: { 
                 voice: voice || undefined, 
                 mode: mode || undefined,
                 level: level || undefined,
-                speakingStyle: speakingStyle || undefined // 🔥 Сохраняем стиль речи
+                speakingStyle: speakingStyle || undefined
             }
         });
+
+        if (mode && oldUser?.mode !== mode) {
+            if (mode === 'interview') {
+                await prisma.user.update({ where: { id: userId }, data: { interviewContext: null } });
+                await bot.sendMessage(userId, 
+                `💼 <b>Interview Mode Activated!</b> 🚀\n\nTo start the simulation, please type the <b>Job Position</b> you are applying for.\n\n<i>Example: Frontend Developer, Project Manager, Barista...</i>`, 
+                { parse_mode: 'HTML' }
+            );            } 
+            
+            else if (mode === 'roleplay') {
+                await prisma.user.update({ where: { id: userId }, data: { roleplayContext: null } });
+                
+                const opts = {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{ text: '☕️ Cafe', callback_data: 'rp_cafe' }, { text: '✈️ Airport', callback_data: 'rp_airport' }],
+                            [{ text: '🏨 Hotel', callback_data: 'rp_hotel' }, { text: '🚕 Taxi', callback_data: 'rp_taxi' }],
+                            [{ text: '🏥 Doctor', callback_data: 'rp_doctor' }, { text: '🛒 Grocery', callback_data: 'rp_shop' }]
+                        ]
+                    }
+                };
+                
+                await bot.sendMessage(userId, 
+                    `🎭 <b>Roleplay Mode Activated!</b>\n\nChoose a scenario to start practicing, or simply <b>type your own scenario</b> (e.g., <i>"Buying a ticket at the cinema"</i>).`, 
+                    { parse_mode: 'HTML', ...opts }
+                );
+            }
+        }
+
         res.json({ success: true });
     } catch (e) {
         console.error("Settings update error:", e);
@@ -54,16 +77,14 @@ app.post('/api/settings', async (req, res) => {
     }
 });
 
-// 2. Отправка фидбека
 app.post('/api/feedback', async (req, res) => {
     try {
         const { userId, text } = req.body;
         
-        console.log(`📩 FEEDBACK from ${userId}: ${text}`);
-        
-        // Если хочешь получать в личку, раскомментируй и вставь свой ID (числом)
-        // const ADMIN_ID = 123456789; 
-        // await bot.sendMessage(ADMIN_ID, `📩 <b>Feedback</b> from ${userId}:\n\n${text}`, { parse_mode: 'HTML' });
+        const ADMIN_ID = process.env.ADMIN_ID;
+        if (ADMIN_ID) {
+            await bot.sendMessage(ADMIN_ID, `📩 <b>Feedback</b> from <code>${userId}</code>:\n\n${text}`, { parse_mode: 'HTML' });
+        }
         
         res.json({ success: true });
     } catch (e) {
@@ -71,27 +92,24 @@ app.post('/api/feedback', async (req, res) => {
     }
 });
 
-// 3. Генерация темы (Topic)
 app.post('/api/topic', async (req, res) => {
     try {
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [{ role: "system", content: "Give me a short, engaging conversation topic for an English learner. Just the topic/question." }]
         });
-        const topic = completion.choices[0]?.message?.content || 'Unable to generate topic';
-        res.json({ topic });
+        const topic = completion.choices[0]?.message.content;
+        res.json({ topic: topic || 'No topic generated' });
     } catch (e) {
         res.status(500).json({ error: 'Topic failed' });
     }
 });
 
-// 4. Получение данных юзера (Обновлено: отдаем speakingStyle)
 app.get('/api/user/:id', async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await prisma.user.findUnique({ where: { id: userId } });
     
-    // Дефолтные значения, если юзер не найден (или поля пусты)
     const userData = user || { 
         level: 'A1', 
         streakCount: 0, 
@@ -100,7 +118,6 @@ app.get('/api/user/:id', async (req, res) => {
         speakingStyle: 'standard' 
     };
 
-    // Считаем дни активности в этом году для календаря
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(`${currentYear}-01-01`);
     const history = await prisma.message.findMany({
@@ -112,9 +129,9 @@ app.get('/api/user/:id', async (req, res) => {
     res.json({
       level: userData.level || 'A1',
       streak: userData.streakCount || 0,
-      voice: userData.voice,            // Тембр (Alloy, Echo...)
-      mode: userData.mode,              // Режим (Chill, Grammar...)
-      speakingStyle: userData.speakingStyle, // 🔥 Стиль (Teacher, Street...)
+      voice: userData.voice,
+      mode: userData.mode,
+      speakingStyle: userData.speakingStyle,
       dates: uniqueDates
     });
   } catch (e) {
@@ -123,13 +140,111 @@ app.get('/api/user/:id', async (req, res) => {
   }
 });
 
-// Роут для действий бота (триггер команд из WebApp)
+app.get('/api/vocabulary/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const words = await prisma.vocabularyItem.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ words });
+    } catch (e) {
+        res.status(500).json({ error: 'Fetch failed' });
+    }
+});
+
+app.delete('/api/vocabulary/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await prisma.vocabularyItem.delete({
+            where: { id }
+        });
+        res.json({ success: true });
+    } catch (e) {
+        console.error("Delete error:", e);
+        res.status(500).json({ error: 'Delete failed' });
+    }
+});
+
+app.get('/api/vocabulary/review/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const now = new Date();
+        
+        const words = await prisma.vocabularyItem.findMany({
+            where: { 
+                userId,
+                nextReview: { lte: now }
+            },
+            take: 15, 
+            orderBy: { nextReview: 'asc' }
+        });
+        
+        res.json({ words });
+    } catch (e) {
+        res.status(500).json({ error: 'Fetch review failed' });
+    }
+});
+
+app.post('/api/vocabulary/review/:id', async (req, res) => {
+    try {
+        const { wordId, quality } = req.body;
+        
+        const item = await prisma.vocabularyItem.findUnique({ where: { id: wordId } });
+        if (!item) return res.status(404).json({ error: 'Not found' });
+
+        const result = calculateReview({
+            interval: item.interval,
+            repetition: item.repetition,
+            easeFactor: item.easeFactor
+        }, quality);
+
+        const nextDate = new Date();
+        nextDate.setDate(nextDate.getDate() + result.interval);
+
+        await prisma.vocabularyItem.update({
+            where: { id: wordId },
+            data: {
+                interval: result.interval,
+                repetition: result.repetition,
+                easeFactor: result.easeFactor,
+                nextReview: nextDate
+            }
+        });
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Review failed' });
+    }
+});
+
 app.post('/api/bot-action', async (req, res) => {
     try {
         const { userId, action } = req.body;
         await triggerAction(userId, action);
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+app.post('/api/translate', async (req, res) => {
+    try {
+        const { text, targetLang } = req.body; 
+        
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: `You are a translator. Translate the following text to ${targetLang || 'Russian'}. Keep the tone conversational.` },
+                { role: "user", content: text }
+            ]
+        });
+
+        const translation = completion.choices[0]?.message?.content || "Translation error";
+        res.json({ translation });
+    } catch (e) {
+        console.error("Translation API Error:", e);
+        res.status(500).json({ error: 'Translation failed' });
+    }
 });
 
 app.listen(PORT, '0.0.0.0', () => {

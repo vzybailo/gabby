@@ -32,4 +32,23 @@ model User {
   voice          String   @default("alloy") // alloy, echo, fable, onyx, nova, shimmer
   speakingStyle  String   @default("standard")
   mode           String   @default("chill") // chill, grammar, roleplay
+  interviewContext String?
+  roleplayContext  String?
+  vocabulary     VocabularyItem[]
+}
+
+model VocabularyItem {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  word        String   // Само слово (например, "Epiphany")
+  translation String   // Перевод (например, "Озарение")
+  definition  String   // Определение на английском
+  context     String?  // Предложение, в котором встретилось (для контекста)
+  createdAt   DateTime @default(now())
+  nextReview  DateTime @default(now()) 
+  level       Int      @default(1) // Уровень знания (1-5)
+  interval    Int      @default(0)      // Интервал в днях
+  repetition  Int      @default(0)      // Серия правильных ответов
+  easeFactor  Float    @default(2.5)    // Коэффициент легкости
 }

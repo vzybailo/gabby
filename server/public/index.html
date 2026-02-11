@@ -11,8 +11,10 @@
             --card-bg: rgba(30, 41, 59, 0.6); --accent: #818cf8;
             --accent-glow: rgba(129, 140, 248, 0.3); --success: #34d399; 
             --gold: #fbbf24; --text-main: #f1f5f9; --text-dim: #94a3b8;
+            --danger: #ef4444; --orange: #f97316;
         }
         body { margin: 0; padding: 0; background: radial-gradient(circle at top, var(--bg-grad-start), var(--bg-grad-end)); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; padding-bottom: 120px; }
+        * { box-sizing: border-box; }
 
         /* COMMON */
         .page-section { display: none; flex-direction: column; align-items: center; width: 100%; animation: fadeIn 0.3s ease; padding-bottom: 40px; }
@@ -20,108 +22,84 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .header { width: 100%; padding: 20px 20px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .title { font-size: 20px; font-weight: 800; margin-bottom: 15px; }
+        .title { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
+        .subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 15px; font-weight: 400; max-width: 80%; line-height: 1.4; }
         
-        /* PREMIUM BANNER */
-        .premium-banner {
-            width: 90%; max-width: 380px;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border-radius: 16px; padding: 16px; 
-            margin-top: 10px; margin-bottom: 25px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
-            cursor: pointer; position: relative; overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: transform 0.1s;
+        .unified-width { width: 90%; max-width: 380px; margin-left: auto; margin-right: auto; }
+
+        /* VOCAB LIST */
+        .vocab-item {
+            background: rgba(255,255,255,0.03); 
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            display: flex; flex-direction: column; gap: 6px;
+            transition: all 0.2s; position: relative;
         }
+        .vocab-item.deleting { opacity: 0; transform: translateX(-20px); }
+        .vocab-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .delete-btn { padding: 2px 6px; margin-left: 8px; color: rgba(255, 255, 255, 0.3); cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .delete-btn:hover { color: #ef4444; transform: scale(1.1); }
+        .level-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            margin-right: 8px;
+            background: #64748b; /* серый (default) */
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        .level-dot.new { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); } /* Red */
+        .level-dot.learning { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.4); } /* Orange */
+        .level-dot.master { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); } /* Green */
+        .v-word { font-weight: 700; font-size: 15px; color: #fff; letter-spacing: 0.3px; flex: 1; }
+        .v-meta { display: flex; align-items: center; } 
+        .v-trans { font-size: 11px; font-weight: 700; color: var(--accent); background: rgba(129, 140, 248, 0.1); padding: 2px 8px; border-radius: 6px; text-transform: capitalize; white-space: nowrap; }
+        .v-def { font-size: 12px; color: var(--text-dim); line-height: 1.3; margin-top: -2px; }
+        .v-ctx { font-size: 11px; color: rgba(255,255,255,0.5); font-style: italic; margin-top: 2px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        /* 🔥 QUIZ MODE Styles */
+        #quiz-container { display: none; flex-direction: column; width: 100%; height: 100%; align-items: center; }
+        .quiz-card {
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px; padding: 30px 20px; text-align: center;
+            width: 100%; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 20px;
+        }
+        .q-context { font-size: 18px; line-height: 1.5; color: #fff; margin-bottom: 20px; font-style: italic; }
+        .q-word { font-size: 28px; font-weight: 800; color: var(--accent); margin-bottom: 10px; display: none; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .q-trans { font-size: 16px; color: var(--text-dim); display: none; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+        .quiz-controls { display: none; width: 100%; gap: 8px; margin-top: 20px; }
+        .q-btn { flex: 1; padding: 12px 0; border-radius: 12px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; color: #fff; transition: transform 0.1s; }
+        .q-btn:active { transform: scale(0.95); }
+        .q-btn.fail { background: var(--danger); }
+        .q-btn.hard { background: var(--orange); }
+        .q-btn.good { background: var(--accent); }
+        .q-btn.easy { background: var(--success); }
+
+        /* HEADER BUTTONS */
+        .vocab-actions { display: flex; gap: 10px; width: 100%; margin-bottom: 15px; }
+        .action-btn { flex: 1; background: rgba(255,255,255,0.1); border: none; padding: 10px; border-radius: 10px; color: white; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .action-btn.primary { background: var(--accent); box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3); }
+
+        /* OTHER STYLES (Existing) */
+        .premium-banner { background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 16px; padding: 16px; margin-top: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25); cursor: pointer; border: 1px solid rgba(255,255,255,0.2); transition: transform 0.1s; }
         .premium-banner:active { transform: scale(0.98); }
-        .premium-banner::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shine 3.5s infinite;
-        }
-        @keyframes shine { 0% { transform: translateX(-100%); } 20% { transform: translateX(100%); } 100% { transform: translateX(100%); } }
-        .pb-content { z-index: 1; text-align: left; }
-        .pb-text { color: #fff; font-weight: 800; font-size: 16px; margin-bottom: 2px; }
-        .pb-sub { font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .pb-icon { font-size: 24px; z-index: 1; }
-
-        /* ACCORDIONS & CARDS */
-        .accordion-item { width: 90%; max-width: 380px; background: var(--card-bg); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; transition: background 0.2s; }
-        .accordion-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 700; font-size: 15px; }
-        .accordion-item.open .arrow { transform: rotate(180deg); color: var(--accent); }
-        .accordion-item.open { background: rgba(30, 41, 59, 0.9); border-color: rgba(129, 140, 248, 0.3); }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: rgba(0,0,0,0.15); }
-        .accordion-content.open { max-height: 1500px; } 
-        .accordion-inner { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-
-        .option-card { 
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); 
-            border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: 0.2s; 
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .option-card.active { background: rgba(129, 140, 248, 0.15); border-color: var(--accent); }
-        .option-info { flex: 1; text-align: left; }
-        .option-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
-        .option-title { font-weight: 600; font-size: 14px; color: #fff; }
-        .tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
-        .tag.accent { color: var(--accent); background: rgba(129, 140, 248, 0.1); }
-        .tag.green { color: var(--success); background: rgba(52, 211, 153, 0.1); }
-        .option-desc { font-size: 11px; color: var(--text-dim); line-height: 1.2; }
-        .check-icon { display: none; color: var(--accent); font-size: 14px; }
-        .option-card.active .check-icon { display: block; }
-
-        /* INPUTS & BUTTONS */
+        .pb-content { z-index: 1; text-align: left; } .pb-text { color: #fff; font-weight: 800; font-size: 16px; margin-bottom: 2px; } .pb-sub { font-size: 10px; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; } .pb-icon { font-size: 24px; z-index: 1; }
+        .accordion-item { background: var(--card-bg); border-radius: 14px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden; transition: background 0.2s; }
+        .accordion-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; font-size: 15px; color: #e2e8f0; }
+        .acc-title-wrap { display: flex; align-items: center; gap: 10px; } .acc-icon { width: 18px; height: 18px; color: var(--accent); opacity: 0.8; }
+        .arrow-icon { width: 18px; height: 18px; color: var(--text-dim); transition: transform 0.3s; }
+        .accordion-item.open .arrow-icon { transform: rotate(180deg); color: var(--accent); } .accordion-item.open { background: rgba(30, 41, 59, 0.9); border-color: rgba(129, 140, 248, 0.3); } .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; background: rgba(0,0,0,0.15); } .accordion-content.open { max-height: 1500px; } .accordion-inner { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .info-step { display: flex; gap: 12px; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); } .info-step:last-child { border-bottom: none; } .step-num { min-width: 24px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent); } .step-text { font-size: 13px; color: var(--text-dim); line-height: 1.4; }
+        .option-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; } .option-card.active { background: rgba(129, 140, 248, 0.15); border-color: var(--accent); } .option-info { flex: 1; text-align: left; } .option-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; } .option-title { font-weight: 600; font-size: 14px; color: #fff; } .tag { font-size: 9px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,0.1); color: var(--text-dim); text-transform: uppercase; font-weight: 600; } .tag.accent { color: var(--accent); background: rgba(129, 140, 248, 0.1); } .tag.green { color: var(--success); background: rgba(52, 211, 153, 0.1); } .tag.gold { color: var(--gold); background: rgba(251, 191, 36, 0.1); } .option-desc { font-size: 11px; color: var(--text-dim); line-height: 1.2; } .check-icon { display: none; color: var(--accent); font-size: 14px; } .option-card.active .check-icon { display: block; }
         .feedback-input { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; padding: 12px; font-family: inherit; resize: vertical; margin-bottom: 10px; font-size: 14px; }
-        .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn:active { transform: scale(0.98); }
-        .btn-action { background: var(--accent); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
-        .btn-premium { background: linear-gradient(90deg, #f59e0b, #fbbf24); color: #451a03; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); }
-        .btn-invite { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; }
-        .btn-close { 
-            background: rgba(255,255,255,0.05); color: var(--text-dim); 
-            border: 1px solid rgba(255,255,255,0.1); 
-            width: 90%; max-width: 380px;
-            margin-top: 25px; margin-bottom: 25px; /* 🔥 Отступы для кнопки выхода */
-        }
-
-        /* PREMIUM & NAV */
-        .toggle-container { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 100px; margin: 0 auto 20px; position: relative; width: 200px; }
-        .toggle-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 600; color: var(--text-dim); border-radius: 100px; cursor: pointer; z-index: 2; transition: color 0.3s; }
-        .toggle-btn.active { color: white; }
-        .toggle-bg { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--accent); border-radius: 100px; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); }
-        .toggle-container.yearly .toggle-bg { transform: translateX(100%); }
-        .plan-card { width: 90%; max-width: 380px; background: var(--card-bg); border-radius: 24px; padding: 24px; margin-bottom: 20px; position: relative; border: 1px solid rgba(255,255,255,0.08); box-sizing: border-box; }
-        .plan-card.premium { border: 1px solid var(--gold); box-shadow: 0 0 30px rgba(251, 191, 36, 0.15); }
-        .plan-save { position: absolute; top: 12px; right: 12px; background: #ef4444; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: none; }
-        .plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .plan-title { font-size: 20px; font-weight: 800; }
-        .plan-price { font-size: 24px; font-weight: 800; color: var(--text-main); }
-        .plan-features { list-style: none; padding: 0 5px; margin: 0 0 20px 0; text-align: left; }
-        .plan-features li { padding: 8px 0; color: var(--text-dim); font-size: 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .plan-features li:last-child { border-bottom: none; }
-        .check { color: var(--success); } .check.gold { color: var(--gold); }
-
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-radius: 24px; display: flex; justify-content: space-around; padding: 12px 0; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 100; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 10px; cursor: pointer; transition: 0.2s; width: 60px; }
-        .nav-icon { font-size: 20px; transition: 0.2s; }
-        .nav-item.active { color: white; }
-        .nav-item.active .nav-icon { transform: translateY(-2px); color: var(--accent); }
-        .nav-item.active.gold .nav-icon { color: var(--gold); }
-
-        /* PROFILE SPECIFIC */
-        .avatar-wrap { width: 96px; height: 96px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #6366f1, #ec4899); margin: 0 auto 15px; position: relative; display: flex; justify-content: center; align-items: center; }
-        .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-grad-end); display: none; }
-        .avatar-initials { width: 100%; height: 100%; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; color: white; background: #1e293b; border: 4px solid var(--bg-grad-end); }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 90%; max-width: 380px; margin-bottom: 20px; }
-        .stat-card { background: var(--card-bg); padding: 16px; border-radius: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
-        .stat-val { font-size: 32px; font-weight: 800; color: white; } .stat-val.orange { background: linear-gradient(to bottom, #fbbf24, #d97706); background-clip: text; -webkit-text-fill-color: transparent; }
-        .calendar-card { background: var(--card-bg); width: 90%; max-width: 380px; border-radius: 24px; padding: 24px; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 14px; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.03); }
-        .day.active { background: var(--success); color: #064e3b; font-weight: 700; }
-        .day.today { border: 2px solid var(--accent); color: white; background: transparent; }
+        .btn { width: 100%; padding: 14px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; font-size: 16px; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; } .btn:active { transform: scale(0.98); } .btn-action { background: var(--accent); color: white; } .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); } .btn-premium { background: linear-gradient(90deg, #f59e0b, #fbbf24); color: #451a03; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); } .btn-invite { background: linear-gradient(90deg, #6366f1, #8b5cf6); color: white; margin-bottom: 12px; } .btn-close { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; margin-bottom: 20px; }
+        .calendar-card { background: var(--card-bg); border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 20px; } .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 700; } .cal-nav { cursor: pointer; padding: 5px 10px; color: var(--text-dim); font-size: 18px; } .cal-nav:hover { color: white; } .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; } .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.03); } .day.active { background: var(--success); color: #064e3b; font-weight: 700; } .day.today { border: 1px solid var(--accent); color: white; background: transparent; }
+        .toggle-container { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 100px; margin: 0 auto 20px; position: relative; width: 200px; } .toggle-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 13px; font-weight: 600; color: var(--text-dim); border-radius: 100px; cursor: pointer; z-index: 2; transition: color 0.3s; } .toggle-btn.active { color: white; } .toggle-bg { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: var(--accent); border-radius: 100px; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); } .toggle-container.yearly .toggle-bg { transform: translateX(100%); }
+        .plan-card { background: var(--card-bg); border-radius: 24px; padding: 24px; margin-bottom: 20px; position: relative; border: 1px solid rgba(255,255,255,0.08); } .plan-card.premium { border: 1px solid var(--gold); box-shadow: 0 0 30px rgba(251, 191, 36, 0.15); } .plan-save { position: absolute; top: 12px; right: 12px; background: #ef4444; color: white; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: none; } .plan-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; } .plan-title { font-size: 20px; font-weight: 800; } .plan-price { font-size: 24px; font-weight: 800; color: var(--text-main); } .plan-features { list-style: none; padding: 0 5px; margin: 0 0 20px 0; text-align: left; } .plan-features li { padding: 8px 0; color: var(--text-dim); font-size: 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); } .plan-features li:last-child { border-bottom: none; } .check { color: var(--success); } .check.gold { color: var(--gold); }
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-radius: 24px; display: flex; justify-content: space-around; padding: 12px 0; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 100; } .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 10px; cursor: pointer; transition: 0.2s; width: 60px; } .nav-icon { font-size: 20px; transition: 0.2s; } .nav-item.active { color: white; } .nav-item.active .nav-icon { transform: translateY(-2px); color: var(--accent); } .nav-item.active.gold .nav-icon { color: var(--gold); }
+        .avatar-wrap { width: 96px; height: 96px; border-radius: 50%; padding: 3px; background: linear-gradient(135deg, #6366f1, #ec4899); margin: 0 auto 15px; position: relative; display: flex; justify-content: center; align-items: center; } .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-grad-end); display: none; } .avatar-initials { width: 100%; height: 100%; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 36px; font-weight: 700; color: white; background: #1e293b; border: 4px solid var(--bg-grad-end); } .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; } .stat-card { background: var(--card-bg); padding: 16px; border-radius: 18px; text-align: center; border: 1px solid rgba(255,255,255,0.08); } .stat-val { font-size: 32px; font-weight: 800; color: white; } .stat-val.orange { background: linear-gradient(to bottom, #fbbf24, #d97706); background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
 <body>
@@ -132,19 +110,15 @@
             <h1 class="title" style="margin:0" id="userName">Student</h1>
             <div style="font-size:14px; color:var(--text-dim); margin-top:5px" id="userLevelBadge">Loading...</div>
         </div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-val orange" id="streakVal">0</div>
-                <div style="font-size:12px; color:var(--text-dim)">Day Streak</div>
-            </div>
+        <div class="stats-grid unified-width">
+            <div class="stat-card"><div class="stat-val orange" id="streakVal">0</div><div style="font-size:12px; color:var(--text-dim)">Day Streak</div></div>
             <div class="stat-card"><div class="stat-val" id="totalDaysVal">0</div><div style="font-size:12px; color:var(--text-dim)">Total Practice</div></div>
         </div>
-        <div class="calendar-card">
-            <div style="text-align:center; font-weight:700; margin-bottom:15px;" id="monthName">Calendar</div>
+        <div class="calendar-card unified-width">
+            <div class="cal-header"><div class="cal-nav" onclick="changeMonth(-1)">‹</div><div id="monthName">Calendar</div><div class="cal-nav" onclick="changeMonth(1)">›</div></div>
             <div class="cal-grid" id="calendarGrid"></div>
         </div>
-        
-        <div style="width:90%; max-width:380px;">
+        <div class="unified-width">
             <button class="btn btn-invite" onclick="inviteFriends()">📩 Invite Friends</button>
             <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
         </div>
@@ -152,94 +126,156 @@
 
     <div id="tab-settings" class="page-section">
         <div class="header"><div class="title">⚙️ Settings</div></div>
-
-        <div class="premium-banner" onclick="switchTab('premium', document.querySelector('.nav-item.gold'))">
-            <div class="pb-content">
-                <div class="pb-text">Upgrade to PRO 🚀</div>
-                <div class="pb-sub">Unlock Unlimited & All Features</div>
-            </div>
-            <div class="pb-icon">💎</div>
+        
+        <div class="premium-banner unified-width" onclick="switchTab('premium', document.querySelector('.nav-item.gold'))">
+            <div class="pb-content"><div class="pb-text">Upgrade to PRO 🚀</div><div class="pb-sub">Unlock Unlimited & All Features</div></div><div class="pb-icon">💎</div>
         </div>
 
-        <div class="accordion-item" id="acc-voice-timbre">
+        <div class="accordion-item unified-width" id="acc-help">
+            <div class="accordion-header" onclick="toggleAccordion('acc-help')">
+                <div class="acc-title-wrap"><svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><span>How to use</span></div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="accordion-content"><div class="accordion-inner">
+                <div class="info-step"><div class="step-num">1</div><div class="step-text">Send a voice or text message to the bot.</div></div>
+                <div class="info-step"><div class="step-num">2</div><div class="step-text">Get corrections and a native-style reply.</div></div>
+                <div class="info-step"><div class="step-num">3</div><div class="step-text"><b>Reply</b> to any bot message with a word to save it.</div></div>
+                <div class="info-step"><div class="step-num">4</div><div class="step-text">Go to <b>Vocab</b> tab to review saved words.</div></div>
+            </div></div>
+        </div>
+
+<div class="accordion-item unified-width" id="acc-voice-timbre">
             <div class="accordion-header" onclick="toggleAccordion('acc-voice-timbre')">
-                🗣 AI Voice (Timbre) <span class="arrow">▼</span>
+                <div class="acc-title-wrap">
+                    <svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    <span>AI Voice</span>
+                </div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             <div class="accordion-content">
                 <div class="accordion-inner">
+                    
                     <div class="option-card active" onclick="selectVoice('alloy', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Alloy</div><div class="tag">Neutral</div></div><div class="option-desc">Versatile and balanced tone.</div></div><div class="check-icon">✔</div>
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Alloy</div>
+                                <div class="tag">🇺🇸 US</div>
+                                <div class="tag accent">Neutral</div>
+                            </div>
+                            <div class="option-desc">Versatile, clear, balanced tone.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
                     </div>
+
                     <div class="option-card" onclick="selectVoice('echo', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Echo</div><div class="tag">Male</div></div><div class="option-desc">Warm and well-rounded.</div></div><div class="check-icon">✔</div>
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Echo</div>
+                                <div class="tag">🇺🇸 US</div>
+                                <div class="tag green">Male</div>
+                            </div>
+                            <div class="option-desc">Warm, soft, and well-rounded.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
                     </div>
+
                     <div class="option-card" onclick="selectVoice('shimmer', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Shimmer</div><div class="tag">Female</div></div><div class="option-desc">Clear and bright.</div></div><div class="check-icon">✔</div>
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Shimmer</div>
+                                <div class="tag">🇺🇸 US</div>
+                                <div class="tag gold">Female</div>
+                            </div>
+                            <div class="option-desc">Clear, bright, and expressive.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
                     </div>
-                    <div class="option-card" onclick="selectVoice('fable', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Fable</div><div class="tag">British</div></div><div class="option-desc">Expressive and witty.</div></div><div class="check-icon">✔</div>
-                    </div>
+
                     <div class="option-card" onclick="selectVoice('onyx', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Onyx</div><div class="tag">Deep</div></div><div class="option-desc">Authoritative and direct.</div></div><div class="check-icon">✔</div>
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Onyx</div>
+                                <div class="tag">🇺🇸 US</div>
+                                <div class="tag green">Male</div>
+                            </div>
+                            <div class="option-desc">Deep, gravelly, authoritative.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
                     </div>
+
                     <div class="option-card" onclick="selectVoice('nova', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Nova</div><div class="tag accent">Fast</div></div><div class="option-desc">Energetic and fast.</div></div><div class="check-icon">✔</div>
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Nova</div>
+                                <div class="tag">🇺🇸 US</div>
+                                <div class="tag gold">Female</div>
+                            </div>
+                            <div class="option-desc">Energetic, fast, and friendly.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
                     </div>
-                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-top:5px;">Tap to preview sound 🔊</div>
+
+                    <div class="option-card" onclick="selectVoice('fable', this)">
+                        <div class="option-info">
+                            <div class="option-top">
+                                <div class="option-title">Fable</div>
+                                <div class="tag">🇬🇧 UK</div>
+                                <div class="tag green">Male</div>
+                            </div>
+                            <div class="option-desc">British accent. Witty and classy.</div>
+                        </div>
+                        <div class="check-icon">✔</div>
+                    </div>
+
+                    <div style="font-size:10px; color:var(--text-dim); text-align:center; margin-top:5px;">Tap card to hear preview 🔊</div>
                 </div>
             </div>
         </div>
 
-        <div class="accordion-item" id="acc-style">
+        <div class="accordion-item unified-width" id="acc-style">
             <div class="accordion-header" onclick="toggleAccordion('acc-style')">
-                🎭 Speaking Style <span class="arrow">▼</span>
+                <div class="acc-title-wrap"><svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Speaking Style</span></div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
-            <div class="accordion-content">
-                <div class="accordion-inner">
-                    <div class="option-card active" onclick="selectStyle('standard', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Standard</div><div class="tag">Normal</div></div><div class="option-desc">Neutral speed (1.0x). Clear.</div></div><div class="check-icon">✔</div>
-                    </div>
-                    <div class="option-card" onclick="selectStyle('teacher', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">The Teacher</div><div class="tag green">Slow 0.85x</div></div><div class="option-desc">Enunciates clearly. No abbreviations.</div></div><div class="check-icon">✔</div>
-                    </div>
-                    <div class="option-card" onclick="selectStyle('friend', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">The Friend</div><div class="tag">Casual 1.05x</div></div><div class="option-desc">Casual tone. Uses contractions.</div></div><div class="check-icon">✔</div>
-                    </div>
-                    <div class="option-card" onclick="selectStyle('street', this)">
-                        <div class="option-info"><div class="option-top"><div class="option-title">Native Speaker</div><div class="tag accent">Fast 1.2x</div></div><div class="option-desc">Swallows words. Uses slang (gonna).</div></div><div class="check-icon">✔</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="accordion-item" id="acc-mode">
-            <div class="accordion-header" onclick="toggleAccordion('acc-mode')">🧠 Learning Mode <span class="arrow">▼</span></div>
             <div class="accordion-content"><div class="accordion-inner">
-                <div class="option-card active" onclick="updateSetting('mode', 'chill', this)">
-                    <div class="option-info"><div class="option-top"><div class="option-title">Chill Chat</div></div><div class="option-desc">Relaxed. Corrects only big mistakes.</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateSetting('mode', 'grammar', this)">
-                    <div class="option-info"><div class="option-top"><div class="option-title">Grammar Teacher</div></div><div class="option-desc">Strict. Corrects EVERYTHING.</div></div><div class="check-icon">✔</div>
-                </div>
-                <div class="option-card" onclick="updateSetting('mode', 'roleplay', this)">
-                    <div class="option-info"><div class="option-top"><div class="option-title">Roleplay</div></div><div class="option-desc">Simulates a cafe/street scenario.</div></div><div class="check-icon">✔</div>
-                </div>
+                <div class="option-card active" onclick="selectStyle('standard', this)"><div class="option-info"><div class="option-top"><div class="option-title">Standard</div><div class="tag">Normal</div></div><div class="option-desc">Neutral speed (1.0x). Clear.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="selectStyle('teacher', this)"><div class="option-info"><div class="option-top"><div class="option-title">The Teacher</div><div class="tag green">Slow 0.85x</div></div><div class="option-desc">Enunciates clearly.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="selectStyle('friend', this)"><div class="option-info"><div class="option-top"><div class="option-title">The Friend</div><div class="tag">Casual 1.05x</div></div><div class="option-desc">Casual tone. Uses contractions.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="selectStyle('street', this)"><div class="option-info"><div class="option-top"><div class="option-title">Native Speaker</div><div class="tag accent">Fast 1.2x</div></div><div class="option-desc">Swallows words. Uses slang.</div></div><div class="check-icon">✔</div></div>
             </div></div>
         </div>
 
-        <div class="accordion-item" id="acc-level">
-            <div class="accordion-header" onclick="toggleAccordion('acc-level')">📊 English Level <span class="arrow">▼</span></div>
+        <div class="accordion-item unified-width" id="acc-mode">
+            <div class="accordion-header" onclick="toggleAccordion('acc-mode')">
+                <div class="acc-title-wrap"><svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg><span>Learning Mode</span></div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
             <div class="accordion-content"><div class="accordion-inner">
-                <div class="option-card" onclick="updateLevel('A1', this)"><div class="option-info"><div class="option-title">A1 (Beginner)</div></div><div class="check-icon">✔</div></div>
-                <div class="option-card" onclick="updateLevel('A2', this)"><div class="option-info"><div class="option-title">A2 (Elementary)</div></div><div class="check-icon">✔</div></div>
-                <div class="option-card" onclick="updateLevel('B1', this)"><div class="option-info"><div class="option-title">B1 (Intermediate)</div></div><div class="check-icon">✔</div></div>
-                <div class="option-card" onclick="updateLevel('B2', this)"><div class="option-info"><div class="option-title">B2 (Upper-Inter)</div></div><div class="check-icon">✔</div></div>
-                <div class="option-card" onclick="updateLevel('C1', this)"><div class="option-info"><div class="option-title">C1 (Advanced)</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card active" onclick="updateSetting('mode', 'chill', this)"><div class="option-info"><div class="option-top"><div class="option-title">Just Chat</div></div><div class="option-desc">Casual conversation.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateSetting('mode', 'roleplay', this)"><div class="option-info"><div class="option-top"><div class="option-title">Roleplay</div><div class="tag accent">Fun</div></div><div class="option-desc">Scenarios: Cafe, Airport, etc.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateSetting('mode', 'interview', this)"><div class="option-info"><div class="option-top"><div class="option-title">Job Interview</div><div class="tag gold">Career</div></div><div class="option-desc">Practice for dream job.</div></div><div class="check-icon">✔</div></div>
             </div></div>
         </div>
 
-        <div class="accordion-item" id="acc-feedback">
-            <div class="accordion-header" onclick="toggleAccordion('acc-feedback')">📩 Feedback <span class="arrow">▼</span></div>
+        <div class="accordion-item unified-width" id="acc-level">
+            <div class="accordion-header" onclick="toggleAccordion('acc-level')">
+                <div class="acc-title-wrap"><svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>English Level</span></div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="accordion-content"><div class="accordion-inner">
+                <div class="option-card" onclick="updateLevel('A1', this)"><div class="option-info"><div class="option-top"><div class="option-title">A1</div><div class="tag green">Beginner</div></div><div class="option-desc">Basic phrases.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('A2', this)"><div class="option-info"><div class="option-top"><div class="option-title">A2</div><div class="tag green">Elementary</div></div><div class="option-desc">Simple daily comms.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('B1', this)"><div class="option-info"><div class="option-top"><div class="option-title">B1</div><div class="tag">Intermediate</div></div><div class="option-desc">Most situations.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('B2', this)"><div class="option-info"><div class="option-top"><div class="option-title">B2</div><div class="tag accent">Upper-Inter</div></div><div class="option-desc">Fluent and spontaneous.</div></div><div class="check-icon">✔</div></div>
+                <div class="option-card" onclick="updateLevel('C1', this)"><div class="option-info"><div class="option-top"><div class="option-title">C1</div><div class="tag gold">Advanced</div></div><div class="option-desc">Complex texts.</div></div><div class="check-icon">✔</div></div>
+            </div></div>
+        </div>
+
+        <div class="accordion-item unified-width" id="acc-feedback">
+            <div class="accordion-header" onclick="toggleAccordion('acc-feedback')">
+                <div class="acc-title-wrap"><svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><span>Feedback</span></div>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
             <div class="accordion-content"><div class="accordion-inner">
                 <div style="width:100%;">
                     <div style="font-size:12px; color:var(--text-dim); margin-bottom:8px;">Found a bug or have an idea?</div>
@@ -248,37 +284,55 @@
                 </div>
             </div></div>
         </div>
+        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+    </div>
 
-        <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+    <div id="tab-vocab" class="page-section">
+        <div class="header">
+            <div class="title" style="margin-bottom: 5px;">📚 Vocabulary</div>
+            <div class="subtitle">Reply to any bot message to save words here</div>
+        </div>
+
+        <div class="unified-width vocab-actions" id="vocab-actions">
+            <button class="action-btn primary" onclick="startQuiz()">
+                🧠 Start Quiz
+            </button>
+        </div>
+
+        <div id="vocab-list" class="unified-width">
+            <div style="text-align:center;color:var(--text-dim);padding:20px;">Loading...</div>
+        </div>
+
+        <div id="quiz-container" class="unified-width">
+            <div class="quiz-card" id="quiz-card" onclick="flipCard()">
+                <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;">Tap to reveal</div>
+                <div class="q-context" id="q-context">Loading...</div>
+                <div class="q-word" id="q-word">...</div>
+                <div class="q-trans" id="q-trans">...</div>
+            </div>
+            <div class="quiz-controls" id="quiz-controls">
+                <button class="q-btn fail" onclick="rateWord(1)">Forgot</button>
+                <button class="q-btn hard" onclick="rateWord(2)">Hard</button>
+                <button class="q-btn good" onclick="rateWord(3)">Good</button>
+                <button class="q-btn easy" onclick="rateWord(4)">Easy</button>
+            </div>
+            <button class="btn btn-outline" style="margin-top: 20px" onclick="stopQuiz()">Exit Quiz</button>
+        </div>
+
+        <button class="btn btn-close unified-width" id="vocab-close-btn" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
     </div>
 
     <div id="tab-premium" class="page-section">
         <div class="header"><div class="title">💎 Premium</div></div>
-        <div class="toggle-container" id="priceToggle" onclick="togglePrice()">
-            <div class="toggle-bg"></div>
-            <div class="toggle-btn active" id="btnMonthly">Monthly</div>
-            <div class="toggle-btn" id="btnYearly">Yearly</div>
-        </div>
-        <div class="plan-card">
-            <div class="plan-header"><span class="plan-title">Free</span><span class="plan-price">$0</span></div>
-            <ul class="plan-features"><li><span class="check">✔</span> 10 messages / day</li><li><span class="check">✔</span> Basic corrections</li></ul>
-        </div>
-        <div class="plan-card premium">
-            <div class="plan-save" id="saveBadge">SAVE 33%</div>
-            <div class="plan-header"><span class="plan-title" style="color:var(--gold)">PRO</span><span class="plan-price" id="proPrice">$5<span style="font-size:14px; color:var(--text-dim)">/mo</span></span></div>
-            <ul class="plan-features">
-                <li><span class="check gold">✔</span> <b>Unlimited</b> messages</li>
-                <li><span class="check gold">✔</span> Deep explanations</li>
-                <li><span class="check gold">✔</span> All Voices & Modes</li>
-            </ul>
-            <button class="btn btn-premium" onclick="buyPremium()">🚀 Get PRO Access</button>
-        </div>
-        
-        <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        <div class="toggle-container" id="priceToggle" onclick="togglePrice()"><div class="toggle-bg"></div><div class="toggle-btn active" id="btnMonthly">Monthly</div><div class="toggle-btn" id="btnYearly">Yearly</div></div>
+        <div class="plan-card unified-width"><div class="plan-header"><span class="plan-title">Free</span><span class="plan-price">$0</span></div><ul class="plan-features"><li><span class="check">✔</span> 10 messages / day</li><li><span class="check">✔</span> Basic corrections</li></ul></div>
+        <div class="plan-card premium unified-width"><div class="plan-save" id="saveBadge">SAVE 33%</div><div class="plan-header"><span class="plan-title" style="color:var(--gold)">PRO</span><span class="plan-price" id="proPrice">$5<span style="font-size:14px; color:var(--text-dim)">/mo</span></span></div><ul class="plan-features"><li><span class="check gold">✔</span> <b>Unlimited</b> messages</li><li><span class="check gold">✔</span> Deep explanations</li><li><span class="check gold">✔</span> All Voices & Modes</li></ul><button class="btn btn-premium" onclick="buyPremium()">🚀 Get PRO Access</button></div>
+        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('profile', this)"><div class="nav-icon">👤</div><div>Profile</div></div>
+        <div class="nav-item" onclick="switchTab('vocab', this)"><div class="nav-icon">📚</div><div>Vocab</div></div>
         <div class="nav-item" onclick="switchTab('settings', this)"><div class="nav-icon">⚙️</div><div>Settings</div></div>
         <div class="nav-item gold" onclick="switchTab('premium', this)"><div class="nav-icon">💎</div><div>Premium</div></div>
     </div>
@@ -287,16 +341,110 @@
         const tg = window.Telegram.WebApp; tg.expand();
         const user = tg.initDataUnsafe?.user; const userId = user?.id || 'test_id';
 
+        // --- QUIZ LOGIC ---
+        let quizQueue = [];
+        let currentCard = null;
+
+        async function startQuiz() {
+            // 1. Fetch review words
+            document.getElementById('vocab-list').innerHTML = '<div style="text-align:center;color:var(--text-dim);">Loading quiz...</div>';
+            try {
+                const res = await fetch(`/api/vocabulary/review/${userId}`);
+                const data = await res.json();
+                quizQueue = data.words || [];
+
+                if(quizQueue.length === 0) {
+                    alert("🎉 All words reviewed for now! Come back later.");
+                    loadVocabulary(); // Back to list
+                    return;
+                }
+
+                // 2. Switch UI
+                document.getElementById('vocab-list').style.display = 'none';
+                document.getElementById('vocab-actions').style.display = 'none';
+                document.getElementById('vocab-close-btn').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'flex';
+                
+                showNextCard();
+
+            } catch(e) { alert("Error starting quiz"); loadVocabulary(); }
+        }
+
+        function stopQuiz() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('vocab-list').style.display = 'block';
+            document.getElementById('vocab-actions').style.display = 'flex';
+            document.getElementById('vocab-close-btn').style.display = 'block';
+            loadVocabulary();
+        }
+
+        function showNextCard() {
+            if(quizQueue.length === 0) {
+                alert("🎉 Session complete!");
+                stopQuiz();
+                return;
+            }
+            currentCard = quizQueue[0];
+            
+            // UI Reset
+            document.getElementById('quiz-controls').style.display = 'none';
+            document.getElementById('q-word').style.display = 'none';
+            document.getElementById('q-trans').style.display = 'none';
+            
+            // Fill Data
+            const wordRegex = new RegExp(currentCard.word, 'gi');
+            // Hide word in context or show simple definition if no context
+            let questionText = currentCard.context 
+                ? currentCard.context.replace(wordRegex, '_______') 
+                : `Definition: ${currentCard.definition}`;
+                
+            document.getElementById('q-context').innerText = questionText;
+            document.getElementById('q-word').innerText = currentCard.word;
+            document.getElementById('q-trans').innerText = currentCard.translation;
+        }
+
+        function flipCard() {
+            document.getElementById('q-word').style.display = 'block';
+            document.getElementById('q-trans').style.display = 'block';
+            document.getElementById('quiz-controls').style.display = 'flex';
+        }
+
+        async function rateWord(quality) {
+            // quality: 1 (Forgot) ... 4 (Easy)
+            if(!currentCard) return;
+
+            // Optimistic UI update
+            quizQueue.shift(); // Remove current
+            showNextCard();
+
+            // Send to backend
+            try {
+                await fetch('/api/vocabulary/review/' + userId, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ wordId: currentCard.id, quality: quality })
+                });
+            } catch(e) { console.error(e); }
+        }
+
+
+        // --- TABS & NAVIGATION ---
+        let userDates = new Set();
+        let calDate = new Date();
+
         function switchTab(id, el) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.getElementById('tab-' + id).classList.add('active');
+            
             if(!el) { if(id === 'premium') el = document.querySelector('.nav-item.gold'); }
+            
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
+            
+            if (id === 'vocab') loadVocabulary();
             window.scrollTo({top:0});
         }
 
-        // ACCORDION (AUTO-CLOSE)
         function toggleAccordion(id) {
             const allItems = document.querySelectorAll('.accordion-item');
             const target = document.getElementById(id);
@@ -312,7 +460,7 @@
             }
         }
 
-        // SETTINGS LOGIC
+        // --- SETTINGS LOGIC ---
         let currentAudio = null;
         async function selectVoice(val, el) {
             document.querySelectorAll('#acc-voice-timbre .option-card').forEach(c => c.classList.remove('active'));
@@ -349,17 +497,62 @@
             alert('Sent!'); document.getElementById('feedbackText').value = '';
         }
 
-        let isYearly = false;
-        function togglePrice() {
-            isYearly = !isYearly;
-            const con=document.getElementById('priceToggle'); const pr=document.getElementById('proPrice'); const bdg=document.getElementById('saveBadge'); const bM=document.getElementById('btnMonthly'); const bY=document.getElementById('btnYearly');
-            if(isYearly) { con.classList.add('yearly'); pr.innerHTML='$40<span style="font-size:14px;color:var(--text-dim)">/yr</span>'; bdg.style.display='block'; bM.classList.remove('active'); bY.classList.add('active'); } 
-            else { con.classList.remove('yearly'); pr.innerHTML='$5<span style="font-size:14px;color:var(--text-dim)">/mo</span>'; bdg.style.display='none'; bM.classList.add('active'); bY.classList.remove('active'); }
+        // --- VOCABULARY LIST ---
+        async function deleteWord(id, el) {
+            if(!confirm("Delete this word?")) return;
+            const card = el.closest('.vocab-item');
+            card.classList.add('deleting');
+            try {
+                await fetch(`/api/vocabulary/${id}`, { method: 'DELETE' });
+                setTimeout(() => card.remove(), 200);
+            } catch(e) { alert('Error'); card.classList.remove('deleting'); }
         }
-        function buyPremium() { tg.showPopup({title:'Pro Plan', message:'Coming soon!', buttons:[{type:'ok'}]}); }
-        function inviteFriends() { const link = `https://t.me/ChattyEnglishBot?start=invite`; tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`); }
+        // LOAD VOCABULARY (WITH INDICATORS)
+        async function loadVocabulary() {
+            // Ensure UI is in list mode
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('vocab-list').style.display = 'block';
+            document.getElementById('vocab-actions').style.display = 'flex';
+            document.getElementById('vocab-close-btn').style.display = 'block';
 
-        // LOAD DATA
+            const list = document.getElementById('vocab-list');
+            try {
+                const res = await fetch(`/api/vocabulary/${userId}`);
+                const data = await res.json();
+                list.innerHTML = '';
+
+                if(!data.words || data.words.length === 0) {
+                    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><div style="font-weight:700; margin-bottom:5px;">No words yet</div><div style="font-size:13px; color:var(--text-dim);">Reply to any bot message to save words here.</div></div>`;
+                    return;
+                }
+
+                data.words.forEach(w => {
+                    // ОПРЕДЕЛЯЕМ ЦВЕТ ТОЧКИ
+                    let dotClass = 'new';
+                    // interval - это дни. Если поля нет (старое слово), считаем 0
+                    const interval = w.interval || 0; 
+                    
+                    if (interval > 14) dotClass = 'master';
+                    else if (interval > 3) dotClass = 'learning';
+                    
+                    const el = document.createElement('div');
+                    el.className = 'vocab-item';
+                    el.innerHTML = `
+                        <div class="vocab-top">
+                            <div style="display:flex; align-items:center;">
+                                <div class="level-dot ${dotClass}"></div>
+                                <div class="v-word">${w.word}</div>
+                            </div>
+                            <div class="v-meta"><div class="v-trans">${w.translation}</div><div class="delete-btn" onclick="deleteWord('${w.id}', this)">🗑</div></div>
+                        </div>
+                        <div class="v-def">${w.definition}</div>
+                        ${w.context ? `<div class="v-ctx">Ex: "${w.context}"</div>` : ''}
+                    `;
+                    list.appendChild(el);
+                });
+            } catch(e) { list.innerHTML = '<div style="text-align:center;color:var(--text-dim);">Error loading words.</div>'; }
+        }
+        // --- INIT DATA ---
         async function loadData() {
             if(user) {
                 document.getElementById('userName').innerText = user.first_name;
@@ -369,51 +562,47 @@
             try {
                 const res = await fetch(`/api/user/${userId}`);
                 const data = await res.json();
-                // 🔥 FIX: Защита от undefined
                 document.getElementById('streakVal').innerText = (data.streak !== undefined) ? data.streak : 0;
                 document.getElementById('totalDaysVal').innerText = data.dates?.length || 0;
                 document.getElementById('userLevelBadge').innerText = data.level || 'A1';
-                
-                if(data.voice) {
-                    const cards = document.querySelectorAll('#acc-voice-timbre .option-card');
-                    cards.forEach(c => c.classList.remove('active'));
-                    cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.voice}'`)) c.classList.add('active'); });
-                }
-                if(data.speakingStyle) {
-                    const cards = document.querySelectorAll('#acc-style .option-card');
-                    cards.forEach(c => c.classList.remove('active'));
-                    cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.speakingStyle}'`)) c.classList.add('active'); });
-                }
-                if(data.mode) {
-                     const cards = document.querySelectorAll('#acc-mode .option-card');
-                     cards.forEach(c => c.classList.remove('active'));
-                     cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.mode}'`)) c.classList.add('active'); });
-                }
-                if(data.level) {
-                     const cards = document.querySelectorAll('#acc-level .option-card');
-                     cards.forEach(c => c.classList.remove('active'));
-                     cards.forEach(c => { if(c.getAttribute('onclick').includes(`'${data.level}'`)) c.classList.add('active'); });
-                }
-                
-                renderCalendar(data.dates||[]);
+                if(data.dates) userDates = new Set(data.dates);
+                if(data.voice) { document.querySelectorAll('#acc-voice-timbre .option-card').forEach(c => { c.classList.remove('active'); if(c.getAttribute('onclick').includes(`'${data.voice}'`)) c.classList.add('active'); }); }
+                if(data.speakingStyle) { document.querySelectorAll('#acc-style .option-card').forEach(c => { c.classList.remove('active'); if(c.getAttribute('onclick').includes(`'${data.speakingStyle}'`)) c.classList.add('active'); }); }
+                if(data.mode) { document.querySelectorAll('#acc-mode .option-card').forEach(c => { c.classList.remove('active'); if(c.getAttribute('onclick').includes(`'${data.mode}'`)) c.classList.add('active'); }); }
+                if(data.level) { document.querySelectorAll('#acc-level .option-card').forEach(c => { c.classList.remove('active'); if(c.getAttribute('onclick').includes(`'${data.level}'`)) c.classList.add('active'); }); }
+                renderCalendar();
             } catch(e) { console.error(e); }
         }
-        function renderCalendar(dates) {
+
+        function changeMonth(delta) { calDate.setMonth(calDate.getMonth() + delta); renderCalendar(); }
+        function renderCalendar() {
             const g = document.getElementById('calendarGrid'); g.innerHTML='';
-            ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(t=>{const d=document.createElement('div');d.innerText=t;d.style.color='var(--text-dim)';d.style.fontSize='12px';d.style.textAlign='center';g.appendChild(d)});
-            const now=new Date(); const y=now.getFullYear(); const m=now.getMonth(); const lastD=new Date(y,m+1,0).getDate();
-            // 🔥 FIX: Установка названия месяца
+            const y = calDate.getFullYear(); const m = calDate.getMonth();
             const mNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
             document.getElementById('monthName').innerText = `${mNames[m]} ${y}`;
-            
-            let firstD=new Date(y,m,1).getDay(); firstD=firstD===0?6:firstD-1; const active=new Set(dates);
+            ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(t=>{ const d=document.createElement('div'); d.innerText=t; d.style.color='var(--text-dim)'; d.style.fontSize='12px'; d.style.textAlign='center'; g.appendChild(d) });
+            const lastD = new Date(y, m + 1, 0).getDate();
+            let firstD = new Date(y, m, 1).getDay(); firstD = firstD === 0 ? 6 : firstD - 1;
+            const today = new Date(); const isCurrentMonth = (today.getFullYear() === y && today.getMonth() === m);
             for(let i=0;i<firstD;i++) g.appendChild(document.createElement('div'));
             for(let d=1;d<=lastD;d++) {
                 const el=document.createElement('div'); el.className='day'; el.innerText=d;
                 const key = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                if(active.has(key)) el.classList.add('active'); if(d===now.getDate()) el.classList.add('today'); g.appendChild(el);
+                if(userDates.has(key)) el.classList.add('active'); if(isCurrentMonth && d===today.getDate()) el.classList.add('today'); 
+                g.appendChild(el);
             }
         }
+        
+        let isYearly = false;
+        function togglePrice() {
+            isYearly = !isYearly;
+            const con=document.getElementById('priceToggle'); const pr=document.getElementById('proPrice'); const bdg=document.getElementById('saveBadge'); const bM=document.getElementById('btnMonthly'); const bY=document.getElementById('btnYearly');
+            if(isYearly) { con.classList.add('yearly'); pr.innerHTML='$40<span style="font-size:14px;color:var(--text-dim)">/yr</span>'; bdg.style.display='block'; bM.classList.remove('active'); bY.classList.add('active'); } 
+            else { con.classList.remove('yearly'); pr.innerHTML='$5<span style="font-size:14px;color:var(--text-dim)">/mo</span>'; bdg.style.display='none'; bM.classList.add('active'); bY.classList.remove('active'); }
+        }
+        function buyPremium() { tg.showPopup({title:'Pro Plan', message:'Coming soon!', buttons:[{type:'ok'}]}); }
+        function inviteFriends() { const link = `https://t.me/SpeakWithMeNowBot?start=invite`; tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`); }
+
         loadData();
     </script>
 </body>
