@@ -69,3 +69,34 @@ export function generateMessageText(
   }
   return baseText + streakSuffix;
 }
+
+export function generateDiffView(original: string, corrected: string): string {
+  if (!original || !corrected || original.trim() === corrected.trim()) {
+    return corrected;
+  }
+
+  const diff = Diff.diffWords(original, corrected);
+  let result = '';
+
+  diff.forEach((part) => {
+    const val = part.value.trim();
+    if (!val) return; 
+
+    if (part.removed) {
+      result += `~${val}~ `; 
+    } else if (part.added) {
+      result += `*${val}* `; 
+    } else {
+      result += `${val} `;
+    }
+  });
+
+  return result
+    .replace(/\s+/g, ' ') 
+    .replace(/ \./g, '.')
+    .replace(/ ,/g, ',')
+    .replace(/ \?/g, '?')
+    .replace(/ !/g, '!')
+    .replace(/ '/g, "'")
+    .trim();
+}

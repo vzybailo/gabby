@@ -34,6 +34,7 @@ export interface AIResponse {
     explanation: string; 
   }>;
   better_alternatives: string[];
+  grammarScore: number; 
 }
 
 export type AssessmentResult = {
@@ -70,6 +71,17 @@ export async function getChatResponse(
     - IGNORE missing punctuation (e.g., no period at the end is fine).
     - Mark 'is_correct' as TRUE if the only mistakes are casing or punctuation.
     - ONLY report errors for Grammar (tense, conjugation), Vocabulary, or Word Order.
+  `;
+
+  const SCORING_RULE = `
+    SCORING TASK (0-100):
+    Rate the user's latest message grammar accuracy.
+    - 100: Perfect grammar and natural phrasing (or only capitalization/punctuation issues).
+    - 90-99: 1 minor typo or awkward phrasing.
+    - 75-89: Understandable but has 1-2 clear grammar mistakes (tenses, articles).
+    - 50-74: Multiple errors, hard to read, or broken English.
+    - 0-49: Nonsense or wrong language.
+    RETURN this as integer 'grammarScore'.
   `;
 
   const dialectInstruction = (settings.voice === 'fable')
@@ -183,9 +195,22 @@ export async function getChatResponse(
   ${styleInstruction}
   
   ${modeInstruction}
+  MANDATORY: Always provide 2-3 "better_alternatives" even if the user is correct. 
+  For level ${settings.level}, use natural idioms and native phrasing.
+  
   Correction Policy: ${correctionStrictness}
   
-  IMPORTANT: Return JSON response. The 'reply' field must match the STYLE instructions exactly.`;
+  ${SCORING_RULE}
+  
+  IMPORTANT: Return valid JSON with keys: 
+  {
+    "reply": "string",
+    "corrected": "string",
+    "is_correct": boolean,
+    "user_errors": [],
+    "better_alternatives": [],
+    "grammarScore": number (0-100)
+  }`;
 
   const validMessages = messages
     .filter(m => typeof m.content === 'string' && m.content.trim() !== '')
@@ -201,19 +226,28 @@ export async function getChatResponse(
 
     const parsed = JSON.parse(completion.choices[0]?.message.content || "{}");
 
+    let calculatedScore = parsed.grammarScore;
+    if (calculatedScore === undefined || calculatedScore === null) {
+        const errorCount = (parsed.user_errors || []).length;
+        if (parsed.is_correct) calculatedScore = 100;
+        else calculatedScore = Math.max(0, 100 - (errorCount * 15));
+    }
+
     return {
       corrected: parsed.corrected || '',
       is_correct: parsed.is_correct ?? true,
       reply: parsed.reply || "Thinking...",
       user_errors: parsed.user_errors || [],
-      better_alternatives: parsed.better_alternatives || []
+      better_alternatives: parsed.better_alternatives || [],
+      grammarScore: calculatedScore
     };
 
   } catch (e) {
     console.error('AI ERROR:', e);
     return { 
         reply: 'Wait... connection glitch.', 
-        corrected: '', is_correct: true, user_errors: [], better_alternatives: [] 
+        corrected: '', is_correct: true, user_errors: [], better_alternatives: [],
+        grammarScore: 100 
     };
   }
 }

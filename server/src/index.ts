@@ -6,7 +6,8 @@ import { File } from 'node:buffer';
 import OpenAI from 'openai';
 import { prisma } from './lib/prisma.js';
 import chatRouter from './routes/chat.js';
-import transcribeRouter from './routes/transcribe.js'; // Если есть
+import transcribeRouter from './routes/transcribe.js';
+import userRouter from './routes/user.js'; 
 import { bot, triggerAction } from './telegramBot.js'; 
 import { calculateReview } from './services/srs.js'; 
 
@@ -26,10 +27,11 @@ app.use('/audio', express.static(path.resolve('audio')));
 
 app.use('/chat', chatRouter);
 app.use('/api', transcribeRouter);
+app.use('/api/user', userRouter);
 
 app.post('/api/settings', async (req, res) => {
     try {
-        const { userId, voice, mode, level, speakingStyle } = req.body;
+        const { userId, voice, mode, level, speakingStyle, timezone } = req.body;
         const oldUser = await prisma.user.findUnique({ where: { id: userId } });
         
         await prisma.user.update({
@@ -38,7 +40,8 @@ app.post('/api/settings', async (req, res) => {
                 voice: voice || undefined, 
                 mode: mode || undefined,
                 level: level || undefined,
-                speakingStyle: speakingStyle || undefined
+                speakingStyle: speakingStyle || undefined,
+                timezone: timezone || undefined
             }
         });
 
@@ -103,41 +106,6 @@ app.post('/api/topic', async (req, res) => {
     } catch (e) {
         res.status(500).json({ error: 'Topic failed' });
     }
-});
-
-app.get('/api/user/:id', async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    
-    const userData = user || { 
-        level: 'A1', 
-        streakCount: 0, 
-        voice: 'alloy', 
-        mode: 'chill',
-        speakingStyle: 'standard' 
-    };
-
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(`${currentYear}-01-01`);
-    const history = await prisma.message.findMany({
-        where: { userId: userId, role: 'user', createdAt: { gte: startOfYear } },
-        select: { createdAt: true }
-    });
-    const uniqueDates = [...new Set(history.map(h => h.createdAt.toISOString().split('T')[0]))];
-
-    res.json({
-      level: userData.level || 'A1',
-      streak: userData.streakCount || 0,
-      voice: userData.voice,
-      mode: userData.mode,
-      speakingStyle: userData.speakingStyle,
-      dates: uniqueDates
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
-  }
 });
 
 app.get('/api/vocabulary/:id', async (req, res) => {

@@ -3,29 +3,15 @@ import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
 import axios from 'axios';
-import * as Diff from 'diff'; 
 import { prisma } from '../lib/prisma.js';
 import { sessionStore, userState } from '../lib/store.js';
 import { updateStreak } from '../services/streakService.js';
-import { generateMessageText } from '../utils/textUtils.js';
+import { generateMessageText, generateDiffView } from '../utils/textUtils.js';
 import { getChatResponse, generateSpeech } from '../services/ai.js';
+import { updateDailyStats } from '../services/statService.js';
 
 const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:3001';
 const TMP_DIR = path.resolve('./tmp');
-
-function generateDiffView(original: string, corrected: string): string {
-  if (!original || !corrected || original.trim() === corrected.trim()) return corrected;
-  const diff = Diff.diffWords(original, corrected);
-  let result = '';
-  diff.forEach((part) => {
-    const val = part.value.trim();
-    if (!val) return; 
-    if (part.removed) result += `~${val}~ `; 
-    else if (part.added) result += `*${val}* `; 
-    else result += `${val} `;
-  });
-  return result.replace(/\s+/g, ' ').replace(/ \./g, '.').replace(/ ,/g, ',').replace(/ \?/g, '?').replace(/ !/g, '!').replace(/ '/g, "'").trim();
-}
 
 const LEVEL_KEYBOARD = {
   inline_keyboard: [
@@ -57,8 +43,11 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
 
     await bot.sendChatAction(chatId, 'typing');
     let userText = msg.text || '';
+    let audioDuration = 0; 
 
     if (msg.voice) {
+      audioDuration = msg.voice.duration || 0;
+      
       if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
       const fileLink = await bot.getFileLink(msg.voice.file_id);
       const oggIn = path.join(TMP_DIR, `in_${msg.voice.file_id}.ogg`);
@@ -98,7 +87,6 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
              });
              
              const startPrompt = `I am applying for the position of ${userText}. Please start the interview now.`;
-             
              const tempSettings = {
                  mode: 'interview',
                  level: user.level || 'A1',
@@ -110,7 +98,13 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
              const aiResponse = await getChatResponse([{ role: 'user', content: startPrompt }], tempSettings);
 
              if (prisma.message) {
-                 await prisma.message.create({ data: { userId: chatId, role: 'assistant', text: aiResponse.reply } });
+                 await prisma.message.create({ 
+                     data: { 
+                         userId: chatId, 
+                         role: 'assistant', 
+                         text: aiResponse.reply 
+                     } 
+                 });
              }
 
              await bot.sendMessage(chatId, `💼 <b>Interview Started: ${userText}</b>\n\n${aiResponse.reply}`, { parse_mode: 'HTML' });
@@ -131,14 +125,12 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
     if (user.mode === 'roleplay' && !user.roleplayContext) {
         if (userText.length > 3) {
              const customScenario = userText;
-             
              user = await prisma.user.update({
                  where: { id: chatId },
                  data: { roleplayContext: customScenario }
              });
 
              const startPrompt = `Let's start a roleplay. Scenario: ${customScenario}. You start first!`;
-             
              const tempSettings = {
                  mode: 'roleplay',
                  level: user.level || 'A1',
@@ -150,7 +142,13 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
              const aiResponse = await getChatResponse([{ role: 'user', content: startPrompt }], tempSettings);
 
              if (prisma.message) {
-                 await prisma.message.create({ data: { userId: chatId, role: 'assistant', text: aiResponse.reply } });
+                 await prisma.message.create({ 
+                     data: { 
+                         userId: chatId, 
+                         role: 'assistant', 
+                         text: aiResponse.reply 
+                     } 
+                 });
              }
 
              await bot.sendMessage(chatId, `🎬 <b>Scenario:</b> ${customScenario}\n\n${aiResponse.reply}`, { parse_mode: 'HTML' });
@@ -169,12 +167,19 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
     }
 
     if (prisma.message) {
-        await prisma.message.create({ data: { userId: chatId, role: 'user', text: userText } });
+        await prisma.message.create({ 
+            data: { 
+                userId: chatId, 
+                role: 'user', 
+                text: userText,
+                isAudio: !!msg.voice, 
+                audioDuration: audioDuration > 0 ? audioDuration : null
+            } 
+        });
     }
 
     if (msg.reply_to_message && msg.reply_to_message.from?.is_bot) {
         const wordsCount = userText.split(' ').length;
-        
         if (wordsCount <= 5) {
             try {
                 const completion = await axios.post('https://api.openai.com/v1/chat/completions', {
@@ -190,7 +195,6 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
                 const replyText = `📖 <b>${data.word}</b> — ${data.translation}\n\nRunning: <i>${data.definition}</i>\nEx: <i>"${data.example}"</i>`;
                 
                 const callbackData = `add_word_${data.word.substring(0, 20)}`; 
-                
                 const sessionKey = `vocab_${chatId}_${data.word.toLowerCase()}`;
                 sessionStore.set(sessionKey, data); 
 
@@ -228,6 +232,12 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
     const aiResponse = await getChatResponse(chatHistory, userSettings);
     
     const diffView = generateDiffView(userText, aiResponse.corrected);
+    
+    let grammarScore = aiResponse.grammarScore; 
+    if (grammarScore === undefined || grammarScore === null) {
+        const errorCount = aiResponse.user_errors ? aiResponse.user_errors.length : 0;
+        grammarScore = Math.max(0, 100 - (errorCount * 10));
+    }
 
     const analysis = {
         is_perfect: aiResponse.is_correct,
@@ -236,12 +246,23 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
         user_errors: aiResponse.user_errors,
         better_alternatives: aiResponse.better_alternatives,
         reply: aiResponse.reply,
+        grammarScore: grammarScore,
         _user_text_cache: userText,
         _streak_cache: streakToShow
     };
 
     if (prisma.message && aiResponse.reply) {
-        await prisma.message.create({ data: { userId: chatId, role: 'assistant', text: aiResponse.reply } });
+        await prisma.message.create({ 
+            data: { 
+                userId: chatId, 
+                role: 'assistant', 
+                text: aiResponse.reply,
+                grammarScore: grammarScore,
+                grammarFixes: aiResponse.user_errors 
+            } 
+        });
+
+        updateDailyStats(chatId, audioDuration, grammarScore).catch(e => console.error("Stats update error:", e));
     }
 
     if (analysis) {

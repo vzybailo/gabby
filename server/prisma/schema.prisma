@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -13,42 +7,64 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Message {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  role      String   // 'user' или 'assistant'
-  text      String
-  createdAt DateTime @default(now())
-}
-
 model User {
-  id             String   @id
-  level          String?
-  streakCount    Int      @default(0)
-  lastActivityAt DateTime @default(now())
-  createdAt      DateTime @default(now())
-  messages       Message[]
-  voice          String   @default("alloy") // alloy, echo, fable, onyx, nova, shimmer
-  speakingStyle  String   @default("standard")
-  mode           String   @default("chill") // chill, grammar, roleplay
+  id               String   @id
+  username         String?
+  level            String?
+  timezone         String @default("UTC")
+  streakCount      Int      @default(0)
+  lastActivityAt   DateTime @default(now())
+  createdAt        DateTime @default(now())
+  voice            String   @default("alloy")
+  speakingStyle    String   @default("standard")
+  mode             String   @default("chill") 
   interviewContext String?
   roleplayContext  String?
-  vocabulary     VocabularyItem[]
+  isPremium        Boolean  @default(false)
+  premiumUntil     DateTime?
+  messages         Message[]
+  vocabulary       VocabularyItem[]
+  dailyStats       DailyStats[]
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  role          String
+  text          String   @db.Text
+  createdAt     DateTime @default(now())
+  isAudio       Boolean  @default(false)
+  audioDuration Int?
+  grammarScore  Int?
+  grammarFixes  Json?
+}
+
+model DailyStats {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  date           DateTime @default(now()) @db.Date
+  messagesCount  Int      @default(0)
+  audioMinutes   Float    @default(0.0)
+  averageScore   Float    @default(0.0)
+  wordsLearned   Int      @default(0)
+
+  @@unique([userId, date])
 }
 
 model VocabularyItem {
   id          String   @id @default(uuid())
   userId      String
   user        User     @relation(fields: [userId], references: [id])
-  word        String   // Само слово (например, "Epiphany")
-  translation String   // Перевод (например, "Озарение")
-  definition  String   // Определение на английском
-  context     String?  // Предложение, в котором встретилось (для контекста)
+  word        String   
+  translation String   
+  definition  String   
+  context     String?  
   createdAt   DateTime @default(now())
   nextReview  DateTime @default(now()) 
-  level       Int      @default(1) // Уровень знания (1-5)
-  interval    Int      @default(0)      // Интервал в днях
-  repetition  Int      @default(0)      // Серия правильных ответов
-  easeFactor  Float    @default(2.5)    // Коэффициент легкости
+  level       Int      @default(1) 
+  interval    Int      @default(0)      
+  repetition  Int      @default(0)      
+  easeFactor  Float    @default(2.5)    
 }

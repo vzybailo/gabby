@@ -3,39 +3,10 @@ import crypto from 'crypto';
 import * as Diff from 'diff';
 import { prisma } from '../lib/prisma.js'; 
 import { getChatResponse, generateSpeech } from '../services/ai.js'; 
+import { updateDailyStats } from '../services/statService.js';
+import { generateDiffView } from '../utils/textUtils.js';
 
 const router = Router();
-
-function generateDiffView(original: string, corrected: string): string {
-  if (!original || !corrected || original.trim() === corrected.trim()) {
-    return corrected;
-  }
-
-  const diff = Diff.diffWords(original, corrected);
-  let result = '';
-
-  diff.forEach((part) => {
-    const val = part.value.trim();
-    if (!val) return; 
-
-    if (part.removed) {
-      result += `~${val}~ `; 
-    } else if (part.added) {
-      result += `*${val}* `; 
-    } else {
-      result += `${val} `;
-    }
-  });
-
-  return result
-    .replace(/\s+/g, ' ') 
-    .replace(/ \./g, '.')
-    .replace(/ ,/g, ',')
-    .replace(/ \?/g, '?')
-    .replace(/ !/g, '!')
-    .replace(/ '/g, "'")
-    .trim();
-}
 
 router.post('/', async (req, res) => {
   try {
@@ -45,17 +16,23 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'UserId and Message are required' });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.upsert({
+        where: { id: userId },
+        update: {},
+        create: { id: userId }
+    });
     
     const settings = {
-        mode: user?.mode || 'chill',
-        level: user?.level || 'A1',
-        voice: user?.voice || 'alloy',          
-        speakingStyle: user?.speakingStyle || 'standard' 
+        mode: user.mode || 'chill',
+        level: user.level || 'A1',
+        voice: user.voice || 'alloy',          
+        speakingStyle: user.speakingStyle || 'standard',
+        interviewContext: user.interviewContext,
+        roleplayContext: user.roleplayContext
     };
 
     await prisma.message.create({
-        data: { userId, text: message, role: 'user' }
+        data: { userId, text: message, role: 'user', isAudio: false }
     });
 
     const history = await prisma.message.findMany({
@@ -72,6 +49,25 @@ router.post('/', async (req, res) => {
     const aiResponse = await getChatResponse(formattedHistory, settings);
     const diffView = generateDiffView(message, aiResponse.corrected);
 
+    let grammarScore = aiResponse.grammarScore;
+    if (grammarScore === undefined || grammarScore === null) {
+        const errorCount = aiResponse.user_errors ? aiResponse.user_errors.length : 0;
+        if (aiResponse.is_correct) grammarScore = 100;
+        else grammarScore = Math.max(0, 100 - (errorCount * 10));
+    }
+
+    await prisma.message.create({
+        data: { 
+            userId, 
+            text: aiResponse.reply, 
+            role: 'assistant',
+            grammarScore: grammarScore,
+            grammarFixes: aiResponse.user_errors 
+        }
+    });
+
+    updateDailyStats(userId, 0, grammarScore).catch(err => console.error("Stats update failed:", err));
+
     const assistantMessage = {
       id: crypto.randomUUID(),
       role: 'assistant' as const,
@@ -82,12 +78,9 @@ router.post('/', async (req, res) => {
         diff_view: diffView,
         user_errors: aiResponse.user_errors,
         better_alternatives: aiResponse.better_alternatives,
+        grammarScore: grammarScore
       }
     };
-
-    await prisma.message.create({
-        data: { userId, text: aiResponse.reply, role: 'assistant' }
-    });
 
     let audioUrl: string | undefined;
     if (assistantMessage.content && assistantMessage.content.trim() !== '') {
