@@ -67,6 +67,11 @@ body {
   color: var(--text-dim);
 }
 
+.help-text, .feedback-label {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
 .header {
   width: 100%;
   padding: 20px 20px 10px;
