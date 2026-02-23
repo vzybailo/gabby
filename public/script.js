@@ -527,7 +527,10 @@ function buyPremium() {
 
 function inviteFriends() {
   const link = 'https://t.me/SpeakWithMeNowBot?start=invite';
-  tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
+  const shareText = '🔥 Нашел крутого ИИ-репетитора по английскому в Телеграме! Можно общаться голосом как с настоящим нейтивом, прокачивать произношение и ломать языковой барьер. Залетай по ссылке 👇';
+  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
+  
+  tg.openTelegramLink(telegramUrl);
 }
 
 loadData();
