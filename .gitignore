@@ -5,3 +5,10 @@ node_modules
 /src/generated/prisma
 audio/*
 !audio/.gitkeep
+
+!audio/alloy.mp3
+!audio/echo.mp3
+!audio/shimmer.mp3
+!audio/onyx.mp3
+!audio/nova.mp3
+!audio/fable.mp3

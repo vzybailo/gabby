@@ -55,12 +55,16 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  padding-bottom: 40px;
   animation: fadeIn 0.3s ease;
 }
 
 .page-section.active {
   display: flex;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-dim);
 }
 
 .header {
@@ -81,7 +85,6 @@ body {
 .subtitle {
   font-size: 13px;
   color: var(--text-dim);
-  margin-bottom: 15px;
   font-weight: 400;
   max-width: 80%;
   line-height: 1.4;

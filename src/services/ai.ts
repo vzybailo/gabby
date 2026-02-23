@@ -187,16 +187,59 @@ export async function getChatResponse(
       temp = 0.75;
   }
 
+  // --- НАСТРОЙКА УРОВНЯ (CEFR) ---
+  let levelInstruction = "";
+  switch (settings.level) {
+      case 'A1':
+      case 'A2':
+          levelInstruction = `
+            USER LEVEL: ${settings.level} (Beginner).
+            - Use VERY SIMPLE, basic vocabulary.
+            - Short, direct sentences.
+            - NO idioms, NO complex phrasal verbs, NO slang.
+            - Speak as if talking to a young child or a complete beginner.
+          `;
+          break;
+      case 'B1':
+          levelInstruction = `
+            USER LEVEL: B1 (Intermediate).
+            - Use everyday vocabulary.
+            - Introduce common, simple phrasal verbs (e.g., "wake up", "go out").
+            - Avoid highly complex or academic words.
+          `;
+          break;
+      case 'B2':
+          levelInstruction = `
+            USER LEVEL: B2 (Upper-Intermediate).
+            - Speak naturally.
+            - Use common idioms (e.g., "piece of cake", "under the weather").
+            - You can use more complex sentence structures.
+          `;
+          break;
+      case 'C1':
+      case 'C2':
+          levelInstruction = `
+            USER LEVEL: ${settings.level} (Advanced/Fluent).
+            - Use sophisticated, native-level vocabulary.
+            - Freely use complex idioms, slang, phrasal verbs, and nuanced expressions.
+            - Do not hold back on complexity.
+          `;
+          break;
+      default:
+          levelInstruction = `USER LEVEL: ${settings.level}. Adjust your vocabulary to match this level.`;
+  }
+
   const fullSystemPrompt = `${systemPrompt}
   
   --- CURRENT SETTINGS ---
-  User Level: ${settings.level}
+  ${levelInstruction}
+  
   ${dialectInstruction}
   ${styleInstruction}
   
   ${modeInstruction}
   MANDATORY: Always provide 2-3 "better_alternatives" even if the user is correct. 
-  For level ${settings.level}, use natural idioms and native phrasing.
+  Ensure these alternatives perfectly match the user's ${settings.level} English level.
   
   Correction Policy: ${correctionStrictness}
   

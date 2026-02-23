@@ -5,6 +5,10 @@ const userId = user?.id || 'test_id';
 
 let quizQueue = [];
 let currentCard = null;
+let isYearly = false;
+let userDates = new Set();
+let calDate = new Date();
+let currentAudio = null;
 const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 fetch('/api/settings', {
@@ -124,9 +128,6 @@ async function rateWord(quality) {
   }
 }
 
-let userDates = new Set();
-let calDate = new Date();
-
 function switchTab(id, el) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById(`tab-${id}`).classList.add('active');
@@ -157,8 +158,6 @@ function toggleAccordion(id) {
   setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
   }
 }
-
-let currentAudio = null;
 
 async function selectVoice(val, el) {
   updateActiveCard(el, 'acc-voice-timbre');
@@ -236,7 +235,6 @@ async function deleteWord(id, el) {
 async function loadVocabulary() {
   document.getElementById('quiz-container').style.display = 'none';
   document.getElementById('vocab-list').style.display = 'block';
-  document.getElementById('vocab-actions').style.display = 'flex';
   document.getElementById('vocab-close-btn').style.display = 'block';
 
   const list = document.getElementById('vocab-list');
@@ -246,9 +244,13 @@ async function loadVocabulary() {
     list.innerHTML = '';
 
     if(!data.words || data.words.length === 0) {
-      list.innerHTML = `<div class="empty-state">...No words...</div>`;
+      list.innerHTML = `<div class="empty-state">📪 ...No words...</div>`;
+      
+      document.getElementById('vocab-actions').style.display = 'none';
       return;
     }
+
+    document.getElementById('vocab-actions').style.display = 'flex';
 
     data.words.forEach(w => {
       let dotClass = 'new';
@@ -281,6 +283,8 @@ async function loadVocabulary() {
   } catch(e) { 
     console.error(e);
     list.innerHTML = '<div style="text-align:center;color:var(--text-dim);">Error loading words.</div>'; 
+
+    document.getElementById('vocab-actions').style.display = 'none';
   }
 }
 
@@ -313,66 +317,79 @@ function getDotClass(interval = 0) {
 
 async function loadData() {
   if (typeof loadUserProfile === 'function') {
-  loadUserProfile(); 
+    loadUserProfile(); 
   } else if (user) {
-  document.getElementById('userName').innerText = user.first_name;
+    document.getElementById('userName').innerText = user.first_name;
   }
 
   try {
-  const [profileRes, statsRes] = await Promise.all([
-    fetch(`/api/user/${userId}`),
-    fetch(`/api/user/${userId}/stats`)
-  ]);
+    const [profileRes, statsRes] = await Promise.all([
+      fetch(`/api/user/${userId}`),
+      fetch(`/api/user/${userId}/stats`)
+    ]);
 
-  if (!profileRes.ok) throw new Error('Profile fetch failed');
-  const profileData = await profileRes.json();
+    if (!profileRes.ok) throw new Error('Profile fetch failed');
+    const profileData = await profileRes.json();
 
-  const levelText = profileData.level || 'A1';
-  document.getElementById('userLevelBadge').innerText = levelText;
+    const levelText = profileData.level || 'A1';
+    document.getElementById('userLevelBadge').innerText = levelText;
 
-  if (profileData.dates) {
-    userDates = new Set(profileData.dates);
-    renderCalendar();
-  }
+    if (profileData.voice) {
+      setActiveOption('acc-voice-timbre', profileData.voice);
+    }
+    if (profileData.speakingStyle) {
+      setActiveOption('acc-style', profileData.speakingStyle);
+    }
+    if (profileData.mode) {
+      setActiveOption('acc-mode', profileData.mode);
+    }
+    if (profileData.level) {
+      setActiveOption('acc-level', profileData.level);
+    }
 
-  let statsData = {};
-  if (statsRes.ok) {
-    statsData = await statsRes.json();
-  }
+    if (profileData.dates) {
+      userDates = new Set(profileData.dates);
+      renderCalendar();
+    }
 
-  document.getElementById('streakVal').innerText = statsData.streak || 0;
-  document.getElementById('totalMinutesVal').innerText = statsData.totalMinutes || 0;
-  
-  const wordsVal = statsData.wordsLearned || 0;
-  const wordsEl = document.getElementById('wordsLearnedVal');
-  if (wordsEl) {
-    wordsEl.innerText = wordsVal;
-    wordsEl.style.color = '';
-    if (wordsVal >= 50) wordsEl.style.color = '#818cf8';
-    if (wordsVal >= 200) wordsEl.style.color = '#fbbf24';
-  }
+    let statsData = {};
+    if (statsRes.ok) {
+      statsData = await statsRes.json();
+    }
 
-  const scoreVal = Math.round(statsData.avgScore || 0);
-  const scoreEl = document.getElementById('avgScoreVal');
-  
-  if (scoreEl) {
-    scoreEl.innerText = scoreVal + '%';
-    scoreEl.style.color = '';
+    document.getElementById('streakVal').innerText = statsData.streak || 0;
+    document.getElementById('totalMinutesVal').innerText = statsData.totalMinutes || 0;
     
-    if (scoreVal >= 80) scoreEl.style.color = '#34d399';
-    else if (scoreVal >= 50) scoreEl.style.color = '#fbbf24';
-    else scoreEl.style.color = '#ef4444';
-  }
+    const wordsVal = statsData.wordsLearned || 0;
+    const wordsEl = document.getElementById('wordsLearnedVal');
+    if (wordsEl) {
+      wordsEl.innerText = wordsVal;
+      wordsEl.style.color = '';
+      if (wordsVal >= 50) wordsEl.style.color = '#818cf8';
+      if (wordsVal >= 200) wordsEl.style.color = '#fbbf24';
+    }
+
+    const scoreVal = Math.round(statsData.avgScore || 0);
+    const scoreEl = document.getElementById('avgScoreVal');
+    
+    if (scoreEl) {
+      scoreEl.innerText = scoreVal + '%';
+      scoreEl.style.color = '';
+      
+      if (scoreVal >= 80) scoreEl.style.color = '#34d399';
+      else if (scoreVal >= 50) scoreEl.style.color = '#fbbf24';
+      else scoreEl.style.color = '#ef4444';
+    }
 
   } catch (e) {
-  console.error("Data load error:", e);
-  
-  document.getElementById('userLevelBadge').innerText = 'A1';
-  const scoreEl = document.getElementById('avgScoreVal');
-  if (scoreEl) {
-    scoreEl.innerText = '0%';
-    scoreEl.style.color = '#ef4444';
-  }
+    console.error("Data load error:", e);
+    
+    document.getElementById('userLevelBadge').innerText = 'A1';
+    const scoreEl = document.getElementById('avgScoreVal');
+    if (scoreEl) {
+      scoreEl.innerText = '0%';
+      scoreEl.style.color = '#ef4444';
+    }
   }
 }
 
@@ -393,11 +410,19 @@ function loadUserProfile() {
 }
 
 function setActiveOption(containerId, value) {
-  document.querySelectorAll(`#${containerId} .option-card`).forEach(c => {
-  c.classList.remove('active');
-  if (c.getAttribute('onclick').includes(`'${value}'`)) {
-    c.classList.add('active');
-  }
+  if (!value || !containerId) return;
+  
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.querySelectorAll('.option-card').forEach(c => {
+    c.classList.remove('active'); 
+    
+    const onclickAttr = c.getAttribute('onclick');
+
+    if (onclickAttr && onclickAttr.includes(`'${value}'`)) {
+      c.classList.add('active'); 
+    }
   });
 }
 
@@ -467,8 +492,6 @@ function renderCalendar() {
   }
   }
 }
-
-let isYearly = false;
 
 function togglePrice() {
   isYearly = !isYearly;
