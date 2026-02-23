@@ -1,19 +1,17 @@
-export type Role = 'user' | 'assistant';
-
-export type FeedbackMistake = {
+export type Mistake = {
   wrong: string;
   correct: string;
   explanation: string;
 };
 
 export type Feedback = {
-  mistakes: FeedbackMistake[];
-  natural?: string;
+  mistakes: Mistake[];
+  natural: string;
 };
 
 export type ChatMessage = {
   id: string;
-  role: Role;
+  role: 'user' | 'assistant';
   content: string;
   feedback?: Feedback;
 };
