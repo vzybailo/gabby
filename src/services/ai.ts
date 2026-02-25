@@ -66,11 +66,11 @@ export async function getChatResponse(
 ): Promise<AIResponse> {
 
   const LENIENCY_RULE = `
-    IMPORTANT CORRECTION RULE:
-    - IGNORE capitalization errors (e.g., "i go" is fine, treat as "I go").
-    - IGNORE missing punctuation (e.g., no period at the end is fine).
-    - Mark 'is_correct' as TRUE if the only mistakes are casing or punctuation.
-    - ONLY report errors for Grammar (tense, conjugation), Vocabulary, or Word Order.
+    IMPORTANT CORRECTION RULES:
+    1. IGNORE capitalization errors (e.g., "i go" is fine).
+    2. IGNORE missing punctuation.
+    3. SYNC RULE (CRITICAL): If you add ANY error to 'user_errors', you ABSOLUTELY MUST apply that exact fix in the 'corrected' string! The 'corrected' text must reflect all fixes.
+    4. If there are no real errors, "user_errors" MUST be empty [] and "corrected" MUST exactly match the user's input.
   `;
 
   const SCORING_RULE = `
@@ -172,7 +172,7 @@ export async function getChatResponse(
 
   } else if (settings.mode === 'grammar') {
       modeInstruction = `MODE: GRAMMAR TEACHER (STRICT). Correct EVERY mistake including punctuation.`;
-      correctionStrictness = "STRICT: Mark 'is_correct' as FALSE for any tiny mistake.";
+      correctionStrictness = "STRICT: Mark 'is_correct' as FALSE for any tiny mistake. " + LENIENCY_RULE;
       temp = 0.5;
 
   } else {
@@ -195,38 +195,31 @@ export async function getChatResponse(
           levelInstruction = `
             USER LEVEL: ${settings.level} (Beginner).
             - Use VERY SIMPLE, basic vocabulary.
-            - Short, direct sentences.
             - NO idioms, NO complex phrasal verbs, NO slang.
-            - Speak as if talking to a young child or a complete beginner.
           `;
           break;
       case 'B1':
           levelInstruction = `
             USER LEVEL: B1 (Intermediate).
             - Use everyday vocabulary.
-            - Introduce common, simple phrasal verbs (e.g., "wake up", "go out").
-            - Avoid highly complex or academic words.
+            - Introduce common, simple phrasal verbs.
           `;
           break;
       case 'B2':
           levelInstruction = `
             USER LEVEL: B2 (Upper-Intermediate).
-            - Speak naturally.
-            - Use common idioms (e.g., "piece of cake", "under the weather").
-            - You can use more complex sentence structures.
+            - Speak naturally with common idioms.
           `;
           break;
       case 'C1':
       case 'C2':
           levelInstruction = `
             USER LEVEL: ${settings.level} (Advanced/Fluent).
-            - Use sophisticated, native-level vocabulary.
-            - Freely use complex idioms, slang, phrasal verbs, and nuanced expressions.
-            - Do not hold back on complexity.
+            - Use sophisticated, native-level vocabulary, idioms, and slang.
           `;
           break;
       default:
-          levelInstruction = `USER LEVEL: ${settings.level}. Adjust your vocabulary to match this level.`;
+          levelInstruction = `USER LEVEL: ${settings.level}.`;
   }
 
   const fullSystemPrompt = `${systemPrompt}
@@ -242,6 +235,9 @@ export async function getChatResponse(
   Ensure these alternatives perfectly match the user's ${settings.level} English level.
   
   Correction Policy: ${correctionStrictness}
+  
+  CRITICAL JSON RULE: 
+  If "user_errors" is NOT empty, the "corrected" string MUST BE DIFFERENT from the input and reflect those fixes!
   
   ${SCORING_RULE}
   
