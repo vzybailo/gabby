@@ -51,6 +51,8 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
         }
     }
 
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     if (VIDEO_NOTE_2_FILE_ID) {
         try {
             await bot.sendVideoNote(chatId, VIDEO_NOTE_2_FILE_ID);
