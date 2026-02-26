@@ -6,11 +6,9 @@ import OpenAI from 'openai';
 
 const router = express.Router();
 
-// 1. Настройка Multer
-// Сохраняем во временную папку 'uploads/'
 const upload = multer({ 
   dest: 'uploads/',
-  limits: { fileSize: 50 * 1024 * 1024 } // Лимит 50MB
+  limits: { fileSize: 50 * 1024 * 1024 } 
 });
 
 const openai = new OpenAI({
@@ -26,22 +24,17 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
       return res.status(400).json({ error: 'No audio file received' });
     }
 
-    // 2. Подготовка файла
-    // OpenAI требует, чтобы у файла было расширение, чтобы определить формат.
-    // Multer сохраняет файл без расширения.
     const originalPath = req.file.path;
     tempPath = path.join(path.dirname(originalPath), `${req.file.filename}.ogg`);
     
-    // Переименовываем
     fs.renameSync(originalPath, tempPath);
 
     console.log(`🎤 Transcribing file: ${tempPath}`);
 
-    // 3. Отправка в OpenAI
     const transcription = await openai.audio.transcriptions.create({
       file: fs.createReadStream(tempPath),
       model: 'whisper-1',
-      // language: 'en', // Можно раскомментировать, если нужно принудительно английский
+      prompt: "Hello! This is a casual conversation in English. Please transcribe carefully."
     });
 
     console.log('✅ Transcription result:', transcription.text);
@@ -51,7 +44,6 @@ router.post('/transcribe', upload.single('audio'), async (req, res) => {
     console.error('❌ Transcription Error:', err);
     res.status(500).json({ error: 'Failed to transcribe', details: err.message });
   } finally {
-    // 4. Очистка (удаляем временный файл)
     if (tempPath && fs.existsSync(tempPath)) {
       try {
         fs.unlinkSync(tempPath);

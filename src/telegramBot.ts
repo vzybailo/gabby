@@ -23,7 +23,8 @@ export const LEVEL_KEYBOARD = {
   inline_keyboard: [
     [{ text: '🌱 A1 (Beginner)', callback_data: 'set_level_A1' }, { text: '🌿 A2 (Elementary)', callback_data: 'set_level_A2' }],
     [{ text: '🔥 B1 (Intermediate)', callback_data: 'set_level_B1' }, { text: '🚀 B2 (Upper-Inter)', callback_data: 'set_level_B2' }],
-    [{ text: '💎 C1 (Advanced)', callback_data: 'set_level_C1' }, { text: '👑 C2 (Proficiency)', callback_data: 'set_level_C2' }]
+    [{ text: '💎 C1 (Advanced)', callback_data: 'set_level_C1' }, { text: '👑 C2 (Proficiency)', callback_data: 'set_level_C2' }],
+    [{ text: '🤷‍♂️ Я не знаю, проверь меня!', callback_data: 'start_test' }]
   ]
 };
 

@@ -54,7 +54,7 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
         
         const demoText = "Hello! I am your AI English tutor. I can help you improve your speaking skills. Do you like my voice?";
         
-        try {
+    try {
             await bot.sendChatAction(chatId, 'record_voice');
             const speech = await generateSpeech(demoText, voiceName, 'standard');
             
@@ -63,22 +63,29 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
                 const localFilePath = path.resolve('./audio', cleanPath);
                 
                 if (fs.existsSync(localFilePath)) {
-
-                    await bot.sendVoice(chatId, fs.createReadStream(localFilePath), {
-                        caption: `🎧 Это голос <b>${voiceName}</b>.\nНравится?`,
-                        parse_mode: 'HTML',
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: '✅ Выбрать этот', callback_data: `confirm_voice_${voiceName}` }],
-                                [{ text: '⬅️ Назад к списку', callback_data: 'back_to_voices' }]
-                            ]
+                    try {
+                        await bot.sendVoice(chatId, fs.createReadStream(localFilePath), {
+                            caption: `🎧 Это голос <b>${voiceName}</b>.\nНравится?`,
+                            parse_mode: 'HTML',
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [{ text: '✅ Выбрать этот', callback_data: `confirm_voice_${voiceName}` }],
+                                    [{ text: '⬅️ Назад к списку', callback_data: 'back_to_voices' }]
+                                ]
+                            }
+                        });
+                    } catch (telegramError: any) {
+                        if (telegramError.response?.body?.description?.includes('VOICE_MESSAGES_FORBIDDEN')) {
+                            await bot.sendMessage(chatId, '⚠️ <b>Внимание:</b> У тебя в настройках Telegram Premium запрещены голосовые сообщения!\n\nПожалуйста, добавь этого бота в исключения (Настройки -> Конфиденциальность -> Голосовые сообщения), иначе я не смогу с тобой разговаривать.', { parse_mode: 'HTML' });
+                        } else {
+                            throw telegramError; 
                         }
-                    });
+                    }
                 }
             }
         } catch (e) {
             console.error('Voice Preview Error:', e);
-            await bot.sendMessage(chatId, '⚠️ Не удалось загрузить пример голоса.');
+            await bot.sendMessage(chatId, '⚠️ Не удалось загрузить пример голоса. Попробуй еще раз чуть позже.');
         }
         
         await bot.answerCallbackQuery(query.id);
@@ -111,10 +118,14 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
 
     if (action === 'start_test') {
         userState.set(chatId, 'TESTING');
-        await bot.sendMessage(chatId, '🧐 <b>Level Test</b>\n\nPlease send a voice message or text.', { parse_mode: 'HTML' });
+        await bot.editMessageText('🧐 <b>Давай определим твой уровень!</b>\n\nПожалуйста, отправь мне небольшое голосовое сообщение (или текст) на английском. \n\nНапример, расскажи немного о себе: как тебя зовут, откуда ты, чем занимаешься или какое у тебя хобби.\n\n<i>Не бойся делать ошибки, просто говори как можешь! Я слушаю</i> 🎙', { 
+            chat_id: chatId, 
+            message_id: messageId, 
+            parse_mode: 'HTML' 
+        });
         await bot.answerCallbackQuery(query.id);
         return;
-    } 
+    }
 
     if (action?.startsWith('rp_')) {
         const scenarios: Record<string, string> = {

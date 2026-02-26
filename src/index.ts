@@ -215,6 +215,36 @@ app.post('/api/translate', async (req, res) => {
     }
 });
 
+app.post('/api/assess-level', async (req, res) => {
+    try {
+        const { text } = req.body;
+
+        if (!text) {
+            return res.status(400).json({ error: 'No text provided' });
+        }
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { 
+                    role: "system", 
+                    content: "You are an English language expert. Analyze the user's English level (A1, A2, B1, B2, C1, C2) based on the provided text. Return ONLY a JSON object with two fields: 'level' (the grade) and 'reply' (a very short encouraging comment in Russian about their level)." 
+                },
+                { role: "user", content: `Assess my level based on this: "${text}"` }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+        
+        console.log(`✅ Level Assessed: ${result.level} for text: ${text.substring(0, 30)}...`);
+        res.json(result);
+    } catch (e) {
+        console.error("Level Assessment API Error:", e);
+        res.status(500).json({ error: 'Assessment failed' });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
