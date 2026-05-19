@@ -25,6 +25,7 @@ model User {
   messages         Message[]
   vocabulary       VocabularyItem[]
   dailyStats       DailyStats[]
+  lastStreakReminderAt    DateTime?
 }
 
 model Message {

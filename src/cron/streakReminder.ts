@@ -34,13 +34,33 @@ export function initStreakReminder(bot: TelegramBot) {
                     const todayStr = getSafeDateString(new Date(), userTimezone);
                     const lastActivityStr = getSafeDateString(user.lastActivityAt, userTimezone);
 
-                    if (todayStr === lastActivityStr) continue;
+                    const diffDays = Math.floor(
+                        (new Date(todayStr).getTime() - new Date(lastActivityStr).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    );
+
+                    if (diffDays === 0) continue; // уже писал сегодня
+
+                    if (diffDays > 1) continue; // streak сгорел
+
+                    const lastReminderStr = user.lastStreakReminderAt
+                        ? getSafeDateString(user.lastStreakReminderAt, userTimezone)
+                        : null;
+
+                    if (lastReminderStr === todayStr) continue;
 
                     await bot.sendMessage(
                         user.id, 
                         `🚨 <b>Your ${user.streakCount}-day streak is in danger!</b> 😱\n\nThe day is almost over in your timezone.\nSend a message now to save your progress!`, 
                         { parse_mode: 'HTML' }
                     );
+
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            lastStreakReminderAt: new Date()
+                        }
+                    });
                     
                     console.log(`✅ Sent reminder to ${user.id} (Time there: ${currentHour}:00)`);
 
