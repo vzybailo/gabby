@@ -51,7 +51,7 @@ export function initStreakReminder(bot: TelegramBot) {
 
                     await bot.sendMessage(
                         user.id, 
-                        `🚨 <b>Your ${user.streakCount}-day streak is in danger!</b> 😱\n\nThe day is almost over in your timezone.\nSend a message now to save your progress!`, 
+                        `🚨 <b>Your ${user.streakCount}-day streak is in danger!</b> 😱\n\nThe day is almost over.\nSend a message now to save your progress!`, 
                         { parse_mode: 'HTML' }
                     );
 
