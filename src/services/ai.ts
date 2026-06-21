@@ -35,6 +35,7 @@ export interface AIResponse {
   }>;
   better_alternatives: string[];
   grammarScore: number; 
+  praise: string; // 🆕 КЛЮЧЕВАЯ ПРАВКА 1: Добавили поле в интерфейс TypeScript
 }
 
 export type AssessmentResult = {
@@ -153,7 +154,7 @@ export async function getChatResponse(
       correctionStrictness = `Correct only major grammar mistakes that affect professionalism. ${LENIENCY_RULE}`;
       temp = 0.6;
 
-  } else if (settings.mode === 'roleplay') {
+  } else if (settings.roleplayContext || settings.mode === 'roleplay') {
       const scenario = settings.roleplayContext || "Casual conversation with a stranger";
       
       modeInstruction = `
@@ -248,8 +249,13 @@ export async function getChatResponse(
     "is_correct": boolean,
     "user_errors": [],
     "better_alternatives": [],
-    "grammarScore": number (0-100)
-  }`;
+    "grammarScore": number (0-100),
+    "praise": "string" 
+  }
+  
+  praise FIELD RULE: If a system context message (role: system) provides you with a list of dictionary/target words, check if the user used ANY of them in their message. 
+  If yes, write a brief, cheerful word of praise explicitly naming the used word (e.g., "Awesome job using your dictionary word 'mind'!"). 
+  If they didn't use any target words, or there was no target words prompt, you MUST leave "praise" as an empty string "".`; // 🆕 КЛЮЧЕВАЯ ПРАВКА 2: Легализовали инструкцию для praise
 
   const validMessages = messages
     .filter(m => typeof m.content === 'string' && m.content.trim() !== '')
@@ -278,7 +284,8 @@ export async function getChatResponse(
       reply: parsed.reply || "Thinking...",
       user_errors: parsed.user_errors || [],
       better_alternatives: parsed.better_alternatives || [],
-      grammarScore: calculatedScore
+      grammarScore: calculatedScore,
+      praise: parsed.praise || '' // 🆕 КЛЮЧЕВАЯ ПРАВКА 3: Добавили маппинг значения в результат функции
     };
 
   } catch (e) {
@@ -286,7 +293,8 @@ export async function getChatResponse(
     return { 
         reply: 'Wait... connection glitch.', 
         corrected: '', is_correct: true, user_errors: [], better_alternatives: [],
-        grammarScore: 100 
+        grammarScore: 100,
+        praise: '' // 🆕 Добавили дефолтное значение для catch-блока
     };
   }
 }

@@ -63,9 +63,11 @@ model VocabularyItem {
   definition  String   
   context     String?  
   createdAt   DateTime @default(now())
+  usageCount  Int      @default(0)
   nextReview  DateTime @default(now()) 
   level       Int      @default(1) 
   interval    Int      @default(0)      
   repetition  Int      @default(0)      
-  easeFactor  Float    @default(2.5)    
+  easeFactor  Float    @default(2.5)
+  @@unique([userId, word])    
 }
