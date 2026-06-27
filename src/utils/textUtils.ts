@@ -46,16 +46,9 @@ export function generateMessageText(
     baseText = `💡 <i>${htmlDiff}</i>`;
   }
 
-  // === ДОБАВЛЕННЫЙ БЛОК: СТРОКА ПОХВАЛЫ ===
-  let praiseText = '';
-  if (analysis.praise && analysis.praise.trim().length > 0) {
-    praiseText = `\n\n🎉 <b>${escapeHtml(analysis.praise)}</b>`;
-  }
-
   const streakSuffix = streakCount > 0 ? `\n\n🔥 <b>Streak: ${streakCount} days</b>` : '';
 
-  // Модифицируем каждый return, добавляя praiseText перед streakSuffix
-  if (mode === 'simple') return baseText + praiseText + streakSuffix;
+  if (mode === 'simple') return baseText + streakSuffix;
 
   if (mode === 'expanded_errors' && analysis.user_errors) {
     let errText = '';
@@ -64,7 +57,7 @@ export function generateMessageText(
       errText += `\n\n🔻 <s>${escapeHtml(err.error_part)}</s> → <b>${escapeHtml(err.correction)}</b>`;
       errText += `\nℹ️ <i>${escapeHtml(explanation)}</i>`;
     });
-    return baseText + errText + praiseText + streakSuffix;
+    return baseText + errText + streakSuffix;
   }
 
   if (mode === 'expanded_alternatives' && analysis.better_alternatives) {
@@ -72,10 +65,9 @@ export function generateMessageText(
     analysis.better_alternatives.forEach((alt: string) => {
       altText += `\n🔹 ${escapeHtml(alt)}`;
     });
-    return baseText + altText + praiseText + streakSuffix;
+    return baseText + altText + streakSuffix;
   }
-  
-  return baseText + praiseText + streakSuffix;
+  return baseText + streakSuffix;
 }
 
 export function generateDiffView(original: string, corrected: string): string {

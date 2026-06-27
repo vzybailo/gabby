@@ -187,49 +187,12 @@ async function handleDictionaryHelper(bot: TelegramBot, chatId: string, messageI
 }
 
 async function handleStandardChat(bot: TelegramBot, chatId: string, user: any, userText: string, streakToShow: number, audioDuration: number) {
-    let chatHistory: { role: 'user' | 'assistant' | 'system'; content: string }[] = [];
+    let chatHistory = [];
     if (prisma.message) {
         const history = await prisma.message.findMany({ where: { userId: chatId }, orderBy: { createdAt: 'desc' }, take: 6 });
-        chatHistory = history.reverse().map(m => ({ 
-            role: (m.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant', 
-            content: m.text 
-        }));
+        chatHistory = history.reverse().map(m => ({ role: m.role as 'user'|'assistant', content: m.text }));
     } else {
         chatHistory = [{ role: 'user' as const, content: userText }]; 
-    }
-
-    let targetWordsPrompt = "";
-    try {
-        if (prisma.vocabularyItem) {
-            const wordsToReview = await prisma.vocabularyItem.findMany({
-                where: { 
-                    userId: chatId,
-                    nextReview: { lte: new Date() } 
-                },
-                take: 5,
-                orderBy: { nextReview: 'asc' } 
-            });
-
-            if (wordsToReview.length > 0) {
-                const wordsList = wordsToReview.map(w => `"${w.word}" (translation: ${w.translation})`).join(', ');
-                
-                targetWordsPrompt = `
-[SYSTEM CONTEXT - VOCABULARY TUTORING]:
-The user has these target words in their dictionary: [${wordsList}].
-
-1. INTEGRATION TASK: Try to naturally use AT LEAST ONE of these words in your "reply". Do not highlight it, just blend it into a natural sentence.
-2. PRAISE TASK: Check if the user's current message ("${userText}") naturally contains or uses any of these dictionary words (allow different forms/tenses like plural forms or verbs in past/future tense). 
-   - If they successfully used a word from the list: Write an encouraging comment in the "praise" field (e.g., "Awesome job using your dictionary word '[word]'!").
-   - If they didn't use any: Keep the "praise" field as an empty string "".
-`;
-            }
-        }
-    } catch (vocabError) {
-        console.error("❌ Ошибка при извлечении словаря из БД:", vocabError);
-    }
-
-    if (targetWordsPrompt) {
-        chatHistory.push({ role: 'system' as const, content: targetWordsPrompt });
     }
 
     const userSettings = { mode: user.mode || 'chill', level: user.level || 'A1', voice: user.voice || 'alloy', speakingStyle: user.speakingStyle || 'standard', interviewContext: user.interviewContext, roleplayContext: user.roleplayContext };
@@ -244,7 +207,6 @@ The user has these target words in their dictionary: [${wordsList}].
         user_errors: aiResponse.user_errors,
         better_alternatives: aiResponse.better_alternatives,
         reply: aiResponse.reply,
-        praise: (aiResponse as any).praise || '',
         grammarScore: grammarScore,
         _user_text_cache: userText,
         _streak_cache: streakToShow
@@ -256,65 +218,12 @@ The user has these target words in their dictionary: [${wordsList}].
     }
 
     const msgText = generateMessageText(userText, analysis, 'simple', streakToShow);
-    
     let row1 = [];
     if (!analysis.is_perfect && analysis.user_errors?.length > 0) row1.push({ text: 'Why?', callback_data: 'explain_mistakes' });
     if (analysis.better_alternatives?.length > 0) row1.push({ text: 'Native style', callback_data: 'show_alternatives' });
     
     const sentMsg = await bot.sendMessage(chatId, msgText, { parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1].filter(r => r.length > 0) } });
     sessionStore.set(`${chatId}_${sentMsg.message_id}`, analysis);
-
-    // =========================================================================
-    // 🛠 ИЗМЕНЕНО: НАДЕЖНЫЙ ТРИГГЕР ОБНОВЛЕНИЯ ИНТЕРВАЛЬНОГО ПОВТОРЕНИЯ
-    // =========================================================================
-    if (prisma.vocabularyItem) {
-        (async () => {
-            try {
-                // Извлекаем все слова текущего пользователя
-                const userWords = await prisma.vocabularyItem.findMany({ where: { userId: chatId } });
-                
-                // Ищем, какое слово пользователь РЕАЛЬНО написал в своем сообщении (userText)
-                const matchedWord = userWords.find(w => {
-                    const cleanUserText = userText.toLowerCase();
-                    const cleanWord = w.word.toLowerCase();
-                    
-                    // Прямая проверка вхождения слова в реплику пользователя
-                    return cleanUserText.includes(cleanWord);
-                });
-
-                // Если слово найдено в тексте И ИИ подтвердил похвалу (поле praise не пустое)
-                if (matchedWord && analysis.praise.trim().length > 0) {
-                    const newRepetition = matchedWord.repetition + 1;
-                    let newInterval = 1;
-
-                    if (newRepetition === 2) {
-                        newInterval = 6; // Второе повторение по SM-2 — через 6 дней
-                    } else if (newRepetition > 2) {
-                        // Рассчитываем интервал. Если easeFactor в базе нет, берем дефолтный 2.5
-                        const ef = matchedWord.easeFactor || 2.5;
-                        newInterval = Math.round(matchedWord.interval * ef);
-                    }
-
-                    const newNextReview = new Date();
-                    newNextReview.setDate(newNextReview.getDate() + newInterval);
-
-                    await prisma.vocabularyItem.update({
-                        where: { id: matchedWord.id },
-                        data: {
-                            usageCount: { increment: 1 }, 
-                            repetition: newRepetition,
-                            interval: newInterval,
-                            nextReview: newNextReview
-                        }
-                    });
-                    console.log(`[Vocabulary] Юзер успешно применил слово "${matchedWord.word}". Счетчик usageCount +1. Следующий показ через ${newInterval} дн.`);
-                }
-            } catch (dbError) {
-                console.error("❌ Ошибка при фоновом обновлении VocabularyItem в БД:", dbError);
-            }
-        })();
-    }
-    // =========================================================================
 
     await bot.sendChatAction(chatId, 'record_voice');
     let textToSpeak = aiResponse.reply || '';

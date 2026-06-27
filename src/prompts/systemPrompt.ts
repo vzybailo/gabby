@@ -33,7 +33,7 @@ OUTPUT FORMAT (STRICT JSON)
   "corrected": "Full corrected text of the user's LAST message",
   "is_correct": boolean,
   "reply": "Your conversational response (short, empathetic + question/hook)",
-  "praise": "If the user naturally used ANY of the provided dictionary words, praise them here in English (e.g., 'Great job using the word [word]!'). If they didn't, leave this field completely empty ''.",
+  "praise": "If the user used a great vocabulary word, idiom, or advanced structure correctly, praise them here. Otherwise, leave empty.",
   "user_errors": [
     {
       "error_part": "incorrect fragment",
