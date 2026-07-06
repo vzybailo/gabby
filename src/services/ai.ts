@@ -1,7 +1,6 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
-import { randomUUID } from 'crypto';
 import { systemPrompt } from '../prompts/systemPrompt.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -188,10 +187,7 @@ export async function getChatResponse(
   }
 }
 
-export async function generateSpeech(text: string, voice: string, style: string = 'standard'): Promise<{ audioUrl: string }> {
-  const fileName = `${randomUUID()}.mp3`;
-  const filePath = path.join(AUDIO_DIR, fileName);
-
+export async function generateSpeech(text: string, voice: string, style: string = 'standard'): Promise<{ audioBuffer?: Buffer }> {
   const speedMap: Record<string, number> = {
     'teacher': 0.9,   
     'standard': 1.0,  
@@ -213,11 +209,10 @@ export async function generateSpeech(text: string, voice: string, style: string 
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
-    fs.writeFileSync(filePath, buffer);
-
-    return { audioUrl: `/audio/${fileName}` };
+    
+    return { audioBuffer: buffer }; 
   } catch (err) {
     console.error('TTS FAILED:', err);
-    throw err;
+    throw err; 
   }
 }

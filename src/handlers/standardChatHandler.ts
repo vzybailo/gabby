@@ -4,7 +4,7 @@ import { sessionStore } from '../lib/store.js';
 import { getChatResponse, generateSpeech } from '../services/ai.js';
 import { generateDiffView, generateMessageText } from '../utils/textUtils.js';
 import { updateDailyStats } from '../services/statService.js';
-import { sendVoiceSafely } from '../services/audioService.js'; // Импортируем из нового сервиса!
+import { sendVoiceSafely } from '../services/audioService.js';
 
 export async function handleStandardChat(bot: TelegramBot, chatId: string, user: any, userText: string, streakToShow: number, audioDuration: number) {
     let chatHistory = [];
@@ -56,11 +56,11 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
     try {
         if (textToSpeak && textToSpeak.trim().length > 1) {
             const speech = await generateSpeech(textToSpeak, userSettings.voice, userSettings.speakingStyle);
-            if (speech.audioUrl) {
+            if (speech.audioBuffer) {
                 const isLowLevel = ['A1', 'A2'].includes(userSettings.level || 'B1');
                 const audioKeyboard = isLowLevel ? [{ text: '🇷🇺 Translate', callback_data: 'translate_audio_caption' }] : [{ text: '📝 Text', callback_data: 'show_audio_caption' }];
                 
-                await sendVoiceSafely(bot, chatId, speech.audioUrl, { inline_keyboard: [audioKeyboard] }, analysis);
+                await sendVoiceSafely(bot, chatId, speech.audioBuffer, { inline_keyboard: [audioKeyboard] }, analysis);
             }
         }
     } catch (e: any) {
