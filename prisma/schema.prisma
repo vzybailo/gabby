@@ -17,9 +17,6 @@ model User {
   createdAt        DateTime @default(now())
   voice            String   @default("alloy")
   speakingStyle    String   @default("standard")
-  mode             String   @default("chill") 
-  interviewContext String?
-  roleplayContext  String?
   isPremium        Boolean  @default(false)
   premiumUntil     DateTime?
   messages         Message[]

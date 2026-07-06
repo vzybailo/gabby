@@ -7,20 +7,17 @@ import { systemPrompt } from '../prompts/systemPrompt.js';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const AUDIO_DIR = path.resolve('./audio');
 
-if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR);
+if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
 type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
-export interface UserSettings {
-  mode: string;        
+export interface UserSettings {      
   level: string;       
   voice: string;         
   speakingStyle: string;  
-  interviewContext?: string | null; 
-  roleplayContext?: string | null; 
 }
 
 export interface AIResponse {
@@ -89,144 +86,45 @@ export async function getChatResponse(
       : "ACCENT: AMERICAN ENGLISH. Use standard US spelling and vocabulary.";
 
   let styleInstruction = "Speak normally.";
-  
   switch (settings.speakingStyle) {
       case 'teacher': 
-          styleInstruction = `
-            STYLE: PATIENT ESL TEACHER. 
-            - Speak slowly and clearly.
-            - Use pauses (...) to let information sink in.
-            - Avoid contractions (say "I am" not "I'm").
-            - Tone: Warm, encouraging.
-          `;
+          styleInstruction = "STYLE: PATIENT ESL TEACHER. Speak slowly and clearly. Tone: Warm, encouraging.";
           break;
-
       case 'standard': 
-          styleInstruction = `
-            STYLE: STANDARD ENGLISH. 
-            - Crisp, clear, professional.
-            - No slang. Standard grammar.
-          `;
+          styleInstruction = "STYLE: STANDARD ENGLISH. Crisp, clear, professional. No slang.";
           break;
-
       case 'friend': 
-          styleInstruction = `
-            STYLE: CASUAL FRIEND. 
-            - REACT FIRST! (e.g., "Oh no...", "Wow!").
-            - Use fillers sparingly: "Well...", "You know...".
-            - Tone: Interested, supportive, casual.
-          `;
+          styleInstruction = "STYLE: CASUAL FRIEND. REACT FIRST! Tone: Interested, supportive, casual.";
           break;
-
       case 'street': 
-          styleInstruction = `
-            STYLE: STREET SLANG / NATIVE. 
-            - Use aggressive contractions: "gonna", "wanna", "dunno".
-            - Use fillers: "Like...", "Uh...", "I mean...".
-            - Start sentences with "Man,", "So, uh,".
-            - Example: "Man, I dunno... that sounds kinda crazy."
-          `;
+          styleInstruction = "STYLE: STREET SLANG / NATIVE. Use aggressive contractions: 'gonna', 'wanna'.";
           break;
   }
 
-  let modeInstruction = "";
-  let correctionStrictness = "";
-  let temp = 0.7;
+  const modeInstruction = `
+    MODE: CHILL CHAT.
+    1. Focus on the conversation flow. 
+    2. Only correct MAJOR mistakes that confuse the meaning. Ignore missing commas or minor typos.
+    3. Be supportive and conversational.
+  `;
+  const correctionStrictness = `Correct only critical errors. ${LENIENCY_RULE}`;
+  const temp = 0.75;
 
-  if (settings.mode === 'interview') {
-      const targetJob = settings.interviewContext || "a general professional position";
-      modeInstruction = `
-        MODE: JOB INTERVIEW SIMULATION.
-        CONTEXT: You are a professional HR Recruiter interviewing the user for the position of: "${targetJob}".
-        
-        RULES:
-        1. Ask ONE question at a time.
-        2. Give SHORT feedback (1 sentence) on their answer, then ask the NEXT question.
-        3. Keep a professional tone.
-        
-        IMPORTANT - ENDING THE SESSION:
-        If the user says "Stop", "Goodbye", "That's all", or if you have asked 5-7 questions and feel the interview is done:
-        - Do NOT ask another question.
-        - Conclude the interview professionally.
-        - EXPLICITLY say: "Interview finished! 🏁 To go back to normal chat, please open Settings and select 'Just Chat' mode."
-      `;
-      correctionStrictness = `Correct only major grammar mistakes that affect professionalism. ${LENIENCY_RULE}`;
-      temp = 0.6;
-
-  } else if (settings.mode === 'roleplay') {
-      const scenario = settings.roleplayContext || "Casual conversation with a stranger";
-      
-      modeInstruction = `
-        MODE: ROLEPLAY SIMULATION.
-        SCENARIO: ${scenario}
-        
-        RULES:
-        1. You are a character in this scenario. DO NOT say you are an AI.
-        2. Keep replies SHORT and NATURAL (under 20 words). Real people don't write essays.
-        3. IGNORE grammar mistakes unless the meaning is lost.
-        4. Focus on moving the action forward (e.g., "Anything else?", "Cash or card?").
-      `;
-
-      correctionStrictness = `Ignore mistakes. Focus on the scene. ${LENIENCY_RULE}`;
-      temp = 0.9;
-
-  } else if (settings.mode === 'grammar') {
-      modeInstruction = `MODE: GRAMMAR TEACHER (STRICT). Correct EVERY mistake including punctuation.`;
-      correctionStrictness = "STRICT: Mark 'is_correct' as FALSE for any tiny mistake. " + LENIENCY_RULE;
-      temp = 0.5;
-
-  } else {
-      modeInstruction = `
-        MODE: CHILL CHAT.
-        1. Focus on the conversation flow. 
-        2. Only correct MAJOR mistakes that confuse the meaning. Ignore missing commas or minor typos.
-        3. Be supportive and conversational.
-      `;
-
-      correctionStrictness = `Correct only critical errors. ${LENIENCY_RULE}`;
-      temp = 0.75;
-  }
-
-  // --- НАСТРОЙКА УРОВНЯ (CEFR) ---
-  let levelInstruction = "";
-  switch (settings.level) {
-      case 'A1':
-      case 'A2':
-          levelInstruction = `
-            USER LEVEL: ${settings.level} (Beginner).
-            - Use VERY SIMPLE, basic vocabulary.
-            - NO idioms, NO complex phrasal verbs, NO slang.
-          `;
-          break;
-      case 'B1':
-          levelInstruction = `
-            USER LEVEL: B1 (Intermediate).
-            - Use everyday vocabulary.
-            - Introduce common, simple phrasal verbs.
-          `;
-          break;
-      case 'B2':
-          levelInstruction = `
-            USER LEVEL: B2 (Upper-Intermediate).
-            - Speak naturally with common idioms.
-          `;
-          break;
-      case 'C1':
-      case 'C2':
-          levelInstruction = `
-            USER LEVEL: ${settings.level} (Advanced/Fluent).
-            - Use sophisticated, native-level vocabulary, idioms, and slang.
-          `;
-          break;
-      default:
-          levelInstruction = `USER LEVEL: ${settings.level}.`;
+  let levelInstruction = `USER LEVEL: ${settings.level}.`;
+  if (['A1', 'A2'].includes(settings.level)) {
+      levelInstruction += " Use VERY SIMPLE, basic vocabulary. NO idioms, NO complex phrasal verbs, NO slang.";
+  } else if (settings.level === 'B1') {
+      levelInstruction += " Use everyday vocabulary. Introduce common, simple phrasal verbs.";
+  } else if (settings.level === 'B2') {
+      levelInstruction += " Speak naturally with common idioms.";
+  } else if (['C1', 'C2'].includes(settings.level)) {
+      levelInstruction += " Use sophisticated, native-level vocabulary, idioms, and slang.";
   }
 
   const fullSystemPrompt = `${systemPrompt}
   
   --- CURRENT SETTINGS ---
   ${levelInstruction}
-  
   ${dialectInstruction}
   ${styleInstruction}
   
@@ -248,7 +146,7 @@ export async function getChatResponse(
     "is_correct": boolean,
     "user_errors": [],
     "better_alternatives": [],
-    "grammarScore": number (0-100)
+    "grammarScore": number
   }`;
 
   const validMessages = messages
@@ -266,10 +164,9 @@ export async function getChatResponse(
     const parsed = JSON.parse(completion.choices[0]?.message.content || "{}");
 
     let calculatedScore = parsed.grammarScore;
-    if (calculatedScore === undefined || calculatedScore === null) {
+    if (typeof calculatedScore !== 'number') {
         const errorCount = (parsed.user_errors || []).length;
-        if (parsed.is_correct) calculatedScore = 100;
-        else calculatedScore = Math.max(0, 100 - (errorCount * 15));
+        calculatedScore = parsed.is_correct ? 100 : Math.max(0, 100 - (errorCount * 15));
     }
 
     return {
@@ -303,7 +200,6 @@ export async function generateSpeech(text: string, voice: string, style: string 
   };
 
   const speed = speedMap[style] || 1.0;
-
   const validVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
   const selectedVoice = validVoices.includes(voice) ? voice : 'alloy';
 
