@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import * as Diff from 'diff';
 import { prisma } from '../lib/prisma.js'; 
 import { getChatResponse, generateSpeech } from '../services/ai.js'; 
 import { updateDailyStats } from '../services/statService.js';
@@ -23,12 +22,9 @@ router.post('/', async (req, res) => {
     });
     
     const settings = {
-        mode: user.mode || 'chill',
         level: user.level || 'A1',
         voice: user.voice || 'alloy',          
         speakingStyle: user.speakingStyle || 'standard',
-        interviewContext: user.interviewContext,
-        roleplayContext: user.roleplayContext
     };
 
     await prisma.message.create({
@@ -86,7 +82,9 @@ router.post('/', async (req, res) => {
     if (assistantMessage.content && assistantMessage.content.trim() !== '') {
       try {
         const speech = await generateSpeech(assistantMessage.content, settings.voice, settings.speakingStyle);
-        audioUrl = speech.audioUrl;
+        if (speech.audioBuffer) {
+            audioUrl = `data:audio/mpeg;base64,${speech.audioBuffer.toString('base64')}`;
+        }
       } catch (err) {
         console.error('TTS generation failed:', err);
       }
