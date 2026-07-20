@@ -16,6 +16,7 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
         return;
     }
 
+    // Маршрутизация остальных коллбеков
     if (
         action === 'wizard_start' ||
         action.startsWith('set_level_') ||

@@ -1,4 +1,3 @@
-// src/handlers/levelTestHandler.ts
 import TelegramBot from 'node-telegram-bot-api';
 import axios from 'axios';
 import { prisma } from '../lib/prisma.js';

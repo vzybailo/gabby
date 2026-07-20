@@ -60,7 +60,7 @@
             <div class="title">⚙️ Settings</div>
         </div>
 
-        <div class="premium-banner unified-width" onclick="switchTab('premium', document.querySelector('.nav-item.gold'))">
+        <div id="upgrade-btn" class="premium-banner unified-width" onclick="switchTab('premium', document.querySelector('.nav-item.gold'))">
             <div class="pb-content">
                 <div class="pb-text">Upgrade to Premium 🚀</div>
                 <div class="pb-sub">Unlock Unlimited & All Features</div>
@@ -363,7 +363,28 @@
                 <li><span class="check gold">✔</span> Deep explanations</li>
                 <li><span class="check gold">✔</span> All Voices & Modes</li>
             </ul>
-            <button class="btn btn-premium" onclick="buyPremium()">🚀 Get Premium Access</button>
+            <div id="premium-action-container" class="premium-action-container">
+                
+                <!-- Главная кнопка -->
+                <button id="btn-get-premium" class="btn-primary">
+                    🚀 Get Premium Access
+                </button>
+
+                <!-- Скрытый блок выбора способа оплаты -->
+                <div id="payment-methods-block" class="payment-methods hidden">
+                    <p class="payment-hint">Select payment method:</p>
+                    
+                    <!-- Кнопка Telegram Stars -->
+                    <button id="btn-pay-stars" class="btn-stars">
+                        ⭐️ Pay with Stars
+                    </button>
+
+                    <!-- Кнопка Stripe (Карта) -->
+                    <button id="btn-pay-card" class="btn-card">
+                        💳 Pay with Card
+                    </button>
+                </div>
+            </div>
         </div>
 
         <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Back to Chat</button>

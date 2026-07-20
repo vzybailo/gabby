@@ -10,19 +10,29 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
   const username = msg.from?.username || null;
 
   try {
-    await prisma.user.upsert({
-      where: { id: chatId },
-      update: { 
-          username: username,
-      },
-      create: {
-        id: chatId,
-        username: username,
-        level: null, 
-        voice: 'alloy',
-        mode: 'chill'
-      }
-    });
+    let user = await prisma.user.findUnique({ where: { id: chatId } });
+    const isNewUser = !user; // Если user === null, значит он новый
+
+    if (isNewUser) {
+        const trialEndDate = new Date();
+        trialEndDate.setDate(trialEndDate.getDate() + 3);
+
+        user = await prisma.user.create({
+            data: {
+                id: chatId,
+                username: username,
+                level: null, 
+                voice: 'alloy',
+                isPremium: true,
+                premiumUntil: trialEndDate 
+            }
+        });
+    } else {
+        user = await prisma.user.update({
+            where: { id: chatId },
+            data: { username: username }
+        });
+    }
 
     const introText = `👋 <b>Привет, ${firstName}! Добро пожаловать в Say It.</b>\n\n` +
       `Я — твой ИИ-репетитор для практики разговорного английского.\n\n` +
@@ -33,15 +43,12 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
       `✍️ <b>Учись:</b> Я буду мягко исправлять твои ошибки прямо в тексте и подсказывать, как звучать естественнее.\n\n` +
       `👀 <i>Посмотри короткие видео ниже, чтобы понять, как это работает!</i>`;
 
-    const outroText = `Давай за 1 минуту настроим твой уровень и выберем мне голос 👇`;
-    
-    const replyMarkup = {
-      inline_keyboard: [
-        [{ text: '🚀 Начать настройку', callback_data: 'wizard_start' }]
-      ]
-    };
-
     await bot.sendMessage(chatId, introText, { parse_mode: 'HTML' });
+
+    if (isNewUser) {
+        const giftText = `🎁 <b>Подарок при регистрации!</b>\n\nМы начислили тебе <b>3 дня полного Premium-доступа</b>.\n\nТебе доступны безлимитные голосовые сообщения и глубокий анализ каждой ошибки (кнопки <i>Why?</i> и <i>Native style</i>).`;
+        await bot.sendMessage(chatId, giftText, { parse_mode: 'HTML' });
+    }
 
     if (VIDEO_NOTE_1_FILE_ID) {
         try {
@@ -60,6 +67,14 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
             console.error('Не удалось отправить второй кружочек:', error);
         }
     }
+
+    const outroText = `Давай за 1 минуту настроим твой уровень и выберем мне голос 👇`;
+    
+    const replyMarkup = {
+      inline_keyboard: [
+        [{ text: '🚀 Начать настройку', callback_data: 'wizard_start' }]
+      ]
+    };
 
     await bot.sendMessage(chatId, outroText, { parse_mode: 'HTML', reply_markup: replyMarkup });
 

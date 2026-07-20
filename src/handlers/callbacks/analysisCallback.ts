@@ -3,6 +3,8 @@ import axios from 'axios';
 import { prisma } from '../../lib/prisma.js';
 import { sessionStore } from '../../lib/store.js';
 import { generateMessageText } from '../../utils/textUtils.js';
+import { isUserPremium } from '../../services/billingService.js';
+import { PREMIUM_PAYMENT_TEXT, getPaymentKeyboard } from '../../lib/constants.js';
 
 const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:3001';
 
@@ -15,19 +17,36 @@ export async function handleAnalysisCallback(bot: TelegramBot, query: TelegramBo
         const streak = analysis._streak_cache || 0;
         const backButton = { inline_keyboard: [[{ text: '⬅️ Collapse', callback_data: 'collapse_text_view' }]] };
 
-        if (action === 'explain_mistakes') {
-             const newText = generateMessageText(userText, analysis, 'expanded_errors', streak);
-             await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: backButton });
+        if (action === 'explain_mistakes' || action === 'show_alternatives') {
+            const hasPremium = await isUserPremium(chatId);
+
+            if (!hasPremium) {
+                await bot.answerCallbackQuery(query.id, { 
+                    text: '💎 Эта функция доступна только в Premium.\n\nНажмите кнопку «Premium» в нижнем меню (Mini App), чтобы снять ограничения!', 
+                    show_alert: true 
+                });
+                
+                return; 
+            }
+
+            const viewType = action === 'explain_mistakes' ? 'expanded_errors' : 'expanded_alternatives';
+            const newText = generateMessageText(userText, analysis, viewType, streak);
+            await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: backButton });
         }
-        if (action === 'show_alternatives') {
-             const newText = generateMessageText(userText, analysis, 'expanded_alternatives', streak);
-             await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: backButton });
-        }
+        
         if (action === 'collapse_text_view') {
              const newText = generateMessageText(userText, analysis, 'simple', streak);
+             
+             const hasPremium = await isUserPremium(chatId);
              let row1 = [];
-             if (!analysis.is_perfect && analysis.user_errors?.length > 0) row1.push({ text: 'Why?', callback_data: 'explain_mistakes' });
-             if (analysis.better_alternatives?.length > 0) row1.push({ text: 'Native style', callback_data: 'show_alternatives' });
+             
+             if (!analysis.is_perfect && analysis.user_errors?.length > 0) {
+                 row1.push({ text: hasPremium ? 'Why?' : '🔒 Why?', callback_data: 'explain_mistakes' });
+             }
+             if (analysis.better_alternatives?.length > 0) {
+                 row1.push({ text: hasPremium ? 'Native style' : '🔒 Native style', callback_data: 'show_alternatives' });
+             }
+             
              await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1] } });
         }
         

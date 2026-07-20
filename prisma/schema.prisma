@@ -17,12 +17,17 @@ model User {
   createdAt        DateTime @default(now())
   voice            String   @default("alloy")
   speakingStyle    String   @default("standard")
-  isPremium        Boolean  @default(false)
-  premiumUntil     DateTime?
+  isPremium            Boolean  @default(false)
+  premiumUntil         DateTime?
+  stripeCustomerId     String?  @unique 
+  stripeSubscriptionId String?  @unique 
+  audioTokens          Int      @default(15)
+  lastTokenReset       DateTime @default(now())
   messages         Message[]
   vocabulary       VocabularyItem[]
   dailyStats       DailyStats[]
   lastStreakReminderAt    DateTime?
+  transactions         Transaction[]
 }
 
 model Message {
@@ -65,4 +70,18 @@ model VocabularyItem {
   interval    Int      @default(0)      
   repetition  Int      @default(0)      
   easeFactor  Float    @default(2.5)    
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  provider        String   // "STRIPE" или "TELEGRAM_STARS"
+  amount          Int      // Сумма (в центах для Stripe, в количестве звезд для Telegram)
+  currency        String   // "USD" или "XTR" (официальный код Telegram Stars)
+  status          String   // "PENDING", "SUCCESS", "FAILED"
+  providerTxId    String?  @unique // Уникальный ID платежа от провайдера
+  description     String?  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

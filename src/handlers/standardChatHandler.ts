@@ -5,6 +5,7 @@ import { getChatResponse, generateSpeech } from '../services/ai.js';
 import { generateDiffView, generateMessageText } from '../utils/textUtils.js';
 import { updateDailyStats } from '../services/statService.js';
 import { sendVoiceSafely } from '../services/audioService.js';
+import { isUserPremium } from '../services/billingService.js'; // ⬅️ Добавлен импорт сервиса биллинга
 
 export async function handleStandardChat(bot: TelegramBot, chatId: string, user: any, userText: string, streakToShow: number, audioDuration: number) {
     let chatHistory = [];
@@ -41,10 +42,26 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
         updateDailyStats(chatId, audioDuration, grammarScore).catch(e => console.error("Stats update error:", e));
     }
 
+    // 🚀 НОВОЕ: Проверяем статус пользователя перед отрисовкой кнопок
+    const hasPremium = await isUserPremium(chatId);
+
     const msgText = generateMessageText(userText, analysis, 'simple', streakToShow);
     let row1 = [];
-    if (!analysis.is_perfect && analysis.user_errors?.length > 0) row1.push({ text: 'Why?', callback_data: 'explain_mistakes' });
-    if (analysis.better_alternatives?.length > 0) row1.push({ text: 'Native style', callback_data: 'show_alternatives' });
+    
+    // 🚀 НОВОЕ: Логика замочков в зависимости от hasPremium
+    if (!analysis.is_perfect && analysis.user_errors?.length > 0) {
+        row1.push({ 
+            text: hasPremium ? 'Why?' : '🔒 Why?', 
+            callback_data: 'explain_mistakes' 
+        });
+    }
+    
+    if (analysis.better_alternatives?.length > 0) {
+        row1.push({ 
+            text: hasPremium ? 'Native style' : '🔒 Native style', 
+            callback_data: 'show_alternatives' 
+        });
+    }
     
     const sentMsg = await bot.sendMessage(chatId, msgText, { parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1].filter(r => r.length > 0) } });
     sessionStore.set(`${chatId}_${sentMsg.message_id}`, analysis);

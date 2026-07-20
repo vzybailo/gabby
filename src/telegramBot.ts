@@ -9,6 +9,8 @@ import { handleCallback } from './handlers/callbackHandler.js';
 import { handleStart } from './handlers/startHandler.js'; 
 import { initStreakReminder } from './cron/streakReminder.js';
 
+import { setupPaymentHandlers } from './handlers/paymentHandler.js';
+
 checkDbConnection();
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
@@ -18,6 +20,7 @@ const TMP_DIR = path.resolve('./tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 initStreakReminder(bot);
+setupPaymentHandlers(bot);
 
 export const LEVEL_KEYBOARD = {
   inline_keyboard: [
@@ -52,6 +55,8 @@ export async function triggerAction(chatId: string, action: string) {
 bot.onText(/\/start/, (msg) => handleStart(bot, msg));
 
 bot.on('message', (msg) => {
+    if (msg.successful_payment) return;
+    
     if (!msg.text?.startsWith('/')) handleMessage(bot, msg);
 });
 

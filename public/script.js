@@ -494,7 +494,7 @@ function renderCalendar() {
 }
 
 function togglePrice() {
-  isYearly = !isYearly;
+  isYearly = !isYearly; // Меняем флаг
 
   const priceEl = document.getElementById('proPrice');
   const badge = document.getElementById('saveBadge');
@@ -517,14 +517,6 @@ function togglePrice() {
   }
 }
 
-function buyPremium() {
-  tg.showPopup({
-  title: 'Pro Plan',
-  message: 'Coming soon!',
-  buttons: [{ type: 'ok' }]
-  });
-}
-
 function inviteFriends() {
   const link = 'https://t.me/SpeakWithMeNowBot?start=invite';
   const shareText = '👆 Нашел крутого ИИ-репетитора по английскому в Телеграме! Можно общаться голосом как с настоящим нейтивом, прокачивать произношение и ломать языковой барьер. Переходи по ссылке выше!';
@@ -533,4 +525,79 @@ function inviteFriends() {
   tg.openTelegramLink(telegramUrl);
 }
 
+// === БЛОК ОПЛАТЫ ===
+
+// Элементы DOM для оплат
+const btnGetPremium = document.getElementById('btn-get-premium');
+const paymentMethodsBlock = document.getElementById('payment-methods-block');
+const btnPayStars = document.getElementById('btn-pay-stars');
+const btnPayCard = document.getElementById('btn-pay-card');
+
+// 1. Показываем способы оплаты
+if (btnGetPremium && paymentMethodsBlock) {
+    btnGetPremium.addEventListener('click', () => {
+        btnGetPremium.classList.add('hidden'); // Прячем главную кнопку
+        paymentMethodsBlock.classList.remove('hidden'); // Показываем блок
+        paymentMethodsBlock.classList.add('flex');
+    });
+}
+
+// 2. Оплата через Stripe (Карта)
+if (btnPayCard) {
+    btnPayCard.addEventListener('click', () => {
+        // Забираем текущий план, основываясь на переменной isYearly
+        const plan = isYearly ? 'year' : 'month'; 
+        
+        const stripeLinks = {
+            month: 'https://buy.stripe.com/test_bJe5kF1o90E49uTeBL14400',
+            year: 'https://buy.stripe.com/test_bJe5kF1o90E49uTeBL14400'
+        };
+        
+        // Формируем финальную ссылку с ID пользователя
+        const checkoutUrl = `${stripeLinks[plan]}?client_reference_id=${userId}`;
+        
+        // Открываем браузер без поп-апов!
+        tg.openLink(checkoutUrl); 
+    });
+}
+
+// 3. Оплата через Telegram Stars
+if (btnPayStars) {
+    btnPayStars.addEventListener('click', async () => {
+        // Также забираем план напрямую из глобальной переменной
+        const plan = isYearly ? 'year' : 'month'; 
+
+        const originalText = btnPayStars.innerHTML;
+        btnPayStars.innerHTML = '⏳ Loading...';
+        btnPayStars.disabled = true;
+
+        try {
+            // Запрашиваем инвойс, передавая plan (месяц или год)
+            const response = await fetch(`/api/create-stars-invoice?userId=${userId}&plan=${plan}`);
+            const data = await response.json();
+
+            // Открываем системное окно оплаты Telegram
+            tg.openInvoice(data.invoiceUrl, (status) => {
+                if (status === 'paid') {
+                    tg.showAlert("🎉 Payment successful! Premium unlocked.");
+                    // Обновляем данные пользователя после успешной покупки
+                    loadData(); 
+                } else if (status === 'failed') {
+                    tg.showAlert("⚠️ Payment failed. Please try again.");
+                }
+                
+                // Возвращаем кнопку в исходное состояние
+                btnPayStars.innerHTML = originalText;
+                btnPayStars.disabled = false;
+            });
+        } catch (error) {
+            console.error("Error creating invoice:", error);
+            tg.showAlert("Network error. Please try again later.");
+            btnPayStars.innerHTML = originalText;
+            btnPayStars.disabled = false;
+        }
+    });
+}
+
+// Инициализация при старте
 loadData();

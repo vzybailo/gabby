@@ -1,11 +1,11 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { prisma } from '../lib/prisma.js';
-import { userState } from '../lib/store.js'; 
 import { updateStreak } from '../services/streakService.js';
 import { processVoiceInput } from '../services/audioService.js';
 import { handleDictionaryHelper } from './dictionaryHandler.js';
 import { handleStandardChat } from './standardChatHandler.js';
-import { handleLevelTest } from './levelTestHandler.js'; 
+import { checkAudioLimit } from '../services/billingService.js';
+import { getPaymentKeyboard } from '../lib/constants.js';
 
 export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) {
   if (msg.text?.startsWith('/')) return;
@@ -15,18 +15,25 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
 
   try {
     const user = await prisma.user.upsert({ 
-      where: { id: chatId }, 
-      update: {}, 
-      create: { id: chatId } 
+      where: { id: chatId }, update: {}, create: { id: chatId } 
     });
     
     const streakResult = await updateStreak(chatId);
     const streakToShow = streakResult.shouldNotify ? streakResult.count : 0;
-    const currentState = userState.get(chatId) || 'IDLE';
+
     let userText = msg.text || '';
     const audioDuration = msg.voice?.duration || 0; 
 
     if (msg.voice) {
+        const limitCheck = await checkAudioLimit(chatId);
+        
+        if (!limitCheck.allowed) {
+            return bot.sendMessage(chatId, `💎 <b>Лимит исчерпан!</b>\n\n${limitCheck.reason}`, {
+                parse_mode: 'HTML',
+                reply_markup: getPaymentKeyboard(chatId) 
+            });
+        }
+        
         userText = await processVoiceInput(bot, msg.voice.file_id);
     }
 
@@ -35,13 +42,8 @@ export async function handleMessage(bot: TelegramBot, msg: TelegramBot.Message) 
     }
 
     const cyrillicPattern = /[а-яА-ЯёЁїЇєЄіІ]/;
-    
-    if (cyrillicPattern.test(userText) && currentState !== 'TESTING') {
+    if (cyrillicPattern.test(userText)) {
         return bot.sendMessage(chatId, '🇬🇧 <b>Oops!</b> I only understand English. Please speak or write in English to continue our practice!', { parse_mode: 'HTML' });
-    }
-
-    if (currentState === 'TESTING') {
-        return await handleLevelTest(bot, chatId, userText);
     }
 
     if (prisma.message) {

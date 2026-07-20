@@ -904,3 +904,80 @@ body {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Отступ сверху для всего контейнера */
+.premium-action-container {
+    margin-top: 1.5rem;
+}
+
+/* --- ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КНОПОК --- */
+.btn-primary, 
+.btn-stars, 
+.btn-card {
+    width: 100%;
+    padding: 0.75rem 0;
+    border-radius: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: transform 0.15s ease-in-out;
+}
+
+/* Анимация вдавливания при клике */
+.btn-primary:active, 
+.btn-stars:active, 
+.btn-card:active {
+    transform: scale(0.95);
+}
+
+/* --- ИНДИВИДУАЛЬНЫЕ СТИЛИ КНОПОК --- */
+
+/* Главная оранжевая кнопка */
+.btn-primary {
+    background-color: #f59e0b;
+    color: #000000;
+    font-weight: 700;
+    border: none;
+}
+
+/* Кнопка Stars */
+.btn-stars {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    font-weight: 600;
+}
+
+/* Кнопка Card */
+.btn-card {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 600;
+}
+
+/* --- СТИЛИ БЛОКА С ВЫБОРОМ ОПЛАТЫ --- */
+
+/* Контейнер двух кнопок */
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Текст-подсказка над кнопками */
+.payment-hint {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0 0 0.25rem 0;
+}
+
+/* Утилитный класс для скрытия блока по умолчанию */
+.hidden {
+    display: none !important;
+}
