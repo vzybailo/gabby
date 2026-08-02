@@ -57,8 +57,13 @@ export async function assessLevel(text: string): Promise<AssessmentResult> {
 }
 
 export async function getChatResponse(
-    messages: ChatMessage[], 
-    settings: UserSettings 
+    messages: ChatMessage[],
+    settings: UserSettings,
+    vocabulary: {
+        word: string;
+        translation: string;
+        repetition: number;
+    }[] = []
 ): Promise<AIResponse> {
 
   const LENIENCY_RULE = `
@@ -120,11 +125,129 @@ export async function getChatResponse(
       levelInstruction += " Use sophisticated, native-level vocabulary, idioms, and slang.";
   }
 
+// ------------------------------
+// PERSONAL VOCABULARY TRAINING
+// ------------------------------
+
+let vocabularyInstruction = '';
+
+if (vocabulary.length > 0) {
+
+    const words = vocabulary
+        .map(v => {
+            const status =
+                v.repetition === 0
+                    ? 'New'
+                    : v.repetition <= 2
+                    ? 'Learning'
+                    : v.repetition <= 4
+                    ? 'Needs Review'
+                    : 'Almost Mastered';
+
+            return `• ${v.word}
+  Translation: ${v.translation}
+  Status: ${status}`;
+        })
+        .join('\n\n');
+
+    vocabularyInstruction = `
+────────────────────────────────
+PERSONAL VOCABULARY TRAINING
+────────────────────────────────
+
+The student has a personal vocabulary list that is managed using spaced repetition (SRS).
+
+Current vocabulary:
+
+${words}
+
+YOUR ROLE
+
+You are not teaching isolated vocabulary.
+You are having a real conversation while naturally reinforcing the student's vocabulary.
+
+PRIORITY ORDER
+
+1. Natural conversation ALWAYS comes first.
+2. Vocabulary practice comes second.
+3. Grammar correction comes third.
+
+VOCABULARY RULES
+
+• Naturally use ONE or TWO vocabulary words whenever they genuinely fit the topic.
+
+• Never force vocabulary into a sentence.
+
+• If none of the words fit naturally, simply don't use them.
+
+• Never use more than TWO vocabulary words in one reply.
+
+• Prefer vocabulary marked as "Needs Review".
+
+• Use "Learning" words when appropriate.
+
+• Use "New" words only in very simple contexts.
+
+• Avoid using "Almost Mastered" too often.
+
+• Do NOT repeat the same vocabulary word in consecutive replies unless the conversation naturally requires it.
+
+• Use vocabulary in realistic everyday situations.
+
+• The student should learn the meaning from context rather than from direct explanations.
+
+• Never explain or translate a vocabulary word unless the student explicitly asks.
+
+• If the conversation naturally allows it, ask a question that encourages the student to use one vocabulary word in their own answer.
+
+• Do NOT say "Today's word is..." or "Let's practice this word."
+
+• Vocabulary practice should feel invisible.
+
+GOOD EXAMPLE
+
+User:
+I'm looking for another job.
+
+Assistant:
+That sounds like a great opportunity! I think you'll achieve your goal if you keep practicing your English. 😊
+
+GOOD EXAMPLE
+
+User:
+I watched a movie yesterday.
+
+Assistant:
+Nice! What was it about?
+
+GOOD EXAMPLE
+
+User:
+I'm nervous about my interview.
+
+Assistant:
+That's completely normal. I'm sure you'll achieve a great result. What position are you applying for?
+
+BAD EXAMPLE
+
+❌ Today we'll practice the word "opportunity."
+
+❌ Please repeat the word "achieve."
+
+❌ Here are two new words.
+
+The conversation must always feel natural, friendly and human.
+
+The student should never feel that vocabulary is being intentionally inserted.
+`;
+}
+
   const fullSystemPrompt = `${systemPrompt}
   
   --- CURRENT SETTINGS ---
   ${levelInstruction}
   ${dialectInstruction}
+  ${vocabularyInstruction}
   ${styleInstruction}
   
   ${modeInstruction}

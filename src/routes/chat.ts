@@ -42,7 +42,67 @@ router.post('/', async (req, res) => {
         content: m.text
     }));
 
-    const aiResponse = await getChatResponse(formattedHistory, settings);
+const now = new Date();
+
+// 1. Слова, которые уже пора повторять
+const reviewWords = await prisma.vocabularyItem.findMany({
+    where: {
+        userId,
+        repetition: {
+            lt: 5
+        },
+        nextReview: {
+            lte: now
+        }
+    },
+    orderBy: {
+        nextReview: 'asc'
+    },
+    take: 4,
+    select: {
+      id: true,
+      word: true,
+      translation: true,
+      definition: true,
+      context: true,
+      repetition: true
+    }
+});
+
+// 2. Остальные слова
+const remainingWords = await prisma.vocabularyItem.findMany({
+    where: {
+        userId,
+        repetition: {
+            lt: 5
+        },
+        id: {
+            notIn: reviewWords.map(w => w.id)
+        }
+    },
+    select: {
+        word: true,
+        translation: true,
+        repetition: true
+    }
+});
+
+// 3. Перемешиваем
+const randomWords = remainingWords
+    .sort(() => Math.random() - 0.5)
+    .slice(0, Math.max(0, 6 - reviewWords.length));
+
+// 4. Финальный словарь
+const vocabulary = [
+    ...reviewWords,
+    ...randomWords
+];
+
+    const aiResponse = await getChatResponse(
+        formattedHistory,
+        settings,
+        vocabulary
+    );
     const diffView = generateDiffView(message, aiResponse.corrected);
 
     let grammarScore = aiResponse.grammarScore;

@@ -271,14 +271,42 @@ async function rateWord(quality) {
   showNextCard();
 
   try {
-  await fetch(`/api/vocabulary/review/${userId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ wordId: currentCard.id, quality })
-  });
+    const response = await fetch(`/api/vocabulary/review/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            wordId: currentCard.id,
+            quality
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.mastered) {
+        showMasteredPopup(data.word);
+        loadData();
+    }
   } catch (e) {
   console.error(e);
   }
+}
+
+function showMasteredPopup(word) {
+    Telegram.WebApp.showAlert(
+`🎉 Поздравляем!
+
+Слово
+
+"${word}"
+
+официально перешло в категорию выученных! ⭐
+
+Теперь оно будет повторяться значительно реже, а твой прогресс увеличился.
+
+Продолжай в том же духе! 🚀`
+    );
 }
 
 function switchTab(id, el) {
@@ -526,7 +554,8 @@ async function loadData() {
 
     const streakVal = statsData.streak ?? profileData.streak ?? 0;
     const minutesVal = statsData.totalMinutes ?? profileData.totalMinutes ?? 0;
-    const wordsVal = statsData.wordsLearned ?? profileData.wordsLearned ?? 0;
+    const learnedWords = statsData.learnedWords ?? 0;
+    const totalWords = statsData.totalWords ?? 0;
     const scoreVal = Math.round(statsData.avgScore ?? profileData.avgScore ?? 0);
 
     // 1. Стрик
@@ -543,10 +572,10 @@ async function loadData() {
       toggleCardDimmed('cardMinutes', minutesVal > 0);
     }
 
-    // 3. Выучено слов
     const wordsEl = document.getElementById('wordsLearnedVal');
+
     if (wordsEl) {
-      wordsEl.innerText = wordsVal;
+        wordsEl.innerText = `${learnedWords}/${totalWords}`;
     }
     if (typeof toggleCardDimmed === 'function') {
       toggleCardDimmed('cardWords', wordsVal > 0);

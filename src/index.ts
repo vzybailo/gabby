@@ -318,32 +318,63 @@ app.get('/api/vocabulary/review/:id', async (req, res) => {
 app.post('/api/vocabulary/review/:id', async (req, res) => {
     try {
         const { wordId, quality } = req.body;
-        
-        const item = await prisma.vocabularyItem.findUnique({ where: { id: wordId } });
-        if (!item) return res.status(404).json({ error: 'Not found' });
 
-        const result = calculateReview({
-            interval: item.interval,
-            repetition: item.repetition,
-            easeFactor: item.easeFactor
-        }, quality);
+        const item = await prisma.vocabularyItem.findUnique({
+            where: { id: wordId }
+        });
 
-        const nextDate = new Date();
-        nextDate.setDate(nextDate.getDate() + result.interval);
+        if (!item) {
+            return res.status(404).json({
+                error: 'Word not found'
+            });
+        }
 
-        await prisma.vocabularyItem.update({
-            where: { id: wordId },
+        const wasMastered = item.repetition >= 5;
+        const result = calculateReview(
+            {
+                interval: item.interval,
+                repetition: item.repetition,
+                easeFactor: item.easeFactor
+            },
+            quality
+        );
+
+        const becameMastered = result.repetition >= 5;
+
+        const nextReview = new Date();
+        nextReview.setDate(nextReview.getDate() + result.interval);
+
+        const updatedWord = await prisma.vocabularyItem.update({
+            where: {
+                id: wordId
+            },
             data: {
                 interval: result.interval,
                 repetition: result.repetition,
                 easeFactor: result.easeFactor,
-                nextReview: nextDate
+                nextReview
             }
         });
 
-        res.json({ success: true });
+        const masteredNow =
+            !wasMastered &&
+            result.repetition >= 5 &&
+            result.interval >= 14;
+
+        return res.json({
+            success: true,
+            mastered: masteredNow,
+            word: updatedWord.word,
+            repetition: updatedWord.repetition,
+            interval: updatedWord.interval
+        });
+
     } catch (e) {
-        res.status(500).json({ error: 'Review failed' });
+        console.error('Vocabulary review error:', e);
+
+        return res.status(500).json({
+            error: 'Review failed'
+        });
     }
 });
 

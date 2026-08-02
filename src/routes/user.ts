@@ -115,7 +115,18 @@ router.get('/:id/stats', async (req, res) => {
         }
 
         const totalWords = await prisma.vocabularyItem.count({
-            where: { userId: id }
+            where: {
+                userId: id
+            }
+        });
+
+        const learnedWords = await prisma.vocabularyItem.count({
+            where: {
+                userId: id,
+                repetition: {
+                    gte: 5
+                }
+            }
         });
 
         const totalAudioMinutes = user.dailyStats.reduce((sum, stat) => sum + (stat.audioMinutes || 0), 0);
@@ -134,7 +145,10 @@ router.get('/:id/stats', async (req, res) => {
         return res.json({
             streak: currentStreak,
             totalMinutes: Math.round(totalAudioMinutes),
-            wordsLearned: totalWords,
+
+            learnedWords,
+            totalWords,
+
             avgScore: avg7DaysScore
         });
 
