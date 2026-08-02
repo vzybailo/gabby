@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -8,62 +8,88 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Вкладка Профиль -->
     <div id="tab-profile" class="page-section active">
         <div class="header">
             <div class="avatar-wrap">
                 <img id="userAvatar" class="avatar-img">
-                <div id="avatarInitials" class="avatar-initials">U</div>
+                <div id="avatarInitials" class="avatar-initials">У</div>
             </div>
-            <h1 class="title" id="userName">Student</h1>
-            <div class="subtitle" id="userLevelBadge">Loading...</div>
-        </div>
-
-        <div class="stats-grid unified-width">
-            <div class="stat-card">
-                <div class="stat-val orange" id="streakVal">0</div>
-                <div style="font-size:12px; color:var(--text-dim)">Day Streak</div>
+            <div class="avatar-text">
+                <div class="name-wrapper">
+                    <h1 class="title" id="userName">Ученик</h1>
+                    <span class="level-badge" id="userLevelBadge">Загрузка...</span>
+                </div>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-val" id="avgScoreVal" style="color: #34d399;">0%</div>
-                <div style="font-size:12px; color:var(--text-dim)">Grammar (7 days)</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-val" id="totalMinutesVal">0</div>
-                <div style="font-size:12px; color:var(--text-dim)">Mins Spoken</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-val" id="wordsLearnedVal" style="color: #818cf8;">0</div>
-                <div style="font-size:12px; color:var(--text-dim)">Words Known</div>
+            <div id="premiumBadge" class="premium-badge hidden">
+                ⭐ Premium до <span id="premiumUntilDate">--.--.----</span>
             </div>
         </div>
+
+<!-- HTML готовый для вставки -->
+<div class="stats-grid-v2">
+  <!-- Стрик (Дни подряд) -->
+  <div id="cardStreak" class="stat-card-v2 streak-card">
+    <div class="icon-wrap orange-glow">🔥</div>
+    <div class="stat-data">
+      <div id="streakVal" class="stat-number orange-text">0</div>
+      <div class="stat-title">Дней подряд</div>
+    </div>
+  </div>
+
+  <!-- Грамматика -->
+  <div id="cardGrammar" class="stat-card-v2">
+    <div class="icon-wrap green-glow">🎯</div>
+    <div class="stat-data">
+      <div id="avgScoreVal" class="stat-number green-text">0%</div>
+      <div class="stat-title">Грамматика (7 дн)</div>
+    </div>
+  </div>
+
+  <!-- Минуты практики -->
+  <div id="cardMinutes" class="stat-card-v2 dimmed">
+    <div class="icon-wrap purple-glow">⏱️</div>
+    <div class="stat-data">
+      <div id="totalMinutesVal" class="stat-number">0</div>
+      <div class="stat-title">Мин практики</div>
+    </div>
+  </div>
+
+  <!-- Выучено слов -->
+  <div id="cardWords" class="stat-card-v2 dimmed">
+    <div class="icon-wrap blue-glow">📚</div>
+    <div class="stat-data">
+      <div id="wordsLearnedVal" class="stat-number blue-text">0</div>
+      <div class="stat-title">Слов выучено</div>
+    </div>
+  </div>
+</div>
 
         <div class="calendar-card unified-width">
             <div class="cal-header">
                 <div class="cal-nav" onclick="changeMonth(-1)">‹</div>
-                <div id="monthName">Calendar</div>
+                <div id="monthName">Календарь занятий</div>
                 <div class="cal-nav" onclick="changeMonth(1)">›</div>
             </div>
             <div class="cal-grid" id="calendarGrid"></div>
         </div>
 
         <div class="unified-width button-group">
-            <button class="btn btn-invite" onclick="inviteFriends()">📩 Invite Friends</button>
-            <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+            <button class="btn btn-invite" onclick="inviteFriends()">📩 Пригласить друзей</button>
+            <button class="btn btn-close" onclick="window.Telegram.WebApp.close()">Вернуться в чат</button>
         </div>
     </div>
 
+    <!-- Вкладка Настройки -->
     <div id="tab-settings" class="page-section">
         <div class="header">
-            <div class="title">⚙️ Settings</div>
+            <div class="title">⚙️ Настройки</div>
         </div>
 
         <div id="upgrade-btn" class="premium-banner unified-width" onclick="switchTab('premium', document.querySelector('.nav-item.gold'))">
             <div class="pb-content">
-                <div class="pb-text">Upgrade to Premium 🚀</div>
-                <div class="pb-sub">Unlock Unlimited & All Features</div>
+                <div class="pb-text">Перейти на Premium 🚀</div>
+                <div class="pb-sub">Безлимитный доступ и все функции</div>
             </div>
             <div class="pb-icon">💎</div>
         </div>
@@ -76,7 +102,7 @@
                         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                         <line x1="12" y1="17" x2="12.01" y2="17"></line>
                     </svg>
-                    <span>How to use</span>
+                    <span>Как пользоваться ботом</span>
                 </div>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -84,10 +110,10 @@
             </div>
             <div class="accordion-content">
                 <div class="accordion-inner">
-                    <div class="info-step"><div class="step-num">1</div><div class="step-text">Send a voice or text message to the bot.</div></div>
-                    <div class="info-step"><div class="step-num">2</div><div class="step-text">Get corrections and a native-style reply.</div></div>
-                    <div class="info-step"><div class="step-num">3</div><div class="step-text"><b>Reply</b> to any bot message with a word to save it.</div></div>
-                    <div class="info-step"><div class="step-num">4</div><div class="step-text">Go to <b>Vocab</b> tab to review saved words.</div></div>
+                    <div class="info-step"><div class="step-num">1</div><div class="step-text">Отправьте боту голосовое или текстовое сообщение.</div></div>
+                    <div class="info-step"><div class="step-num">2</div><div class="step-text">Получите разбор ошибок и естественный ответ на английском.</div></div>
+                    <div class="info-step"><div class="step-num">3</div><div class="step-text">Нажмите <b>«Ответить» (Reply)</b> на сообщение бота с незнакомым словом, чтобы сохранить его.</div></div>
+                    <div class="info-step"><div class="step-num">4</div><div class="step-text">Перейдите во вкладку <b>«Словарь»</b>, чтобы повторять сохраненные слова.</div></div>
                 </div>
             </div>
         </div>
@@ -101,7 +127,7 @@
                         <line x1="12" y1="19" x2="12" y2="23"></line>
                         <line x1="8" y1="23" x2="16" y2="23"></line>
                     </svg>
-                    <span>AI Voice</span>
+                    <span>Голос ИИ</span>
                 </div>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -112,52 +138,52 @@
                     <div class="option-card active" onclick="selectVoice('alloy', this)">
                         <div class="option-info">
                             <div class="option-title">Alloy</div>
-                            <div class="option-tags"><span class="tag">🇺🇸 US</span><span class="tag accent">Neutral</span></div>
-                            <div class="option-desc">Versatile, clear, balanced tone.</div>
+                            <div class="option-tags"><span class="tag">🇺🇸 США</span><span class="tag accent">Нейтральный</span></div>
+                            <div class="option-desc">Универсальный, чёткий и сбалансированный тон.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('echo', this)">
                         <div class="option-info">
                             <div class="option-title">Echo</div>
-                            <div class="option-tags"><span class="tag">🇺🇸 US</span><span class="tag green">Male</span></div>
-                            <div class="option-desc">Warm, soft, and well-rounded.</div>
+                            <div class="option-tags"><span class="tag">🇺🇸 США</span><span class="tag green">Мужской</span></div>
+                            <div class="option-desc">Тёплый, мягкий и спокойный голос.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('shimmer', this)">
                         <div class="option-info">
                             <div class="option-title">Shimmer</div>
-                            <div class="option-tags"><span class="tag">🇺🇸 US</span><span class="tag gold">Female</span></div>
-                            <div class="option-desc">Clear, bright, and expressive.</div>
+                            <div class="option-tags"><span class="tag">🇺🇸 США</span><span class="tag gold">Женский</span></div>
+                            <div class="option-desc">Чистый, звонкий и выразительный.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('onyx', this)">
                         <div class="option-info">
                             <div class="option-title">Onyx</div>
-                            <div class="option-tags"><span class="tag">🇺🇸 US</span><span class="tag green">Male</span></div>
-                            <div class="option-desc">Deep, gravelly, authoritative.</div>
+                            <div class="option-tags"><span class="tag">🇺🇸 США</span><span class="tag green">Мужской</span></div>
+                            <div class="option-desc">Глубокий, низкий, уверенный голос.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('nova', this)">
                         <div class="option-info">
                             <div class="option-title">Nova</div>
-                            <div class="option-tags"><span class="tag">🇺🇸 US</span><span class="tag gold">Female</span></div>
-                            <div class="option-desc">Energetic, fast, and friendly.</div>
+                            <div class="option-tags"><span class="tag">🇺🇸 США</span><span class="tag gold">Женский</span></div>
+                            <div class="option-desc">Энергичный, живой и дружелюбный.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectVoice('fable', this)">
                         <div class="option-info">
                             <div class="option-title">Fable</div>
-                            <div class="option-tags"><span class="tag">🇬🇧 UK</span><span class="tag green">Male</span></div>
-                            <div class="option-desc">British accent. Witty and classy.</div>
+                            <div class="option-tags"><span class="tag">🇬🇧 Великобритания</span><span class="tag green">Мужской</span></div>
+                            <div class="option-desc">Британский акцент. Харизматичный и элегантный.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
-                    <div class="help-text">Tap card to hear preview 🔊</div>
+                    <div class="help-text">Нажмите на карточку, чтобы прослушать пример 🔊</div>
                 </div>
             </div>
         </div>
@@ -168,7 +194,7 @@
                     <svg class="acc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    <span>Speaking Style</span>
+                    <span>Стиль общения</span>
                 </div>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -178,33 +204,33 @@
                 <div class="accordion-inner">
                     <div class="option-card active" onclick="selectStyle('standard', this)">
                         <div class="option-info">
-                            <div class="option-title">Standard</div>
-                            <div class="option-tags"><span class="tag">Normal</span></div>
-                            <div class="option-desc">Neutral speed (1.0x). Clear.</div>
+                            <div class="option-title">Обычный</div>
+                            <div class="option-tags"><span class="tag">Скорость 1.0x</span></div>
+                            <div class="option-desc">Нейтральный темп и понятная речь.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('teacher', this)">
                         <div class="option-info">
-                            <div class="option-title">The Teacher</div>
-                            <div class="option-tags"><span class="tag green">Slow 0.85x</span></div>
-                            <div class="option-desc">Enunciates clearly.</div>
+                            <div class="option-title">Преподаватель</div>
+                            <div class="option-tags"><span class="tag green">Медленнее 0.85x</span></div>
+                            <div class="option-desc">Чёткая дикция, проговаривает каждое слово.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('friend', this)">
                         <div class="option-info">
-                            <div class="option-title">The Friend</div>
-                            <div class="option-tags"><span class="tag">Casual 1.05x</span></div>
-                            <div class="option-desc">Casual tone. Uses contractions.</div>
+                            <div class="option-title">Дружеский</div>
+                            <div class="option-tags"><span class="tag">Разговорный 1.05x</span></div>
+                            <div class="option-desc">Неформальный тон, естественные сокращения.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="selectStyle('street', this)">
                         <div class="option-info">
-                            <div class="option-title">Native Speaker</div>
-                            <div class="option-tags"><span class="tag accent">Fast 1.2x</span></div>
-                            <div class="option-desc">Swallows words. Uses slang.</div>
+                            <div class="option-title">Носитель языка</div>
+                            <div class="option-tags"><span class="tag accent">Быстрый 1.2x</span></div>
+                            <div class="option-desc">Быстрый темп, сленг, разговорные связки.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
@@ -220,7 +246,7 @@
                         <line x1="12" y1="20" x2="12" y2="4"></line>
                         <line x1="6" y1="20" x2="6" y2="14"></line>
                     </svg>
-                    <span>English Level</span>
+                    <span>Уровень английского</span>
                 </div>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -231,40 +257,40 @@
                     <div class="option-card" onclick="updateLevel('A1', this)">
                         <div class="option-info">
                             <div class="option-title">A1</div>
-                            <div class="option-tags"><span class="tag green">Beginner</span></div>
-                            <div class="option-desc">Basic phrases.</div>
+                            <div class="option-tags"><span class="tag green">Начинающий</span></div>
+                            <div class="option-desc">Знаю базовые фразы и простые слова.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="updateLevel('A2', this)">
                         <div class="option-info">
                             <div class="option-title">A2</div>
-                            <div class="option-tags"><span class="tag green">Elementary</span></div>
-                            <div class="option-desc">Simple daily comms.</div>
+                            <div class="option-tags"><span class="tag green">Базовый</span></div>
+                            <div class="option-desc">Могу поддержать простой бытовой диалог.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="updateLevel('B1', this)">
                         <div class="option-info">
                             <div class="option-title">B1</div>
-                            <div class="option-tags"><span class="tag">Intermediate</span></div>
-                            <div class="option-desc">Most situations.</div>
+                            <div class="option-tags"><span class="tag">Средний</span></div>
+                            <div class="option-desc">Уверенно общаюсь на большинство тем.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="updateLevel('B2', this)">
                         <div class="option-info">
                             <div class="option-title">B2</div>
-                            <div class="option-tags"><span class="tag accent">Upper-Inter</span></div>
-                            <div class="option-desc">Fluent and spontaneous.</div>
+                            <div class="option-tags"><span class="tag accent">Выше среднего</span></div>
+                            <div class="option-desc">Общаюсь бегло и без спотыканий.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
                     <div class="option-card" onclick="updateLevel('C1', this)">
                         <div class="option-info">
                             <div class="option-title">C1</div>
-                            <div class="option-tags"><span class="tag gold">Advanced</span></div>
-                            <div class="option-desc">Complex texts.</div>
+                            <div class="option-tags"><span class="tag gold">Продвинутый</span></div>
+                            <div class="option-desc">Понимаю сложные темы, профессиональный язык.</div>
                         </div>
                         <div class="check-icon">✔</div>
                     </div>
@@ -279,7 +305,7 @@
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                         <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    <span>Feedback</span>
+                    <span>Обратная связь</span>
                 </div>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -287,121 +313,149 @@
             </div>
             <div class="accordion-content">
                 <div class="accordion-inner">
-                    <label class="feedback-label">Found a bug or have an idea?</label>
-                    <textarea id="feedbackText" class="feedback-input" rows="3" placeholder="Type here..."></textarea>
-                    <button class="btn btn-outline" onclick="sendFeedback()">Send Feedback</button>
+                    <label class="feedback-label">Нашли ошибку или есть идея по улучшению?</label>
+                    <textarea id="feedbackText" class="feedback-input" rows="3" placeholder="Напишите нам..."></textarea>
+                    <button class="btn btn-outline" onclick="sendFeedback()">Отправить</button>
                 </div>
             </div>
         </div>
 
-        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Вернуться в чат</button>
     </div>
 
+    <!-- Вкладка Словарь -->
     <div id="tab-vocab" class="page-section">
         <div class="header">
-            <h2 class="title">📚 Vocabulary</h2>
-            <p class="subtitle">Reply to any bot message to save words here</p>
+            <h2 class="title">📚 Личный словарь</h2>
+            <p class="subtitle">Ответьте на сообщение бота с незнакомым словом, чтобы узнать его значение. Как только бот пришлет вам значение слова, то вы можете нажать на плюс, чтобы сохранить слово сюда</p>
         </div>
 
         <div class="unified-width vocab-actions" id="vocab-actions">
-            <button class="action-btn primary" onclick="startQuiz()">🧠 Start Quiz</button>
+            <button class="action-btn primary" onclick="startQuiz()">🧠 Начать тренировку</button>
         </div>
 
         <div id="vocab-list" class="unified-width">
-            <div class="loading-state">Loading...</div>
+            <div class="loading-state">Загрузка слов...</div>
         </div>
 
         <div id="quiz-container" class="unified-width" style="display:none;">
             <div class="quiz-card" id="quiz-card" onclick="flipCard()">
-                <div class="flip-hint">Tap to reveal</div>
-                <div class="q-context" id="q-context">Loading...</div>
+                <div class="flip-hint">Нажмите, чтобы перевернуть</div>
+                <div class="q-context" id="q-context">Загрузка...</div>
                 <div class="q-word" id="q-word">...</div>
                 <div class="q-trans" id="q-trans">...</div>
             </div>
             <div class="quiz-controls" id="quiz-controls">
-                <button class="q-btn fail" onclick="rateWord(1)">Forgot</button>
-                <button class="q-btn hard" onclick="rateWord(2)">Hard</button>
-                <button class="q-btn good" onclick="rateWord(3)">Good</button>
-                <button class="q-btn easy" onclick="rateWord(4)">Easy</button>
+                <button class="q-btn fail" onclick="rateWord(1)">Не помню</button>
+                <button class="q-btn hard" onclick="rateWord(2)">Трудно</button>
+                <button class="q-btn good" onclick="rateWord(3)">Хорошо</button>
+                <button class="q-btn easy" onclick="rateWord(4)">Легко</button>
             </div>
-            <button class="btn btn-outline" onclick="stopQuiz()">Exit Quiz</button>
+            <button class="btn btn-outline" onclick="stopQuiz()">Завершить тренировку</button>
         </div>
 
-        <button class="btn btn-close unified-width" id="vocab-close-btn" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        <button class="btn btn-close unified-width" id="vocab-close-btn" onclick="window.Telegram.WebApp.close()">Вернуться в чат</button>
     </div>
 
+    <!-- Вкладка Premium (Адаптивный UI для Premium и Free пользователей) -->
     <div id="tab-premium" class="page-section">
         <div class="header">
             <div class="title">💎 Premium</div>
         </div>
 
-        <div class="toggle-container" id="priceToggle" onclick="togglePrice()">
-            <div class="toggle-bg"></div>
-            <div class="toggle-btn active" id="btnMonthly">Monthly</div>
-            <div class="toggle-btn" id="btnYearly">Yearly</div>
+        <!-- 🟢 БЛОК 1: Отображается, если у пользователя АКТИВЕН Premium -->
+        <div id="premium-active-view" class="unified-width hidden">
+            <div class="plan-card premium active-card">
+                <div class="plan-header">
+                    <span class="plan-title gold">⭐ Ваш Premium активен</span>
+                </div>
+                <p class="active-until-text">
+                    Подписка действует до: <strong id="activeUntilDate">--.--.----</strong>
+                </p>
+                <ul class="plan-features">
+                    <li><span class="check gold">✔</span> Безлимитные аудиосообщения</li>
+                    <li><span class="check gold">✔</span> Полный разбор грамматики и ошибок</li>
+                    <li><span class="check gold">✔</span> Доступны все 6 голосов ИИ</li>
+                    <li><span class="check gold">✔</span> Все стили общения и режимы</li>
+                    <li><span class="check gold">✔</span> Режим сленга и носителя языка</li>
+                </ul>
+            </div>
         </div>
 
-        <div class="plan-card unified-width">
-            <div class="plan-header">
-                <span class="plan-title">Free</span>
-                <span class="plan-price">$0</span>
+        <!-- 🔴 БЛОК 2: Отображается, если у пользователя НЕТ подписки -->
+        <div id="premium-subscribe-view">
+            <div class="toggle-container" id="priceToggle" onclick="togglePrice()">
+                <div class="toggle-bg"></div>
+                <div class="toggle-btn active" id="btnMonthly">На 1 месяц</div>
+                <div class="toggle-btn" id="btnYearly">На 1 год</div>
             </div>
-            <ul class="plan-features">
-                <li><span class="check">✔</span> 10 messages / day</li>
-                <li><span class="check">✔</span> Basic corrections</li>
-            </ul>
-        </div>
 
-        <div class="plan-card premium unified-width">
-            <div class="plan-save" id="saveBadge">SAVE 33%</div>
-            <div class="plan-header">
-                <span class="plan-title gold">PRO</span>
-                <span class="plan-price" id="proPrice">$5<span class="price-period">/mo</span></span>
+            <div class="plan-card unified-width">
+                <div class="plan-header">
+                    <span class="plan-title">Бесплатный</span>
+                    <span class="plan-price">$0</span>
+                </div>
+                <ul class="plan-features">
+                    <li><span class="check">✔</span> 15 сообщений в день</li>
+                    <li><span class="check">✔</span> Только 1 базовый голос</li>
+                    <li><span class="check">✔</span> 2 стиля общения</li>
+                </ul>
             </div>
-            <ul class="plan-features">
-                <li><span class="check gold">✔</span> <b>Unlimited</b> messages</li>
-                <li><span class="check gold">✔</span> Deep explanations</li>
-                <li><span class="check gold">✔</span> All Voices & Modes</li>
-            </ul>
-            <div id="premium-action-container" class="premium-action-container">
-                
-                <!-- Главная кнопка -->
-                <button id="btn-get-premium" class="btn-primary">
-                    🚀 Get Premium Access
-                </button>
 
-                <!-- Скрытый блок выбора способа оплаты -->
-                <div id="payment-methods-block" class="payment-methods hidden">
-                    <p class="payment-hint">Select payment method:</p>
+            <div class="plan-card premium unified-width">
+                <div class="plan-save" id="saveBadge">СКИДКА 33%</div>
+                <div class="plan-header">
+                    <span class="plan-title gold">Premium</span>
+                    <span class="plan-price" id="proPrice">$10<span class="price-period">/мес</span></span>
+                </div>
+                <ul class="plan-features">
+                    <li><span class="check gold">✔</span> Безлимитные сообщения</li>
+                    <li><span class="check gold">✔</span> Детальные объяснения ошибок</li>
+                    <li><span class="check gold">✔</span> Все голоса ИИ</li>
+                    <li><span class="check gold">✔</span> Все акценты и стили речи</li>
+                    <li><span class="check gold">✔</span> Режим разговорного сленга</li>
+                </ul>
+                <div id="premium-action-container" class="premium-action-container">
                     
-                    <!-- Кнопка Telegram Stars -->
-                    <button id="btn-pay-stars" class="btn-stars">
-                        ⭐️ Pay with Stars
+                    <!-- Главная кнопка -->
+                    <button id="btn-get-premium" class="btn-primary">
+                        🚀 Получить Premium доступ
                     </button>
 
-                    <!-- Кнопка Stripe (Карта) -->
-                    <button id="btn-pay-card" class="btn-card">
-                        💳 Pay with Card
-                    </button>
+                    <!-- Скрытый блок выбора способа оплаты -->
+                    <div id="payment-methods-block" class="payment-methods hidden">
+                        <p class="payment-hint">Выберите способ оплаты:</p>
+                        
+                        <!-- Кнопка Telegram Stars -->
+                        <button id="btn-pay-stars" class="btn-stars">
+                            ⭐️ Оплатить Telegram Stars
+                        </button>
+
+                        <!-- Кнопка Stripe (Карта) -->
+                        <button id="btn-pay-card" class="btn-card">
+                            💳 Оплатить банковской картой
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Back to Chat</button>
+        <button class="btn btn-close unified-width" onclick="window.Telegram.WebApp.close()">Вернуться в чат</button>
     </div>
 
+    <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
         <button class="nav-item active" onclick="switchTab('profile', this)">
             <div class="nav-icon">👤</div>
-            <div>Profile</div>
+            <div>Профиль</div>
         </button>
         <button class="nav-item" onclick="switchTab('vocab', this)">
             <div class="nav-icon">📚</div>
-            <div>Vocab</div>
+            <div>Словарь</div>
         </button>
         <button class="nav-item" onclick="switchTab('settings', this)">
             <div class="nav-icon">⚙️</div>
-            <div>Settings</div>
+            <div>Настройки</div>
         </button>
         <button class="nav-item gold" onclick="switchTab('premium', this)">
             <div class="nav-icon">💎</div>

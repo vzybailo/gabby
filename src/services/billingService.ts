@@ -1,4 +1,3 @@
-// src/services/billingService.ts
 import { prisma } from '../lib/prisma.js';
 
 export async function isUserPremium(chatId: string): Promise<boolean> {
@@ -13,12 +12,10 @@ export async function checkAudioLimit(chatId: string): Promise<{ allowed: boolea
 
     const now = new Date();
 
-    // 1. У Premium-юзеров безлимит
     if (user.isPremium && user.premiumUntil && user.premiumUntil > now) {
         return { allowed: true };
     }
 
-    // 2. Ленивое обновление лимита (Lazy Reset)
     const lastReset = user.lastTokenReset;
     const isSameDay = lastReset.getUTCFullYear() === now.getUTCFullYear() &&
                       lastReset.getUTCMonth() === now.getUTCMonth() &&
@@ -26,7 +23,6 @@ export async function checkAudioLimit(chatId: string): Promise<{ allowed: boolea
 
     let currentTokens = user.audioTokens;
 
-    // Если наступил новый день, восстанавливаем лимит до 15
     if (!isSameDay) {
         currentTokens = 15;
         await prisma.user.update({
@@ -35,7 +31,6 @@ export async function checkAudioLimit(chatId: string): Promise<{ allowed: boolea
         });
     }
 
-    // 3. Проверяем и списываем токен
     if (currentTokens > 0) {
         await prisma.user.update({
             where: { id: chatId },
@@ -44,7 +39,6 @@ export async function checkAudioLimit(chatId: string): Promise<{ allowed: boolea
         return { allowed: true };
     }
 
-    // 4. Лимиты исчерпаны
     return { 
         allowed: false, 
         reason: 'Твои 15 бесплатных аудио на сегодня закончились 🛑\nЛимит обновится завтра.' 

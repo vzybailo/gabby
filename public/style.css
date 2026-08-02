@@ -672,6 +672,12 @@ body {
   background: transparent;
 }
 
+.day.today.active {
+  color: #064e3b;
+  background: var(--success);
+  border: none;
+}
+
 .day.other-month {
     opacity: 0.3;
     pointer-events: none; 
@@ -878,6 +884,16 @@ body {
   background: #1e293b;
 }
 
+.avatar-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-text .title {
+ margin-bottom: 0;
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -977,7 +993,144 @@ body {
     margin: 0 0 0.25rem 0;
 }
 
-/* Утилитный класс для скрытия блока по умолчанию */
 .hidden {
     display: none !important;
+}
+
+.premium-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fbbf24; 
+  background: rgba(251, 191, 36, 0.12); 
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 20px;
+}
+
+.premium-badge.hidden {
+    display: none !important;
+}
+
+div#premium-subscribe-view {
+    width: 100%;
+}
+
+.stats-grid-v2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.stat-card-v2 {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Карточка Стрика */
+.stat-card-v2.streak-card {
+  background: linear-gradient(135deg, rgba(255, 149, 0, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 149, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(255, 149, 0, 0.08);
+}
+
+/* Приглушение нулевых значений */
+.stat-card-v2.dimmed {
+  opacity: 0.5;
+}
+
+.icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+/* Фон под иконками */
+.orange-glow { background: rgba(255, 149, 0, 0.15); }
+.green-glow  { background: rgba(52, 211, 153, 0.15); }
+.purple-glow { background: rgba(168, 85, 247, 0.15); }
+.blue-glow   { background: rgba(96, 165, 250, 0.15); }
+
+.stat-data {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+/* Цвета текста значений */
+.orange-text { color: #ff9f0a; }
+.green-text  { color: #34d399; }
+.blue-text   { color: #818cf8; }
+
+.stat-title {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Контейнер для выравнивания имени и уровня в один ряд */
+.name-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Расстояние между именем и уровней */
+    flex-wrap: wrap; /* Чтобы на совсем маленьких экранах красиво переносилось, если имя длинное */
+}
+
+/* Заголовок имени (убираем нижний отступ, если был) */
+.title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Красивый стильный бейдж для уровня */
+.level-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    
+    /* Современный полупрозрачный градиент */
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+    color: #a855f7; /* Цвет текста уровня */
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    
+    /* Легкая тень и мягкий переход */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Эффект при наведении (опционально) */
+.level-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
 }

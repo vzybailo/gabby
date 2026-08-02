@@ -5,12 +5,23 @@ import { getChatResponse, generateSpeech } from '../services/ai.js';
 import { generateDiffView, generateMessageText } from '../utils/textUtils.js';
 import { updateDailyStats } from '../services/statService.js';
 import { sendVoiceSafely } from '../services/audioService.js';
-import { isUserPremium } from '../services/billingService.js'; // ⬅️ Добавлен импорт сервиса биллинга
+import { isUserPremium } from '../services/billingService.js';
 
-export async function handleStandardChat(bot: TelegramBot, chatId: string, user: any, userText: string, streakToShow: number, audioDuration: number) {
+export async function handleStandardChat(
+    bot: TelegramBot, 
+    chatId: string, 
+    user: any, 
+    userText: string, 
+    streakToShow: number, 
+    audioDuration: number
+) {
     let chatHistory = [];
     if (prisma.message) {
-        const history = await prisma.message.findMany({ where: { userId: chatId }, orderBy: { createdAt: 'desc' }, take: 6 });
+        const history = await prisma.message.findMany({ 
+            where: { userId: chatId.toString() }, 
+            orderBy: { createdAt: 'desc' }, 
+            take: 6 
+        });
         chatHistory = history.reverse().map(m => ({ role: m.role as 'user'|'assistant', content: m.text }));
     } else {
         chatHistory = [{ role: 'user' as const, content: userText }]; 
@@ -25,6 +36,27 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
     const aiResponse = await getChatResponse(chatHistory, userSettings);
     let grammarScore = aiResponse.grammarScore ?? Math.max(0, 100 - ((aiResponse.user_errors?.length || 0) * 10));
 
+    // 🟢 1. СОХРАНЯЕМ СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ И АССИСТЕНТА В БД
+    if (prisma.message) {
+        try {
+            await prisma.message.createMany({
+                data: [
+                    { userId: chatId.toString(), role: 'user', text: userText },
+                    ...(aiResponse.reply ? [{ userId: chatId.toString(), role: 'assistant', text: aiResponse.reply, grammarScore, grammarFixes: aiResponse.user_errors }] : [])
+                ]
+            });
+        } catch (e) {
+            console.error("Message create error:", e);
+        }
+    }
+
+    try {
+        await updateDailyStats(chatId.toString(), audioDuration || 0, grammarScore || 0);
+        console.log(`[Stats Debug] Daily stats successfully updated for user: ${chatId}`);
+    } catch (e) {
+        console.error("Stats update error:", e);
+    }
+
     const analysis = {
         is_perfect: aiResponse.is_correct,
         corrected_text: aiResponse.corrected,
@@ -37,18 +69,10 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
         _streak_cache: streakToShow
     };
 
-    if (prisma.message && aiResponse.reply) {
-        await prisma.message.create({ data: { userId: chatId, role: 'assistant', text: aiResponse.reply, grammarScore: grammarScore, grammarFixes: aiResponse.user_errors } });
-        updateDailyStats(chatId, audioDuration, grammarScore).catch(e => console.error("Stats update error:", e));
-    }
-
-    // 🚀 НОВОЕ: Проверяем статус пользователя перед отрисовкой кнопок
     const hasPremium = await isUserPremium(chatId);
-
     const msgText = generateMessageText(userText, analysis, 'simple', streakToShow);
     let row1 = [];
-    
-    // 🚀 НОВОЕ: Логика замочков в зависимости от hasPremium
+
     if (!analysis.is_perfect && analysis.user_errors?.length > 0) {
         row1.push({ 
             text: hasPremium ? 'Why?' : '🔒 Why?', 
@@ -63,7 +87,11 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
         });
     }
     
-    const sentMsg = await bot.sendMessage(chatId, msgText, { parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1].filter(r => r.length > 0) } });
+    const sentMsg = await bot.sendMessage(chatId, msgText, { 
+        parse_mode: 'HTML', 
+        reply_markup: { inline_keyboard: [row1].filter(r => r.length > 0) } 
+    });
+    
     sessionStore.set(`${chatId}_${sentMsg.message_id}`, analysis);
 
     await bot.sendChatAction(chatId, 'record_voice');
@@ -75,7 +103,9 @@ export async function handleStandardChat(bot: TelegramBot, chatId: string, user:
             const speech = await generateSpeech(textToSpeak, userSettings.voice, userSettings.speakingStyle);
             if (speech.audioBuffer) {
                 const isLowLevel = ['A1', 'A2'].includes(userSettings.level || 'B1');
-                const audioKeyboard = isLowLevel ? [{ text: '🇷🇺 Translate', callback_data: 'translate_audio_caption' }] : [{ text: '📝 Text', callback_data: 'show_audio_caption' }];
+                const audioKeyboard = isLowLevel 
+                    ? [{ text: '🇷🇺 Translate', callback_data: 'translate_audio_caption' }] 
+                    : [{ text: '📝 Text', callback_data: 'show_audio_caption' }];
                 
                 await sendVoiceSafely(bot, chatId, speech.audioBuffer, { inline_keyboard: [audioKeyboard] }, analysis);
             }

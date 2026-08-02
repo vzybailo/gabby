@@ -5,12 +5,20 @@ export function setupPaymentHandlers(bot: TelegramBot) {
     
     bot.on('pre_checkout_query', async (query) => {
         try {
+            // Подтверждаем транзакцию
             await bot.answerPreCheckoutQuery(query.id, true);
         } catch (e) {
             console.error('PreCheckout Error:', e);
-            await bot.answerPreCheckoutQuery(query.id, false, { 
-                error_message: 'Что-то пошло не так, попробуйте еще раз.' 
-            });
+            try {
+                // Если произошел сбой, передаем сообщение об ошибке третьим аргументом как строку!
+                await bot.answerPreCheckoutQuery(
+                    query.id,
+                    false,
+                    { error_message: 'Что-то пошло не так, попробуйте еще раз.' }
+                );
+            } catch (fallbackErr) {
+                console.error('Failed to send negative pre_checkout_query response:', fallbackErr);
+            }
         }
     });
 
@@ -64,7 +72,11 @@ export function setupPaymentHandlers(bot: TelegramBot) {
                     }
                 });
 
-                await bot.sendMessage(chatId, `🎉 <b>Оплата прошла успешно!</b>\n\nТвой Premium активирован до <b>${newPremiumUntil.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'})}</b>.\n\nСпасибо за поддержку проекта! Теперь тебе доступны все голоса и безлимитные аудио. 🚀`, {parse_mode: 'HTML'});
+                await bot.sendMessage(
+                    chatId, 
+                    `🎉 <b>Оплата прошла успешно!</b>\n\nТвой Premium активирован до <b>${newPremiumUntil.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'})}</b>.\n\nСпасибо за поддержку проекта! Теперь тебе доступны все голоса и безлимитные аудио. 🚀`, 
+                    { parse_mode: 'HTML' }
+                );
             }
         } catch (error) {
             console.error('Payment DB Error:', error);
