@@ -23,25 +23,18 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001; 
 
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-
     const sig = req.headers['stripe-signature'];
-
     let event;
 
     try {
-
         event = stripe.webhooks.constructEvent(
             req.body,
             sig as string,
             process.env.STRIPE_WEBHOOK_SECRET!
         );
-
     } catch (err: any) {
-
-        console.error('❌ Stripe signature verification failed:', err.message);
-
+        console.error('❌ Ошибка проверки подписи Stripe:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
-
     }
 
     if (event.type !== 'checkout.session.completed') {
@@ -51,22 +44,17 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
     const session = event.data.object as Stripe.Checkout.Session;
 
     const userId = session.client_reference_id;
-
     const plan = session.metadata?.plan as PlanType | undefined;
 
     if (!userId || !plan) {
-
-        console.error('Missing userId or plan in Stripe session.');
-
+        console.error('Не удалось определить пользователя или тариф.');
         return res.json({ received: true });
-
     }
 
     const selectedPlan = PLANS[plan];
 
     if (!selectedPlan) {
-        console.error('Unknown plan:', plan);
-
+        console.error('Неизвестный тариф:', plan);
         return res.json({ received: true });
     }
 
@@ -78,7 +66,7 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
         });
 
         if (existingTransaction) {
-            console.log('Duplicate Stripe webhook ignored.');
+            console.log('⚠️ Повторный Stripe Webhook проигнорирован.');
             return res.json({ received: true });
         }
 
@@ -95,95 +83,204 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
             user.premiumUntil &&
             user.premiumUntil > new Date()
         ) {
-
             premiumUntil = new Date(user.premiumUntil);
         }
 
         premiumUntil.setDate(
-
             premiumUntil.getDate() + selectedPlan.premiumDays
-
         );
 
         await prisma.user.update({
-
             where: {
-
                 id: userId
-
             },
-
             data: {
-
                 isPremium: true,
-
                 premiumUntil
-
             }
-
         });
 
         await prisma.transaction.create({
-
             data: {
-
                 userId,
-
                 provider: 'STRIPE',
-
                 amount: session.amount_total ?? 0,
-
                 currency: (session.currency ?? 'usd').toUpperCase(),
-
                 status: 'SUCCESS',
-
                 providerTxId: session.payment_intent as string,
-
                 description: selectedPlan.name
-
             }
-
         });
 
         await bot.sendMessage(
-
             userId,
+            `🎉 <b>Премиум успешно активирован!</b>
 
-            `🎉 <b>Payment successful!</b>
+Спасибо за поддержку <b>Say It</b> ❤️
 
-Your <b>${selectedPlan.name}</b> has been activated.
+✨ Ваш тариф: <b>${selectedPlan.name}</b>
 
-📅 Premium valid until:
-<b>${premiumUntil.toLocaleDateString('en-US')}</b>
+📅 Действует до:
+<b>${premiumUntil.toLocaleDateString('ru-RU')}</b>
 
-Thank you for supporting Say It ❤️`,
+🚀 Теперь вам доступны:
 
+• Безлимитное общение с AI
+• Все голоса
+• Все Premium-функции
+• Расширенная аналитика
+
+Приятного обучения! 🇺🇸`,
             {
-
                 parse_mode: 'HTML'
-
             }
-
         );
 
-        console.log(
-
-            `✅ Stripe payment completed (${plan}) for ${userId}`
-
-        );
+        console.log(`✅ Stripe: успешно активирован тариф "${plan}" для пользователя ${userId}`);
 
     } catch (err) {
-
-        console.error('Stripe webhook database error:', err);
-
+        console.error('❌ Ошибка обработки Stripe Webhook:', err);
     }
 
     return res.json({
-
         received: true
-
     });
+});
 
+app.get('/payment-success', (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Премиум активирован</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#f5f7fb;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
+
+.card{
+    width:380px;
+    background:#fff;
+    border-radius:20px;
+    padding:40px;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.12);
+}
+
+.icon{
+    font-size:72px;
+    margin-bottom:20px;
+}
+
+h1{
+    font-size:28px;
+    margin-bottom:18px;
+    color:#222;
+}
+
+p{
+    color:#666;
+    line-height:1.6;
+    margin-bottom:30px;
+}
+
+button{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    background:#229ED9;
+    color:#fff;
+    padding:15px;
+    font-size:17px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+button:hover{
+    background:#1c8bc7;
+}
+
+.small{
+    margin-top:18px;
+    color:#999;
+    font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="icon">🎉</div>
+
+<h1>Премиум активирован!</h1>
+
+<p>
+
+Спасибо за поддержку <b>Say It</b> ❤️
+
+<br><br>
+
+Оплата прошла успешно.
+
+Через несколько секунд вы автоматически вернетесь в Telegram.
+
+</p>
+
+<button onclick="goBack()">
+
+Вернуться в Telegram
+
+</button>
+
+<div class="small">
+
+Если переход не произошёл автоматически, нажмите кнопку выше.
+
+</div>
+
+</div>
+
+<script>
+
+function goBack() {
+
+    window.location.replace(
+        "https://t.me/SpeakWithMeNowBot?startapp=premium"
+    );
+
+}
+
+setTimeout(goBack, 2000);
+
+</script>
+
+</body>
+
+</html>
+`);
 });
 
 app.get('/api/user/:id', async (req, res) => {

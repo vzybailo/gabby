@@ -37,10 +37,10 @@ export async function createCheckoutSession(
         },
 
         success_url:
-            `${process.env.SERVER_URL}/payment-success`,
+        `${process.env.SERVER_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
 
         cancel_url:
-            `${process.env.SERVER_URL}/payment-cancel`,
+        `${process.env.SERVER_URL}/payment-cancel`,
 
         allow_promotion_codes: true
     });

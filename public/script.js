@@ -3,6 +3,11 @@ tg.expand();
 const user = tg.initDataUnsafe?.user;
 const userId = user?.id || 'test_id';
 
+const isPremiumReturn =
+    tg.initDataUnsafe?.start_param === 'premium';
+
+const PREMIUM_POPUP_KEY = 'premium_popup_shown';
+
 let quizQueue = [];
 let currentCard = null;
 let isYearly = false;
@@ -498,7 +503,7 @@ function getDotClass(interval = 0) {
 
 async function loadData() {
   if (typeof loadUserProfile === 'function') {
-    loadUserProfile(); 
+    loadUserProfile();
   } else if (typeof user !== 'undefined' && user) {
     const userNameEl = document.getElementById('userName');
     if (userNameEl) userNameEl.innerText = user.first_name;
@@ -515,6 +520,7 @@ async function loadData() {
     ]);
 
     if (!profileRes.ok) throw new Error('Profile fetch failed');
+
     const profileData = await profileRes.json();
 
     if (typeof initializePremiumUI === 'function') {
@@ -522,8 +528,12 @@ async function loadData() {
     }
 
     const levelText = profileData.level || 'A1';
+
     const levelBadge = document.getElementById('userLevelBadge');
-    if (levelBadge) levelBadge.innerText = levelText;
+
+    if (levelBadge) {
+      levelBadge.innerText = levelText;
+    }
 
     if (typeof setActiveOption === 'function') {
       if (profileData.voice) setActiveOption('acc-voice-timbre', profileData.voice);
@@ -533,21 +543,20 @@ async function loadData() {
     }
 
     if (profileData.dates && Array.isArray(profileData.dates)) {
-        const cleanDates = profileData.dates.map(dateStr => {
-            if (!dateStr) return '';
 
-            // ✅ НЕ используем new Date() — избегаем timezone бага
-            return dateStr.split('T')[0];
-        }).filter(Boolean);
+      const cleanDates = profileData.dates
+        .map(dateStr => dateStr ? dateStr.split('T')[0] : '')
+        .filter(Boolean);
 
-        userDates = new Set(cleanDates);
+      userDates = new Set(cleanDates);
 
-        if (typeof renderCalendar === 'function') {
-            renderCalendar();
-        }
+      if (typeof renderCalendar === 'function') {
+        renderCalendar();
+      }
     }
 
     let statsData = {};
+
     if (statsRes.ok) {
       statsData = await statsRes.json();
     }
@@ -558,46 +567,105 @@ async function loadData() {
     const totalWords = statsData.totalWords ?? 0;
     const scoreVal = Math.round(statsData.avgScore ?? profileData.avgScore ?? 0);
 
-    // 1. Стрик
+    // Стрик
+
     const streakEl = document.getElementById('streakVal');
-    if (streakEl) streakEl.innerText = streakVal;
+
+    if (streakEl) {
+      streakEl.innerText = streakVal;
+    }
+
     if (typeof toggleCardDimmed === 'function') {
       toggleCardDimmed('cardStreak', streakVal > 0);
     }
 
-    // 2. Минуты
+    // Минуты
+
     const minutesEl = document.getElementById('totalMinutesVal');
-    if (minutesEl) minutesEl.innerText = minutesVal;
+
+    if (minutesEl) {
+      minutesEl.innerText = minutesVal;
+    }
+
     if (typeof toggleCardDimmed === 'function') {
       toggleCardDimmed('cardMinutes', minutesVal > 0);
     }
 
+    // Слова
+
     const wordsEl = document.getElementById('wordsLearnedVal');
 
     if (wordsEl) {
-        wordsEl.innerText = `${learnedWords}/${totalWords}`;
-    }
-    if (typeof toggleCardDimmed === 'function') {
-      toggleCardDimmed('cardWords', wordsVal > 0);
+      wordsEl.innerText = `${learnedWords}/${totalWords}`;
     }
 
-    // 4. Грамматика
+    if (typeof toggleCardDimmed === 'function') {
+      toggleCardDimmed('cardWords', learnedWords > 0);
+    }
+
+    // Грамматика
+
     const scoreEl = document.getElementById('avgScoreVal');
+
     if (scoreEl) {
       scoreEl.innerText = scoreVal + '%';
     }
+
     if (typeof toggleCardDimmed === 'function') {
       toggleCardDimmed('cardGrammar', scoreVal > 0);
     }
 
+    // 🎉 Пользователь только что вернулся после оплаты
+
+  if (
+      isPremiumReturn &&
+      profileData.isPremium &&
+      !sessionStorage.getItem(PREMIUM_POPUP_KEY)
+  ) {
+
+      sessionStorage.setItem(PREMIUM_POPUP_KEY, 'true');
+
+      setTimeout(() => {
+
+          tg.showPopup({
+
+              title: '🎉 Премиум активирован!',
+
+              message:
+                  'Спасибо за поддержку Say It ❤️\n\n' +
+                  'Все Premium-функции уже доступны.\n\n' +
+                  'Приятного обучения! 🚀',
+
+              buttons: [
+                  {
+                      id: 'ok',
+                      type: 'default',
+                      text: 'Начать'
+                  }
+              ]
+
+          });
+
+      }, 800);
+
+  }
+
   } catch (e) {
-    console.error("Data load error:", e);
-    
+
+    console.error('Data load error:', e);
+
     const levelBadge = document.getElementById('userLevelBadge');
-    if (levelBadge) levelBadge.innerText = 'A1';
+
+    if (levelBadge) {
+      levelBadge.innerText = 'A1';
+    }
 
     const scoreEl = document.getElementById('avgScoreVal');
-    if (scoreEl) scoreEl.innerText = '0%';
+
+    if (scoreEl) {
+      scoreEl.innerText = '0%';
+    }
+
   }
 }
 
