@@ -112,8 +112,6 @@ export async function updateDailyStats(
         data: {
             streakCount: newStreak,
             lastActivityAt: now,
-            totalMinutes: { increment: Math.round(minutesToAdd) },
-            wordsLearned: { increment: wordsLearned }
         }
     });
 }
