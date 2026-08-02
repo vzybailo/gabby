@@ -5,12 +5,10 @@ export function setupPaymentHandlers(bot: TelegramBot) {
     
     bot.on('pre_checkout_query', async (query) => {
         try {
-            // Подтверждаем транзакцию
             await bot.answerPreCheckoutQuery(query.id, true);
         } catch (e) {
             console.error('PreCheckout Error:', e);
             try {
-                // Если произошел сбой, передаем сообщение об ошибке третьим аргументом как строку!
                 await bot.answerPreCheckoutQuery(
                     query.id,
                     false,
@@ -34,10 +32,10 @@ export function setupPaymentHandlers(bot: TelegramBot) {
             let addedDays = 0;
             let description = '';
 
-            if (payload === 'payload_premium_month_500') {
+            if (payload === 'payload_premium_month') {
                 addedDays = 30;
                 description = 'Premium 1 Month (Stars)';
-            } else if (payload === 'payload_premium_year_2500') {
+            } else if (payload === 'payload_premium_year') {
                 addedDays = 365;
                 description = 'Premium 1 Year (Stars)';
             }

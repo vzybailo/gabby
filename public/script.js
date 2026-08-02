@@ -744,7 +744,7 @@ function togglePrice() {
 
   if (isYearly) {
   toggle.classList.add('yearly');
-  priceEl.innerHTML = '$50<span style="font-size:14px;color:var(--text-dim)">/yr</span>';
+  priceEl.innerHTML = '$60<span style="font-size:14px;color:var(--text-dim)">/yr</span>';
   badge.style.display = 'block';
   monthBtn.classList.remove('active');
   yearBtn.classList.add('active');
@@ -782,26 +782,53 @@ if (btnGetPremium && paymentMethodsBlock) {
 }
 
 if (btnPayCard) {
-    btnPayCard.addEventListener('click', () => {
-        // Забираем текущий план, основываясь на переменной isYearly
-        const plan = isYearly ? 'year' : 'month'; 
-        
-        const stripeLinks = {
-            month: 'https://buy.stripe.com/test_bJe5kF1o90E49uTeBL14400',
-            year: 'https://buy.stripe.com/test_bJe5kF1o90E49uTeBL14400'
-        };
-        
-        const checkoutUrl = `${stripeLinks[plan]}?client_reference_id=${userId}`;
-        
-        // 1. Открываем пользователю платежную страницу Stripe
-        tg.openLink(checkoutUrl); 
-        
-        // 2. Сразу закрываем Mini App, чтобы пользователь вернулся в чат бота.
-        // Когда вебхук Stripe отработает, бот пришлет ему сообщение об активации.
-        setTimeout(() => {
-            tg.close();
-        }, 500);
+
+    btnPayCard.addEventListener('click', async () => {
+
+        const plan = isYearly ? 'year' : 'month';
+
+        const originalText = btnPayCard.innerHTML;
+
+        btnPayCard.disabled = true;
+        btnPayCard.innerHTML = '⏳ Redirecting...';
+
+        try {
+
+            const response = await fetch(
+                `/api/create-checkout-session?userId=${userId}&plan=${plan}`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Checkout session failed');
+            }
+
+            if (!data.url) {
+                throw new Error('Checkout URL missing');
+            }
+
+            tg.openLink(data.url);
+
+            setTimeout(() => {
+                tg.close();
+            }, 1000);
+
+        } catch (err) {
+
+            console.error(err);
+
+            tg.showAlert(
+                'Unable to open payment page. Please try again.'
+            );
+
+            btnPayCard.disabled = false;
+            btnPayCard.innerHTML = originalText;
+
+        }
+
     });
+
 }
 
 if (btnPayStars) {

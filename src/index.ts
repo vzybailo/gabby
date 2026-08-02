@@ -11,6 +11,8 @@ import transcribeRouter from './routes/transcribe.js';
 import userRouter from './routes/user.js'; 
 import { bot, triggerAction } from './telegramBot.js'; 
 import { calculateReview } from './services/srs.js'; 
+import stripeRouter from './routes/stripe.js';
+import { PLANS, PlanType } from './config/plans.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!); 
@@ -21,79 +23,167 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001; 
 
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+
     const sig = req.headers['stripe-signature'];
+
     let event;
 
     try {
+
         event = stripe.webhooks.constructEvent(
-            req.body, 
-            sig as string, 
-            process.env.STRIPE_WEBHOOK_SECRET as string
+            req.body,
+            sig as string,
+            process.env.STRIPE_WEBHOOK_SECRET!
         );
+
     } catch (err: any) {
-        console.error('⚠️ Ошибка подписи Webhook:', err.message);
+
+        console.error('❌ Stripe signature verification failed:', err.message);
+
         return res.status(400).send(`Webhook Error: ${err.message}`);
+
     }
 
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object as any;
-        const chatId = session.client_reference_id; 
+    if (event.type !== 'checkout.session.completed') {
+        return res.json({ received: true });
+    }
 
-        if (chatId) {
-            try {
-                let addedDays = 0;
-                let description = '';
+    const session = event.data.object as Stripe.Checkout.Session;
 
-                if (session.amount_total <= 1000) { 
-                    addedDays = 30;
-                    description = 'Premium 1 Month (Stripe)';
-                } else { 
-                    addedDays = 365;
-                    description = 'Premium 1 Year (Stripe)';
-                }
+    const userId = session.client_reference_id;
 
-                const user = await prisma.user.findUnique({ where: { id: chatId } });
-                let newPremiumUntil = new Date();
+    const plan = session.metadata?.plan as PlanType | undefined;
 
-                if (user?.isPremium && user?.premiumUntil && user.premiumUntil > new Date()) {
-                    newPremiumUntil = new Date(user.premiumUntil);
-                }
-                newPremiumUntil.setDate(newPremiumUntil.getDate() + addedDays);
+    if (!userId || !plan) {
 
-                await prisma.user.update({
-                    where: { id: chatId },
-                    data: {
-                        isPremium: true,
-                        premiumUntil: newPremiumUntil
-                    }
-                });
+        console.error('Missing userId or plan in Stripe session.');
 
-                await prisma.transaction.create({
-                    data: {
-                        userId: chatId,
-                        provider: 'STRIPE',
-                        amount: session.amount_total,
-                        currency: session.currency.toUpperCase(),
-                        status: 'SUCCESS',
-                        providerTxId: session.payment_intent,
-                        description: description
-                    }
-                });
+        return res.json({ received: true });
 
-                await bot.sendMessage(
-                    chatId, 
-                    `🎉 <b>Оплата картой прошла успешно!</b>\n\nТвой Premium активирован до <b>${newPremiumUntil.toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit', year: 'numeric'})}</b>.\n\nСпасибо за поддержку проекта! Теперь тебе доступны все голоса и безлимитные аудио. 🚀`, 
-                    { parse_mode: 'HTML' }
-                );
+    }
 
-            } catch (dbError) {
-                console.error('Ошибка БД в Stripe вебхуке:', dbError);
-                await bot.sendMessage(chatId, '⚠️ Оплата прошла, но произошла задержка с активацией. Напиши в поддержку.');
+    const selectedPlan = PLANS[plan];
+
+    if (!selectedPlan) {
+        console.error('Unknown plan:', plan);
+
+        return res.json({ received: true });
+    }
+
+    try {
+        const existingTransaction = await prisma.transaction.findUnique({
+            where: {
+                providerTxId: session.payment_intent as string
             }
+        });
+
+        if (existingTransaction) {
+            console.log('Duplicate Stripe webhook ignored.');
+            return res.json({ received: true });
         }
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+
+        let premiumUntil = new Date();
+
+        if (
+            user?.isPremium &&
+            user.premiumUntil &&
+            user.premiumUntil > new Date()
+        ) {
+
+            premiumUntil = new Date(user.premiumUntil);
+        }
+
+        premiumUntil.setDate(
+
+            premiumUntil.getDate() + selectedPlan.premiumDays
+
+        );
+
+        await prisma.user.update({
+
+            where: {
+
+                id: userId
+
+            },
+
+            data: {
+
+                isPremium: true,
+
+                premiumUntil
+
+            }
+
+        });
+
+        await prisma.transaction.create({
+
+            data: {
+
+                userId,
+
+                provider: 'STRIPE',
+
+                amount: session.amount_total ?? 0,
+
+                currency: (session.currency ?? 'usd').toUpperCase(),
+
+                status: 'SUCCESS',
+
+                providerTxId: session.payment_intent as string,
+
+                description: selectedPlan.name
+
+            }
+
+        });
+
+        await bot.sendMessage(
+
+            userId,
+
+            `🎉 <b>Payment successful!</b>
+
+Your <b>${selectedPlan.name}</b> has been activated.
+
+📅 Premium valid until:
+<b>${premiumUntil.toLocaleDateString('en-US')}</b>
+
+Thank you for supporting Say It ❤️`,
+
+            {
+
+                parse_mode: 'HTML'
+
+            }
+
+        );
+
+        console.log(
+
+            `✅ Stripe payment completed (${plan}) for ${userId}`
+
+        );
+
+    } catch (err) {
+
+        console.error('Stripe webhook database error:', err);
+
     }
 
-    res.json({ received: true });
+    return res.json({
+
+        received: true
+
+    });
+
 });
 
 app.get('/api/user/:id', async (req, res) => {
@@ -197,6 +287,7 @@ app.use('/audio', express.static(path.resolve('audio')));
 app.use('/chat', chatRouter);
 app.use('/api', transcribeRouter);
 app.use('/api/user', userRouter);
+app.use('/api', stripeRouter);
 
 async function checkPremiumForProps(req: any, res: any, next: any) {
     const { userId, voice, speakingStyle } = req.body;
@@ -447,14 +538,14 @@ app.get('/api/create-stars-invoice', async (req, res) => {
     try {
         let title = 'Premium (1 Месяц)';
         let description = 'Безлимитные сообщения, все голоса и продвинутая аналитика.';
-        let payload = 'payload_premium_month_500';
-        let amount = 1; 
+        let payload = 'payload_premium_month';
+        let amount = 399; 
 
         if (plan === 'year') {
             title = 'Premium (1 Год)';
             description = 'Все преимущества Premium на целый год со скидкой!';
-            payload = 'payload_premium_year_2500';
-            amount = 2500; 
+            payload = 'payload_premium_year';
+            amount = 2999; 
         }
 
         const botToken = process.env.TELEGRAM_BOT_TOKEN; 

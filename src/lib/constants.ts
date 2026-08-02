@@ -1,5 +1,3 @@
-export const PREMIUM_PAYMENT_TEXT = '💎 Детальный разбор ошибок и Native Style — это функции Premium-репетитора.\n\nВыберите удобный способ оплаты:';
-
 export const getPaymentKeyboard = (chatId: string) => {
     // Твои ссылки из дашборда Stripe
     const stripeMonthLink = 'https://buy.stripe.com/prod_UsH9q25HO5Xsxm';

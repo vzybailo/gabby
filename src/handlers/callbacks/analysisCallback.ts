@@ -4,7 +4,6 @@ import { prisma } from '../../lib/prisma.js';
 import { sessionStore } from '../../lib/store.js';
 import { generateMessageText } from '../../utils/textUtils.js';
 import { isUserPremium } from '../../services/billingService.js';
-import { PREMIUM_PAYMENT_TEXT, getPaymentKeyboard } from '../../lib/constants.js';
 
 const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:3001';
 
