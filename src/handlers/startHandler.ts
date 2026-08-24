@@ -1,9 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { prisma } from '../lib/prisma.js';
 
-const VIDEO_NOTE_1_FILE_ID = 'DQACAgIAAxkBAANoaaDKsoiGg4qqEUiELZyv9ajkuvIAAn2JAAL9bQlJFmYz18NTMdo6BA'; 
-const VIDEO_NOTE_2_FILE_ID = 'DQACAgIAAxkBAANqaaDK8PPDVIgPsUqEv5Dk0uuz4MkAAoCJAAL9bQlJZbqNFSAzR186BA'; 
-
 export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
   const chatId = msg.chat.id.toString();
   const firstName = msg.from?.first_name || 'Friend';
@@ -11,7 +8,7 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
 
   try {
     let user = await prisma.user.findUnique({ where: { id: chatId } });
-    const isNewUser = !user; // Если user === null, значит он новый
+    const isNewUser = !user; 
 
     if (isNewUser) {
         const trialEndDate = new Date();
@@ -40,32 +37,14 @@ export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
       `🚀 <b>Как со мной общаться:</b>\n` +
       `🎙 <b>Говори:</b> Просто отправляй мне голосовые сообщения.\n` +
       `🎧 <b>Слушай:</b> Я отвечу тебе голосом носителя.\n` +
-      `✍️ <b>Учись:</b> Я буду мягко исправлять твои ошибки прямо в тексте и подсказывать, как звучать естественнее.\n\n` +
-      `👀 <i>Посмотри короткие видео ниже, чтобы понять, как это работает!</i>`;
+      `✍️ <b>Учись:</b> Я буду мягко исправлять твои ошибки прямо в тексте и подсказывать, как звучать естественнее.\n` +
+      `📚 <b>Словарь:</b> И да! Если ты не знаешь какое-то слово, то просто ответь на мое сообщение с незнакомым словом, узнай его значение и ты можешь добавить его с словарь для изучения. \n`
 
     await bot.sendMessage(chatId, introText, { parse_mode: 'HTML' });
 
     if (isNewUser) {
         const giftText = `🎁 <b>Подарок при регистрации!</b>\n\nМы начислили тебе <b>3 дня полного Premium-доступа</b>.\n\nТебе доступны безлимитные голосовые сообщения и глубокий анализ каждой ошибки (кнопки <i>Why?</i> и <i>Native style</i>).`;
         await bot.sendMessage(chatId, giftText, { parse_mode: 'HTML' });
-    }
-
-    if (VIDEO_NOTE_1_FILE_ID) {
-        try {
-            await bot.sendVideoNote(chatId, VIDEO_NOTE_1_FILE_ID);
-        } catch (error) {
-            console.error('Не удалось отправить первый кружочек:', error);
-        }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    if (VIDEO_NOTE_2_FILE_ID) {
-        try {
-            await bot.sendVideoNote(chatId, VIDEO_NOTE_2_FILE_ID);
-        } catch (error) {
-            console.error('Не удалось отправить второй кружочек:', error);
-        }
     }
 
     const outroText = `Давай за 1 минуту настроим твой уровень и выберем мне голос 👇`;

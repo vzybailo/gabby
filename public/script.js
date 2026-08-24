@@ -615,8 +615,6 @@ async function loadData() {
       toggleCardDimmed('cardGrammar', scoreVal > 0);
     }
 
-    // 🎉 Пользователь только что вернулся после оплаты
-
   if (
       isPremiumReturn &&
       profileData.isPremium &&
@@ -802,7 +800,7 @@ function renderCalendar() {
 }
 
 function togglePrice() {
-  isYearly = !isYearly; // Меняем флаг
+  isYearly = !isYearly; 
 
   const priceEl = document.getElementById('proPrice');
   const badge = document.getElementById('saveBadge');
@@ -812,13 +810,13 @@ function togglePrice() {
 
   if (isYearly) {
   toggle.classList.add('yearly');
-  priceEl.innerHTML = '$60<span style="font-size:14px;color:var(--text-dim)">/yr</span>';
+  priceEl.innerHTML = '$59.99<span style="font-size:14px;color:var(--text-dim)">/yr</span>';
   badge.style.display = 'block';
   monthBtn.classList.remove('active');
   yearBtn.classList.add('active');
   } else {
   toggle.classList.remove('yearly');
-  priceEl.innerHTML = '$10<span style="font-size:14px;color:var(--text-dim)">/mo</span>';
+  priceEl.innerHTML = '$8.99<span style="font-size:14px;color:var(--text-dim)">/mo</span>';
   badge.style.display = 'none';
   monthBtn.classList.add('active');
   yearBtn.classList.remove('active');
@@ -835,7 +833,6 @@ function inviteFriends() {
 
 // === БЛОК ОПЛАТЫ ===
 
-// Элементы DOM для оплат
 const btnGetPremium = document.getElementById('btn-get-premium');
 const paymentMethodsBlock = document.getElementById('payment-methods-block');
 const btnPayStars = document.getElementById('btn-pay-stars');
@@ -901,7 +898,6 @@ if (btnPayCard) {
 
 if (btnPayStars) {
     btnPayStars.addEventListener('click', async () => {
-        // Также забираем план напрямую из глобальной переменной
         const plan = isYearly ? 'year' : 'month'; 
 
         const originalText = btnPayStars.innerHTML;
@@ -909,21 +905,17 @@ if (btnPayStars) {
         btnPayStars.disabled = true;
 
         try {
-            // Запрашиваем инвойс, передавая plan (месяц или год)
             const response = await fetch(`/api/create-stars-invoice?userId=${userId}&plan=${plan}`);
             const data = await response.json();
 
-            // Открываем системное окно оплаты Telegram
             tg.openInvoice(data.invoiceUrl, (status) => {
                 if (status === 'paid') {
                     tg.showAlert("🎉 Payment successful! Premium unlocked.");
-                    // Обновляем данные пользователя после успешной покупки
                     loadData(); 
                 } else if (status === 'failed') {
                     tg.showAlert("⚠️ Payment failed. Please try again.");
                 }
                 
-                // Возвращаем кнопку в исходное состояние
                 btnPayStars.innerHTML = originalText;
                 btnPayStars.disabled = false;
             });
