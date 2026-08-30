@@ -414,24 +414,19 @@
                     <li><span class="check gold">✔</span> Режим разговорного сленга</li>
                 </ul>
                 <div id="premium-action-container" class="premium-action-container">
-                    
-                    <!-- Главная кнопка -->
                     <button id="btn-get-premium" class="btn-primary">
                         🚀 Получить Premium доступ
                     </button>
 
-                    <!-- Скрытый блок выбора способа оплаты -->
                     <div id="payment-methods-block" class="payment-methods hidden">
                         <p class="payment-hint">Выберите способ оплаты:</p>
-                        
-                        <!-- Кнопка Telegram Stars -->
-                        <button id="btn-pay-stars" class="btn-stars">
-                            ⭐️ Оплатить Telegram Stars
-                        </button>
 
-                        <!-- Кнопка Stripe (Карта) -->
                         <button id="btn-pay-card" class="btn-card">
                             💳 Оплатить банковской картой
+                        </button>
+                        
+                        <button id="btn-pay-stars" class="btn-stars">
+                            ⭐️ Оплатить Telegram Stars
                         </button>
                     </div>
                 </div>
@@ -461,6 +456,6 @@
         </button>
     </nav>
 
-    <script src="script.js"></script>
+    <script type="module" src="./js/main.js"></script>
 </body>
 </html>
