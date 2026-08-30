@@ -20,13 +20,27 @@ function getDateDifference(date1: string, date2: string): number {
     );
 }
 
+function getDayWord(count: number): string {
+    const lastTwo = count % 100;
+    const lastOne = count % 10;
+
+    if (lastTwo >= 11 && lastTwo <= 14) {
+        return 'дней';
+    }
+
+    if (lastOne === 1) {
+        return 'день';
+    }
+
+    if (lastOne >= 2 && lastOne <= 4) {
+        return 'дня';
+    }
+
+    return 'дней';
+}
+
 function getStreakMessage(streakCount: number): string {
-    const dayWord =
-        streakCount === 1
-            ? 'дня'
-            : streakCount >= 2 && streakCount <= 4
-                ? 'дня'
-                : 'дней';
+    const dayWord = getDayWord(streakCount)
 
     return `👋 <b>Эй, не потеряй свою серию!</b>
 
