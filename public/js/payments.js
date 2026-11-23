@@ -1,94 +1,32 @@
 const btnGetPremium = document.getElementById('btn-get-premium');
-const paymentMethodsBlock = document.getElementById('payment-methods-block');
-const btnPayStars = document.getElementById('btn-pay-stars');
-const btnPayCard = document.getElementById('btn-pay-card');
 
-if (btnGetPremium && paymentMethodsBlock) {
-    btnGetPremium.addEventListener('click', () => {
-        btnGetPremium.classList.add('hidden'); 
-        paymentMethodsBlock.classList.remove('hidden'); 
-        paymentMethodsBlock.classList.add('flex');
-    });
-}
-
-if (btnPayCard) {
-
-    btnPayCard.addEventListener('click', async () => {
-
+if (btnGetPremium) {
+    btnGetPremium.addEventListener('click', async () => {
         const plan = isYearly ? 'year' : 'month';
+        const originalText = btnGetPremium.innerHTML;
 
-        const originalText = btnPayCard.innerHTML;
-
-        btnPayCard.disabled = true;
-        btnPayCard.innerHTML = '⏳ Redirecting...';
+        btnGetPremium.disabled = true;
+        btnGetPremium.innerHTML = '⏳ Загрузка...';
 
         try {
-
-            const response = await fetch(
-                `/api/create-checkout-session?userId=${userId}&plan=${plan}`
-            );
-
+            const response = await fetch(`/api/payment-link?plan=${plan}`);
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Checkout session failed');
+            if (!response.ok || !data.url) {
+                throw new Error(data.error || 'Payment link missing');
             }
 
-            if (!data.url) {
-                throw new Error('Checkout URL missing');
-            }
-
-            tg.openLink(data.url);
-
-            setTimeout(() => {
-                tg.close();
-            }, 1000);
-
+            // Tribute opens as a Telegram mini app; the webhook activates Premium after payment
+            tg.openTelegramLink(data.url);
         } catch (err) {
-
             console.error(err);
-
-            tg.showAlert(
-                'Unable to open payment page. Please try again.'
-            );
-
-            btnPayCard.disabled = false;
-            btnPayCard.innerHTML = originalText;
-
-        }
-
-    });
-
-}
-
-if (btnPayStars) {
-    btnPayStars.addEventListener('click', async () => {
-        const plan = isYearly ? 'year' : 'month'; 
-
-        const originalText = btnPayStars.innerHTML;
-        btnPayStars.innerHTML = '⏳ Loading...';
-        btnPayStars.disabled = true;
-
-        try {
-            const response = await fetch(`/api/create-stars-invoice?userId=${userId}&plan=${plan}`);
-            const data = await response.json();
-
-            tg.openInvoice(data.invoiceUrl, (status) => {
-                if (status === 'paid') {
-                    tg.showAlert("🎉 Payment successful! Premium unlocked.");
-                    loadData(); 
-                } else if (status === 'failed') {
-                    tg.showAlert("⚠️ Payment failed. Please try again.");
-                }
-                
-                btnPayStars.innerHTML = originalText;
-                btnPayStars.disabled = false;
-            });
-        } catch (error) {
-            console.error("Error creating invoice:", error);
-            tg.showAlert("Network error. Please try again later.");
-            btnPayStars.innerHTML = originalText;
-            btnPayStars.disabled = false;
+            tg.showAlert('Не удалось открыть страницу оплаты. Попробуйте ещё раз.');
+        } finally {
+            btnGetPremium.disabled = false;
+            btnGetPremium.innerHTML = originalText;
         }
     });
 }
+
+// Refresh premium status when the user comes back after paying
+tg.onEvent('activated', () => loadData());

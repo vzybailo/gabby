@@ -1,6 +1,10 @@
 let userDates = new Set();
 let calDate = new Date();
 
+function setUserDates(dates) {
+  userDates = new Set(dates);
+}
+
 function changeMonth(delta) {
   calDate.setMonth(calDate.getMonth() + delta);
   renderCalendar();

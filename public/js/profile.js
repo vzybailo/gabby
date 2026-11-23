@@ -4,7 +4,7 @@ fetch('/api/settings', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ 
-    userId: window.Telegram.WebApp.initDataUnsafe.user.id.toString(),
+    userId: userId,
     timezone: userTimezone 
   })
 });
@@ -84,7 +84,7 @@ async function loadData() {
         .map(dateStr => dateStr ? dateStr.split('T')[0] : '')
         .filter(Boolean);
 
-      userDates = new Set(cleanDates);
+      setUserDates(cleanDates);
 
       if (typeof renderCalendar === 'function') {
         renderCalendar();
@@ -216,7 +216,16 @@ function toggleCardDimmed(cardId, isActive) {
 
 function inviteFriends() {
   const link = 'https://t.me/SpeakWithMeNowBot?start=invite';
-  const shareText = '👆 Нашел крутого ИИ-репетитора по английскому в Телеграме! Можно общаться голосом как с настоящим нейтивом, прокачивать произношение и ломать языковой барьер. Переходи по ссылке выше!';
+  const shareText = [
+    '🇬🇧 Смотри, что нашёл — Say It, ИИ-репетитор по английскому прямо в Telegram!',
+    '',
+    '🎙 Болтаешь голосом, как с носителем языка',
+    '✍️ Он бережно исправляет ошибки и объясняет почему',
+    '🗣 Прокачиваешь произношение и словарный запас',
+    '🔥 10 минут в день — и языковой барьер тает',
+    '',
+    '👆 Жми на ссылку и попробуй бесплатно!'
+  ].join('\n');
   const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`;
   
   tg.openTelegramLink(telegramUrl);

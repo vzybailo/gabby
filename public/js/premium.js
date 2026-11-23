@@ -137,10 +137,10 @@ window.selectStyle = function(styleId, element) {
     }
 };
 
-function togglePrice() {
-  let isYearly = false;
+let isYearly = false;
 
-  isYearly = !isYearly; 
+function togglePrice() {
+  isYearly = !isYearly;
 
   const priceEl = document.getElementById('proPrice');
   const badge = document.getElementById('saveBadge');

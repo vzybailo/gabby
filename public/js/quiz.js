@@ -34,7 +34,7 @@ function toggleQuizUI(show) {
   quiz.style.display = show ? 'flex' : 'none';
   list.style.display = show ? 'none' : 'block';
   actions.style.display = show ? 'none' : 'flex';
-  closeBtn.style.display = show ? 'none' : 'block';
+  closeBtn.style.display = show ? 'none' : '';
 }
 
 function showNextCard() {

@@ -4,7 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 model User {
@@ -76,8 +77,8 @@ model Transaction {
   id              String   @id @default(uuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id])
-  provider        String   // "STRIPE" или "TELEGRAM_STARS"
-  amount          Int      // Сумма (в центах для Stripe, в количестве звезд для Telegram)
+  provider        String   // "TRIBUTE" (раньше: "STRIPE", "TELEGRAM_STARS")
+  amount          Int      // Сумма в минимальных единицах валюты (центы)
   currency        String   // "USD" или "XTR" (официальный код Telegram Stars)
   status          String   // "PENDING", "SUCCESS", "FAILED"
   providerTxId    String?  @unique // Уникальный ID платежа от провайдера

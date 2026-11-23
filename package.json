@@ -28,8 +28,7 @@
     "node-fetch": "^3.3.2",
     "node-telegram-bot-api": "^0.67.0",
     "npx": "^10.2.2",
-    "openai": "^6.17.0",
-    "stripe": "^22.3.1"
+    "openai": "^6.17.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -41,7 +40,7 @@
     "@types/node-telegram-bot-api": "^0.64.13",
     "prisma": "^6.19.2",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   },
   "type": "module"

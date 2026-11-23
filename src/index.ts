@@ -4,284 +4,23 @@ import cors from 'cors';
 import path from 'path';
 import { File } from 'node:buffer';
 import OpenAI from 'openai';
-import Stripe from 'stripe'; // <-- Добавлен импорт Stripe
 import { prisma } from './lib/prisma.js';
 import chatRouter from './routes/chat.js';
 import transcribeRouter from './routes/transcribe.js';
 import userRouter from './routes/user.js'; 
 import { bot, triggerAction } from './telegramBot.js'; 
 import { calculateReview } from './services/srs.js'; 
-import stripeRouter from './routes/stripe.js';
-import { PLANS, PlanType } from './config/plans.js';
+import tributeRouter from './routes/tribute.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!); 
 
 globalThis.File = File as any;
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001; 
 
-app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-        event = stripe.webhooks.constructEvent(
-            req.body,
-            sig as string,
-            process.env.STRIPE_WEBHOOK_SECRET!
-        );
-    } catch (err: any) {
-        console.error('❌ Ошибка проверки подписи Stripe:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    if (event.type !== 'checkout.session.completed') {
-        return res.json({ received: true });
-    }
-
-    const session = event.data.object as Stripe.Checkout.Session;
-
-    const userId = session.client_reference_id;
-    const plan = session.metadata?.plan as PlanType | undefined;
-
-    if (!userId || !plan) {
-        console.error('Не удалось определить пользователя или тариф.');
-        return res.json({ received: true });
-    }
-
-    const selectedPlan = PLANS[plan];
-
-    if (!selectedPlan) {
-        console.error('Неизвестный тариф:', plan);
-        return res.json({ received: true });
-    }
-
-    try {
-        const existingTransaction = await prisma.transaction.findUnique({
-            where: {
-                providerTxId: session.payment_intent as string
-            }
-        });
-
-        if (existingTransaction) {
-            console.log('⚠️ Повторный Stripe Webhook проигнорирован.');
-            return res.json({ received: true });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: {
-                id: userId
-            }
-        });
-
-        let premiumUntil = new Date();
-
-        if (
-            user?.isPremium &&
-            user.premiumUntil &&
-            user.premiumUntil > new Date()
-        ) {
-            premiumUntil = new Date(user.premiumUntil);
-        }
-
-        premiumUntil.setDate(
-            premiumUntil.getDate() + selectedPlan.premiumDays
-        );
-
-        await prisma.user.update({
-            where: {
-                id: userId
-            },
-            data: {
-                isPremium: true,
-                premiumUntil
-            }
-        });
-
-        await prisma.transaction.create({
-            data: {
-                userId,
-                provider: 'STRIPE',
-                amount: session.amount_total ?? 0,
-                currency: (session.currency ?? 'usd').toUpperCase(),
-                status: 'SUCCESS',
-                providerTxId: session.payment_intent as string,
-                description: selectedPlan.name
-            }
-        });
-
-        await bot.sendMessage(
-            userId,
-            `🎉 <b>Премиум успешно активирован!</b>
-
-Спасибо за поддержку <b>Say It</b> ❤️
-
-✨ Ваш тариф: <b>${selectedPlan.name}</b>
-
-📅 Действует до:
-<b>${premiumUntil.toLocaleDateString('ru-RU')}</b>
-
-🚀 Теперь вам доступны:
-
-• Безлимитное общение с AI
-• Все голоса
-• Все Premium-функции
-• Расширенная аналитика
-
-Приятного обучения! 🇺🇸`,
-            {
-                parse_mode: 'HTML'
-            }
-        );
-
-        console.log(`✅ Stripe: успешно активирован тариф "${plan}" для пользователя ${userId}`);
-
-    } catch (err) {
-        console.error('❌ Ошибка обработки Stripe Webhook:', err);
-    }
-
-    return res.json({
-        received: true
-    });
-});
-
-app.get('/payment-success', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
-<html lang="ru">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Премиум активирован</title>
-
-<style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background:#f5f7fb;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-}
-
-.card{
-    width:380px;
-    background:#fff;
-    border-radius:20px;
-    padding:40px;
-    text-align:center;
-    box-shadow:0 12px 35px rgba(0,0,0,.12);
-}
-
-.icon{
-    font-size:72px;
-    margin-bottom:20px;
-}
-
-h1{
-    font-size:28px;
-    margin-bottom:18px;
-    color:#222;
-}
-
-p{
-    color:#666;
-    line-height:1.6;
-    margin-bottom:30px;
-}
-
-button{
-    width:100%;
-    border:none;
-    border-radius:12px;
-    background:#229ED9;
-    color:#fff;
-    padding:15px;
-    font-size:17px;
-    cursor:pointer;
-    transition:.2s;
-}
-
-button:hover{
-    background:#1c8bc7;
-}
-
-.small{
-    margin-top:18px;
-    color:#999;
-    font-size:14px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="card">
-
-<div class="icon">🎉</div>
-
-<h1>Премиум активирован!</h1>
-
-<p>
-
-Спасибо за поддержку <b>Say It</b> ❤️
-
-<br><br>
-
-Оплата прошла успешно.
-
-Через несколько секунд вы автоматически вернетесь в Telegram.
-
-</p>
-
-<button onclick="goBack()">
-
-Вернуться в Telegram
-
-</button>
-
-<div class="small">
-
-Если переход не произошёл автоматически, нажмите кнопку выше.
-
-</div>
-
-</div>
-
-<script>
-
-function goBack() {
-
-    window.location.replace(
-        "https://t.me/SpeakWithMeNowBot?startapp=premium"
-    );
-
-}
-
-setTimeout(goBack, 2000);
-
-</script>
-
-</body>
-
-</html>
-`);
-});
+// Tribute webhook needs the raw body for signature verification, so it is mounted before express.json()
+app.use('/api', tributeRouter);
 
 app.get('/api/user/:id', async (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
@@ -384,10 +123,10 @@ app.use('/audio', express.static(path.resolve('audio')));
 app.use('/chat', chatRouter);
 app.use('/api', transcribeRouter);
 app.use('/api/user', userRouter);
-app.use('/api', stripeRouter);
 
 async function checkPremiumForProps(req: any, res: any, next: any) {
-    const { userId, voice, speakingStyle } = req.body;
+    const { voice, speakingStyle } = req.body;
+    const userId = req.body.userId != null ? String(req.body.userId) : '';
     if (!userId) return next();
 
     const premiumVoices = ['echo', 'shimmer', 'onyx', 'nova', 'fable'];
@@ -409,9 +148,13 @@ async function checkPremiumForProps(req: any, res: any, next: any) {
 
 app.post('/api/settings', checkPremiumForProps, async (req, res) => {
     try {
-        const { userId, voice, level, speakingStyle, timezone } = req.body;
+        const { voice, level, speakingStyle, timezone } = req.body;
+        // Telegram user ids arrive as numbers from older mini-app builds; User.id is a String
+        const userId = req.body.userId != null ? String(req.body.userId) : '';
+        if (!userId) return res.status(400).json({ error: 'userId is required' });
         
-        await prisma.user.update({
+        // updateMany doesn't throw when the user hasn't pressed /start yet (or opened the app outside Telegram)
+        const result = await prisma.user.updateMany({
             where: { id: userId },
             data: { 
                 voice: voice || undefined, 
@@ -421,6 +164,7 @@ app.post('/api/settings', checkPremiumForProps, async (req, res) => {
             }
         });
 
+        if (result.count === 0) return res.status(404).json({ error: 'User not found' });
         res.json({ success: true });
     } catch (e) {
         console.error("Settings update error:", e);
@@ -621,58 +365,6 @@ app.post('/api/assess-level', async (req, res) => {
     } catch (e) {
         console.error("Level Assessment API Error:", e);
         res.status(500).json({ error: 'Assessment failed' });
-    }
-});
-
-app.get('/api/create-stars-invoice', async (req, res) => {
-    const userId = req.query.userId;
-    const plan = req.query.plan;
-
-    if (!userId) {
-        return res.status(400).json({ error: 'No userId provided' });
-    }
-
-    try {
-        let title = 'Premium (1 Месяц)';
-        let description = 'Безлимитные сообщения, все голоса и продвинутая аналитика.';
-        let payload = 'payload_premium_month';
-        let amount = 399; 
-
-        if (plan === 'year') {
-            title = 'Premium (1 Год)';
-            description = 'Все преимущества Premium на целый год со скидкой!';
-            payload = 'payload_premium_year';
-            amount = 2999; 
-        }
-
-        const botToken = process.env.TELEGRAM_BOT_TOKEN; 
-        const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/createInvoiceLink`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title: title,
-                description: description,
-                payload: payload,
-                provider_token: '', 
-                currency: 'XTR',  
-                prices: [{ label: title, amount: amount }]
-            })
-        });
-
-        const data = await telegramRes.json() as { ok: boolean; result?: string; description?: string };
-
-        if (!data.ok || !data.result) {
-            console.error('❌ Telegram API error:', data.description);
-            return res.status(500).json({ error: data.description || 'Failed to create invoice link' });
-        }
-
-        console.log('✅ Сгенерирована ссылка Telegram Stars:', data.result);
-        return res.json({ invoiceUrl: data.result });
-
-    } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
-        console.error('❌ Ошибка генерации Stars инвойса:', errMsg);
-        return res.status(500).json({ error: 'Failed to create invoice' });
     }
 });
 

@@ -1,6 +1,7 @@
 let currentAudio = null;
 
 function switchTab(id, el) {
+  stopVoicePreview();
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById(`tab-${id}`).classList.add('active');
 
@@ -12,6 +13,7 @@ function switchTab(id, el) {
   if (el) el.classList.add('active');
 
   if (id === 'vocab') loadVocabulary();
+  tg.HapticFeedback?.selectionChanged();
   window.scrollTo({ top: 0 });
 }
 
@@ -33,8 +35,10 @@ function toggleAccordion(id) {
 
 async function selectVoice(val, el) {
   updateActiveCard(el, 'acc-voice-timbre');
+  // Play first: iOS blocks audio that starts after an await (user gesture is lost)
+  const btn = el.querySelector('.voice-play');
+  if (btn) playVoicePreview(val, btn, { forcePlay: true });
   await saveSetting({ voice: val });
-  playAudio(`/audio/${val}.mp3`);
 }
 
 async function selectStyle(val, el) {
@@ -59,10 +63,45 @@ function updateActiveCard(el, containerId) {
   el.classList.add('active');
 }
 
-function playAudio(src) {
-  if (currentAudio) currentAudio.pause();
-  currentAudio = new Audio(src);
-  currentAudio.play().catch(() => { });
+let currentPreviewBtn = null;
+
+function setPreviewPlaying(btn, isPlaying) {
+  if (!btn) return;
+  btn.classList.toggle('playing', isPlaying);
+  btn.setAttribute('aria-pressed', String(isPlaying));
+}
+
+function stopVoicePreview() {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  setPreviewPlaying(currentPreviewBtn, false);
+  currentPreviewBtn = null;
+}
+
+// Plays a voice sample. Tapping the same ▶ again stops it (unless forcePlay).
+function playVoicePreview(voice, btn, { forcePlay = false } = {}) {
+  const isSameAndPlaying = currentPreviewBtn === btn && currentAudio && !currentAudio.paused;
+  stopVoicePreview();
+  if (isSameAndPlaying && !forcePlay) return;
+
+  tg.HapticFeedback?.impactOccurred('light');
+
+  const audio = new Audio(`/audio/${voice}.mp3`);
+  currentAudio = audio;
+  currentPreviewBtn = btn;
+  setPreviewPlaying(btn, true);
+
+  const reset = () => {
+    if (currentAudio !== audio) return;
+    setPreviewPlaying(btn, false);
+    currentAudio = null;
+    currentPreviewBtn = null;
+  };
+  audio.addEventListener('ended', reset);
+  audio.addEventListener('error', reset);
+  audio.play().catch(reset);
 }
 
 async function saveSetting(payload) {

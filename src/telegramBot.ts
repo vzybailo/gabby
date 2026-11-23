@@ -1,4 +1,7 @@
 import 'dotenv/config';
+// Opt in to node-telegram-bot-api's new file-sending behaviour: silences the
+// "content-type of files" deprecation warning printed on every voice message.
+process.env.NTBA_FIX_350 = '1';
 import TelegramBot from 'node-telegram-bot-api';
 import fs from 'fs';
 import path from 'path';
@@ -9,7 +12,6 @@ import { handleCallback } from './handlers/callbackHandler.js';
 import { handleStart } from './handlers/startHandler.js'; 
 import { initStreakReminder } from './cron/streakReminder.js';
 
-import { setupPaymentHandlers } from './handlers/paymentHandler.js';
 
 checkDbConnection();
 
@@ -20,7 +22,6 @@ const TMP_DIR = path.resolve('./tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 initStreakReminder(bot);
-setupPaymentHandlers(bot);
 
 export const LEVEL_KEYBOARD = {
   inline_keyboard: [

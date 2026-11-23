@@ -16,7 +16,7 @@ async function deleteWord(id, el) {
 async function loadVocabulary() {
   document.getElementById('quiz-container').style.display = 'none';
   document.getElementById('vocab-list').style.display = 'block';
-  document.getElementById('vocab-close-btn').style.display = 'block';
+  document.getElementById('vocab-close-btn').style.display = '';
 
   const list = document.getElementById('vocab-list');
   try {
