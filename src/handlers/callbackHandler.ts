@@ -24,7 +24,8 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
         action.startsWith('confirm_voice_') ||
         action === 'start_test' ||
         action.startsWith('level_accept_') ||
-        action === 'level_keep'
+        action === 'level_keep' ||
+        action === 'show_help'
     ) {
         return await handleSetupCallback(bot, query, action, chatId, messageId);
     }

@@ -1,64 +1,66 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { prisma } from '../lib/prisma.js';
+import {
+    TRIAL_DAYS,
+    welcomeNewText,
+    welcomeNewKeyboard,
+    welcomeBackText,
+    welcomeBackKeyboard
+} from '../lib/onboarding.js';
 
 export async function handleStart(bot: TelegramBot, msg: TelegramBot.Message) {
   const chatId = msg.chat.id.toString();
-  const firstName = msg.from?.first_name || 'Friend';
+  const firstName = msg.from?.first_name || 'друг';
   const username = msg.from?.username || null;
 
+  let user;
+  let isNewUser = false;
+
   try {
-    let user = await prisma.user.findUnique({ where: { id: chatId } });
-    const isNewUser = !user; 
+    user = await prisma.user.findUnique({ where: { id: chatId } });
+    isNewUser = !user;
 
     if (isNewUser) {
         const trialEndDate = new Date();
-        trialEndDate.setDate(trialEndDate.getDate() + 3);
+        trialEndDate.setDate(trialEndDate.getDate() + TRIAL_DAYS);
 
         user = await prisma.user.create({
             data: {
                 id: chatId,
-                username: username,
-                level: null, 
+                username,
+                level: null,
                 voice: 'alloy',
                 isPremium: true,
-                premiumUntil: trialEndDate 
+                premiumUntil: trialEndDate
             }
         });
-    } else {
-        user = await prisma.user.update({
-            where: { id: chatId },
-            data: { username: username }
+    } else if (user && user.username !== username) {
+        user = await prisma.user.update({ where: { id: chatId }, data: { username } });
+    }
+  } catch (e: any) {
+    // Подробности — в логах сервера (pm2 logs), пользователю — понятное сообщение
+    console.error(`Start Handler DB Error for ${chatId}:`, e?.message || e);
+    await bot.sendMessage(chatId, '⚠️ Не получилось подготовить твой профиль. Попробуй ещё раз через минуту — /start').catch(() => {});
+    return;
+  }
+
+  try {
+    // Новичок (или не закончил настройку) — приветствие и мастер настройки
+    if (isNewUser || !user?.level) {
+        await bot.sendMessage(chatId, welcomeNewText(firstName), {
+            parse_mode: 'HTML',
+            reply_markup: welcomeNewKeyboard
         });
+        return;
     }
 
-    const introText = `👋 <b>Привет, ${firstName}! Добро пожаловать в Say It.</b>\n\n` +
-      `Я — твой ИИ-репетитор для практики разговорного английского.\n\n` +
-      `🎯 <b>Моя цель</b> — помочь тебе сломать языковой барьер. Со мной можно говорить на любые темы, не боясь сделать ошибку!\n\n` +
-      `🚀 <b>Как со мной общаться:</b>\n` +
-      `🎙 <b>Говори:</b> Просто отправляй мне голосовые сообщения.\n` +
-      `🎧 <b>Слушай:</b> Я отвечу тебе голосом носителя.\n` +
-      `✍️ <b>Учись:</b> Я буду мягко исправлять твои ошибки прямо в тексте и подсказывать, как звучать естественнее.\n` +
-      `📚 <b>Словарь:</b> И да! Если ты не знаешь какое-то слово, то просто ответь на мое сообщение с незнакомым словом, узнай его значение и ты можешь добавить его с словарь для изучения. \n`
-
-    await bot.sendMessage(chatId, introText, { parse_mode: 'HTML' });
-
-    if (isNewUser) {
-        const giftText = `🎁 <b>Подарок при регистрации!</b>\n\nМы начислили тебе <b>3 дня полного Premium-доступа</b>.\n\nТебе доступны безлимитные голосовые сообщения и глубокий анализ каждой ошибки (кнопки <i>Why?</i> и <i>Native style</i>).`;
-        await bot.sendMessage(chatId, giftText, { parse_mode: 'HTML' });
-    }
-
-    const outroText = `Давай за 1 минуту настроим твой уровень и выберем мне голос 👇`;
-    
-    const replyMarkup = {
-      inline_keyboard: [
-        [{ text: '🚀 Начать настройку', callback_data: 'wizard_start' }]
-      ]
-    };
-
-    await bot.sendMessage(chatId, outroText, { parse_mode: 'HTML', reply_markup: replyMarkup });
-
-  } catch (e) {
-    console.error('Start Handler Error:', e);
-    await bot.sendMessage(chatId, '⚠️ Ошибка при запуске. Попробуйте позже.');
+    // Уже знакомы — короткое меню без повторной настройки
+    await bot.sendMessage(chatId, welcomeBackText(firstName, user.level), {
+        parse_mode: 'HTML',
+        reply_markup: welcomeBackKeyboard
+    });
+  } catch (e: any) {
+    console.error(`Start Handler Send Error for ${chatId}:`, e?.response?.body?.description || e?.message || e);
+    await bot.sendMessage(chatId, '👋 Привет! Напиши мне что-нибудь по-английски, и начнём.').catch(() => {});
   }
 }

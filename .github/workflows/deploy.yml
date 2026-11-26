@@ -17,10 +17,19 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+            # Ошибки команд тоже попадают в лог GitHub Actions
+            exec 2>&1
             cd ~/gabby
+            echo "==> git pull"
             git pull origin main
+            echo "==> npm install"
             npm install
-            npx prisma generate
-            npx prisma migrate deploy
+            echo "==> prisma generate"
+            npx --no-install prisma generate
+            echo "==> prisma migrate deploy"
+            npx --no-install prisma migrate deploy
+            echo "==> build"
             npm run build
-            pm2 restart sayit-bot
+            echo "==> restart"
+            pm2 restart sayit-bot --update-env
+            echo "==> done"

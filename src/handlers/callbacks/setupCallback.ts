@@ -2,7 +2,8 @@ import TelegramBot from 'node-telegram-bot-api';
 import { prisma } from '../../lib/prisma.js';
 import { userState } from '../../lib/store.js';
 import { generateSpeech } from '../../services/ai.js';
-import { LEVEL_KEYBOARD } from '../../telegramBot.js'; 
+import { LEVEL_KEYBOARD } from '../../telegramBot.js';
+import { HELP_TEXT, helpKeyboard, firstQuestion } from '../../lib/onboarding.js';
 
 const VOICE_KEYBOARD = {
     inline_keyboard: [
@@ -75,10 +76,27 @@ export async function handleSetupCallback(bot: TelegramBot, query: TelegramBot.C
 
     if (action.startsWith('confirm_voice_')) {
         const voice = action.replace('confirm_voice_', '');
-        await prisma.user.update({ where: { id: chatId }, data: { voice: voice } });
-        await bot.sendMessage(chatId, `🎉 <b>Настройка завершена!</b>\n\nЯ запомнил:\n🗣 Голос: <b>${voice}</b>\n\nТеперь просто отправь мне голосовое сообщение или текст, и мы начнем урок! 🚀`, { parse_mode: 'HTML' });
-        await bot.deleteMessage(chatId, messageId);
+        const user = await prisma.user.update({ where: { id: chatId }, data: { voice: voice } });
         await bot.answerCallbackQuery(query.id);
+        await bot.deleteMessage(chatId, messageId).catch(() => {});
+
+        // Короткая памятка и сразу первый вопрос — новичку не нужно придумывать, с чего начать
+        await bot.sendMessage(chatId,
+            `🎉 <b>Готово!</b> Уровень: <b>${user.level || '—'}</b>, голос: <b>${voice}</b>.\n\n` +
+            `Как это работает:\n` +
+            `🎙 Отвечай голосом или текстом по-английски\n` +
+            `✍️ Под каждым ответом я покажу твою фразу с исправлениями\n` +
+            `🇷🇺 Не знаешь, как сказать? Напиши по-русски — подскажу\n\n` +
+            `Подробнее — /help. А теперь давай знакомиться 👇`,
+            { parse_mode: 'HTML' });
+        await bot.sendMessage(chatId, firstQuestion(user.level));
+        await prisma.message.create({ data: { userId: chatId, role: 'assistant', text: firstQuestion(user.level) } }).catch(() => {});
+        return;
+    }
+
+    if (action === 'show_help') {
+        await bot.answerCallbackQuery(query.id);
+        await bot.sendMessage(chatId, HELP_TEXT, { parse_mode: 'HTML', reply_markup: helpKeyboard });
         return;
     }
 
