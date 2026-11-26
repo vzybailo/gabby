@@ -139,26 +139,60 @@ window.selectStyle = function(styleId, element) {
 
 let isYearly = false;
 
+// Цены приходят с сервера (/api/plans → .env), а не зашиты в код
+let pricing = { currency: 'USD', month: { price: 8 }, year: { price: 59 }, yearlyDiscountPercent: 38 };
+
+function formatPrice(value, currency = pricing.currency) {
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  } catch (e) {
+    return `${value} ${currency}`;
+  }
+}
+
+async function loadPricing() {
+  try {
+    const res = await fetch('/api/plans');
+    if (res.ok) pricing = await res.json();
+  } catch (e) {
+    console.error('Pricing load error:', e);
+  }
+  renderPrice();
+}
+
+function renderPrice() {
+  const priceEl = document.getElementById('proPrice');
+  const badge = document.getElementById('saveBadge');
+  const freePriceEl = document.getElementById('freePrice');
+  if (!priceEl) return;
+
+  const plan = isYearly ? pricing.year : pricing.month;
+  priceEl.innerHTML = `${formatPrice(plan.price)}<span class="price-period">${isYearly ? '/год' : '/мес'}</span>`;
+  if (freePriceEl) freePriceEl.innerText = formatPrice(0);
+
+  const discount = pricing.yearlyDiscountPercent || 0;
+  if (badge) {
+    badge.innerText = `СКИДКА ${discount}%`;
+    badge.style.display = isYearly && discount > 0 ? 'block' : 'none';
+  }
+}
+
 function togglePrice() {
   isYearly = !isYearly;
 
-  const priceEl = document.getElementById('proPrice');
-  const badge = document.getElementById('saveBadge');
   const monthBtn = document.getElementById('btnMonthly');
   const yearBtn = document.getElementById('btnYearly');
   const toggle = document.getElementById('priceToggle');
 
-  if (isYearly) {
-    toggle.classList.add('yearly');
-    priceEl.innerHTML = '$59.99<span style="font-size:14px;color:var(--text-dim)">/yr</span>';
-    badge.style.display = 'block';
-    monthBtn.classList.remove('active');
-    yearBtn.classList.add('active');
-  } else {
-    toggle.classList.remove('yearly');
-    priceEl.innerHTML = '$8.99<span style="font-size:14px;color:var(--text-dim)">/mo</span>';
-    badge.style.display = 'none';
-    monthBtn.classList.add('active');
-    yearBtn.classList.remove('active');
-  }
+  toggle.classList.toggle('yearly', isYearly);
+  monthBtn.classList.toggle('active', !isYearly);
+  yearBtn.classList.toggle('active', isYearly);
+  renderPrice();
 }
+
+loadPricing();

@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { PLANS, isPlanType } from '../config/plans.js';
+import { PLANS, PRICE_CURRENCY, isPlanType, yearlyDiscountPercent } from '../config/plans.js';
 import { verifyTributeSignature, handleTributeEvent, TributeWebhookEvent } from '../services/tributeService.js';
 
 const router = Router();
@@ -29,6 +29,17 @@ router.post('/tribute-webhook', express.raw({ type: '*/*' }), async (req, res) =
     }
 
     return res.json({ status: 'ok' });
+});
+
+// Цены для мини-приложения: меняются в .env (PRICE_MONTH, PRICE_YEAR, PRICE_CURRENCY) без правки кода
+router.get('/plans', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({
+        currency: PRICE_CURRENCY,
+        month: { price: PLANS.month.price },
+        year: { price: PLANS.year.price },
+        yearlyDiscountPercent: yearlyDiscountPercent()
+    });
 });
 
 router.get('/payment-link', (req, res) => {
