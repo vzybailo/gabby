@@ -28,6 +28,11 @@ model User {
   vocabulary       VocabularyItem[]
   dailyStats       DailyStats[]
   lastStreakReminderAt    DateTime?
+  lastReviewReminderAt    DateTime?
+  lastErrorDigestAt       DateTime?
+  lastLevelSuggestAt      DateTime?
+  learnerProfile          String?  @db.Text  // краткая «память» репетитора об ученике
+  profileUpdatedAt        DateTime?
   transactions         Transaction[]
 }
 
@@ -71,6 +76,20 @@ model VocabularyItem {
   interval    Int      @default(0)      
   repetition  Int      @default(0)      
   easeFactor  Float    @default(2.5)    
+  usedInChatCount  Int       @default(0)  // сколько раз пользователь сам употребил слово в чате
+  lastUsedInChatAt DateTime?
+
+  @@index([userId, nextReview])
+}
+
+// Данные под inline-кнопками бота (анализ сообщения, найденное слово).
+// Раньше лежали в памяти процесса и терялись при каждом перезапуске.
+model BotSession {
+  key       String   @id
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model Transaction {

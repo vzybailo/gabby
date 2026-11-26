@@ -13,5 +13,22 @@ const user = tg.initDataUnsafe?.user;
 const userId = user?.id ? String(user.id) : 'test_id';
 
 const isPremiumReturn = tg.initDataUnsafe?.start_param === 'premium';
+const startParam = tg.initDataUnsafe?.start_param || '';
+
+// Все запросы к API идут с подписанным initData — сервер сам определяет пользователя по нему.
+function apiFetch(url, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (tg.initData) headers.set('Authorization', `tma ${tg.initData}`);
+  return fetch(url, { ...options, headers });
+}
+
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 const PREMIUM_POPUP_KEY = 'premium_popup_shown';

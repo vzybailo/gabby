@@ -12,3 +12,13 @@ audio/*
 !audio/onyx.mp3
 !audio/nova.mp3
 !audio/fable.mp3
+
+# macOS
+.DS_Store
+
+# Локальная история чатов (содержит личные данные пользователей)
+history.json
+
+# Build output
+dist
+tmp

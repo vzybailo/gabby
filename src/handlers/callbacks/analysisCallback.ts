@@ -1,15 +1,16 @@
 import TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
 import { prisma } from '../../lib/prisma.js';
 import { sessionStore } from '../../lib/store.js';
-import { generateMessageText } from '../../utils/textUtils.js';
+import { generateMessageText, escapeHtml } from '../../utils/textUtils.js';
 import { isUserPremium } from '../../services/billingService.js';
-
-const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:3001';
+import { translateText } from '../../services/aiTools.js';
+import { buildAnalysisKeyboard } from '../analysisKeyboard.js';
 
 export async function handleAnalysisCallback(bot: TelegramBot, query: TelegramBot.CallbackQuery, action: string, chatId: string, messageId: number) {
     const msgSessionKey = `${chatId}_${messageId}`;
-    const analysis = sessionStore.get(msgSessionKey);
+    // Если данных нет (очень старое сообщение) — сообщаем, а не молчим
+    const staleNotice = 'Это сообщение слишком старое — отправьте новое 🙂';
+    const analysis = await sessionStore.get(msgSessionKey);
     
     if (analysis) { 
         const userText = analysis._user_text_cache || ""; 
@@ -37,28 +38,19 @@ export async function handleAnalysisCallback(bot: TelegramBot, query: TelegramBo
              const newText = generateMessageText(userText, analysis, 'simple', streak);
              
              const hasPremium = await isUserPremium(chatId);
-             let row1 = [];
-             
-             if (!analysis.is_perfect && analysis.user_errors?.length > 0) {
-                 row1.push({ text: hasPremium ? 'Why?' : '🔒 Why?', callback_data: 'explain_mistakes' });
-             }
-             if (analysis.better_alternatives?.length > 0) {
-                 row1.push({ text: hasPremium ? 'Native style' : '🔒 Native style', callback_data: 'show_alternatives' });
-             }
-             
-             await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: { inline_keyboard: [row1] } });
+             await bot.editMessageText(newText, { chat_id: chatId, message_id: messageId, parse_mode: 'HTML', reply_markup: buildAnalysisKeyboard(analysis, hasPremium) });
         }
         
         if (action === 'translate_audio_caption' || action === 'show_audio_caption') {
             const originalText = analysis.reply; 
-            let textToShow = originalText;
+            let textToShow = escapeHtml(originalText);
             
             if (action === 'translate_audio_caption') {
                 try {
-                    const transRes = await axios.post(`${BACKEND_URL}/api/translate`, { text: originalText, targetLang: 'Russian' });
-                    textToShow = `${originalText}\n\n🇷🇺 <i>${transRes.data.translation}</i>`;
+                    const translation = await translateText(originalText, 'Russian');
+                    textToShow = `${escapeHtml(originalText)}\n\n🇷🇺 <i>${escapeHtml(translation)}</i>`;
                 } catch (e) {
-                    textToShow = `${originalText}\n\n⚠️ Translation unavailable.`;
+                    textToShow = `${escapeHtml(originalText)}\n\n⚠️ Translation unavailable.`;
                 }
             }
             
@@ -76,6 +68,11 @@ export async function handleAnalysisCallback(bot: TelegramBot, query: TelegramBo
         
         await bot.editMessageCaption('', { chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [audioKeyboard] } });
     }
-    
+
+    if (!analysis && action !== 'hide_audio_caption') {
+        await bot.answerCallbackQuery(query.id, { text: staleNotice });
+        return;
+    }
+
     await bot.answerCallbackQuery(query.id);
 }

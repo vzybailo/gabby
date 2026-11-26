@@ -1,60 +1,49 @@
 import OpenAI from 'openai';
 import fs from 'fs';
 import path from 'path';
-import { systemPrompt } from '../prompts/systemPrompt.js';
+import { buildTutorPrompt } from '../prompts/systemPrompt.js';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const AUDIO_DIR = path.resolve('./audio');
 
 if (!fs.existsSync(AUDIO_DIR)) fs.mkdirSync(AUDIO_DIR, { recursive: true });
 
+// Ниже, чем было (0.75): исправления должны быть стабильными, а разговор остаётся живым
+const CHAT_TEMPERATURE = 0.5;
+
 type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
-export interface UserSettings {      
-  level: string;       
-  voice: string;         
-  speakingStyle: string;  
+export interface UserSettings {
+  level: string;
+  voice: string;
+  speakingStyle: string;
+  learnerProfile?: string | null | undefined;
 }
 
 export interface AIResponse {
-  corrected: string;    
-  is_correct: boolean;  
-  level?: string;  
-  reply: string;      
-  user_errors: Array<{ 
-    error_part: string; 
-    correction: string; 
-    explanation: string; 
+  corrected: string;
+  is_correct: boolean;
+  reply: string;
+  user_errors: Array<{
+    error_part: string;
+    correction: string;
+    explanation: string;
   }>;
   better_alternatives: string[];
-  grammarScore: number; 
+  praise: string;
+  grammarScore: number;
+  new_vocabulary: NewVocabItem[];
 }
 
-export type AssessmentResult = {
-  level: string;
-  reply: string; 
+export type NewVocabItem = {
+  word: string;
+  translation: string;
+  definition: string;
+  example: string;
 };
-
-export async function assessLevel(text: string): Promise<AssessmentResult> {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt + '\n\nTASK: Assess CEFR level (A1-C2) and write a short welcome reply.' },
-        { role: 'user', content: text }
-      ],
-      temperature: 0.4, 
-      response_format: { type: "json_object" }
-    });
-    const parsed = JSON.parse(completion.choices[0]?.message.content || "{}");
-    return { level: parsed.level || 'A1', reply: parsed.reply || 'Welcome!' };
-  } catch (e) {
-    return { level: 'A1', reply: 'Welcome! Let\'s start.' };
-  }
-}
 
 export async function getChatResponse(
     messages: ChatMessage[],
@@ -65,211 +54,13 @@ export async function getChatResponse(
         repetition: number;
     }[] = []
 ): Promise<AIResponse> {
-
-  const LENIENCY_RULE = `
-    IMPORTANT CORRECTION RULES:
-    1. IGNORE capitalization errors (e.g., "i go" is fine).
-    2. IGNORE missing punctuation.
-    3. SYNC RULE (CRITICAL): If you add ANY error to 'user_errors', you ABSOLUTELY MUST apply that exact fix in the 'corrected' string! The 'corrected' text must reflect all fixes.
-    4. If there are no real errors, "user_errors" MUST be empty [] and "corrected" MUST exactly match the user's input.
-  `;
-
-  const SCORING_RULE = `
-    SCORING TASK (0-100):
-    Rate the user's latest message grammar accuracy.
-    - 100: Perfect grammar and natural phrasing (or only capitalization/punctuation issues).
-    - 90-99: 1 minor typo or awkward phrasing.
-    - 75-89: Understandable but has 1-2 clear grammar mistakes (tenses, articles).
-    - 50-74: Multiple errors, hard to read, or broken English.
-    - 0-49: Nonsense or wrong language.
-    RETURN this as integer 'grammarScore'.
-  `;
-
-  const dialectInstruction = (settings.voice === 'fable')
-      ? "ACCENT: BRITISH ENGLISH. Use spelling like 'colour', 'favourite'. Use terms like 'lift', 'flat', 'cheers'." 
-      : "ACCENT: AMERICAN ENGLISH. Use standard US spelling and vocabulary.";
-
-  let styleInstruction = "Speak normally.";
-  switch (settings.speakingStyle) {
-      case 'teacher': 
-          styleInstruction = "STYLE: PATIENT ESL TEACHER. Speak slowly and clearly. Tone: Warm, encouraging.";
-          break;
-      case 'standard': 
-          styleInstruction = "STYLE: STANDARD ENGLISH. Crisp, clear, professional. No slang.";
-          break;
-      case 'friend': 
-          styleInstruction = "STYLE: CASUAL FRIEND. REACT FIRST! Tone: Interested, supportive, casual.";
-          break;
-      case 'street': 
-          styleInstruction = "STYLE: STREET SLANG / NATIVE. Use aggressive contractions: 'gonna', 'wanna'.";
-          break;
-  }
-
-  const modeInstruction = `
-    MODE: CHILL CHAT.
-    1. Focus on the conversation flow. 
-    2. Only correct MAJOR mistakes that confuse the meaning. Ignore missing commas or minor typos.
-    3. Be supportive and conversational.
-  `;
-  const correctionStrictness = `Correct only critical errors. ${LENIENCY_RULE}`;
-  const temp = 0.75;
-
-  let levelInstruction = `USER LEVEL: ${settings.level}.`;
-  if (['A1', 'A2'].includes(settings.level)) {
-      levelInstruction += " Use VERY SIMPLE, basic vocabulary. NO idioms, NO complex phrasal verbs, NO slang.";
-  } else if (settings.level === 'B1') {
-      levelInstruction += " Use everyday vocabulary. Introduce common, simple phrasal verbs.";
-  } else if (settings.level === 'B2') {
-      levelInstruction += " Speak naturally with common idioms.";
-  } else if (['C1', 'C2'].includes(settings.level)) {
-      levelInstruction += " Use sophisticated, native-level vocabulary, idioms, and slang.";
-  }
-
-// ------------------------------
-// PERSONAL VOCABULARY TRAINING
-// ------------------------------
-
-let vocabularyInstruction = '';
-
-if (vocabulary.length > 0) {
-
-    const words = vocabulary
-        .map(v => {
-            const status =
-                v.repetition === 0
-                    ? 'New'
-                    : v.repetition <= 2
-                    ? 'Learning'
-                    : v.repetition <= 4
-                    ? 'Needs Review'
-                    : 'Almost Mastered';
-
-            return `• ${v.word}
-  Translation: ${v.translation}
-  Status: ${status}`;
-        })
-        .join('\n\n');
-
-    vocabularyInstruction = `
-────────────────────────────────
-PERSONAL VOCABULARY TRAINING
-────────────────────────────────
-
-The student has a personal vocabulary list that is managed using spaced repetition (SRS).
-
-Current vocabulary:
-
-${words}
-
-YOUR ROLE
-
-You are not teaching isolated vocabulary.
-You are having a real conversation while naturally reinforcing the student's vocabulary.
-
-PRIORITY ORDER
-
-1. Natural conversation ALWAYS comes first.
-2. Vocabulary practice comes second.
-3. Grammar correction comes third.
-
-VOCABULARY RULES
-
-• Naturally use ONE or TWO vocabulary words whenever they genuinely fit the topic.
-
-• Never force vocabulary into a sentence.
-
-• If none of the words fit naturally, simply don't use them.
-
-• Never use more than TWO vocabulary words in one reply.
-
-• Prefer vocabulary marked as "Needs Review".
-
-• Use "Learning" words when appropriate.
-
-• Use "New" words only in very simple contexts.
-
-• Avoid using "Almost Mastered" too often.
-
-• Do NOT repeat the same vocabulary word in consecutive replies unless the conversation naturally requires it.
-
-• Use vocabulary in realistic everyday situations.
-
-• The student should learn the meaning from context rather than from direct explanations.
-
-• Never explain or translate a vocabulary word unless the student explicitly asks.
-
-• If the conversation naturally allows it, ask a question that encourages the student to use one vocabulary word in their own answer.
-
-• Do NOT say "Today's word is..." or "Let's practice this word."
-
-• Vocabulary practice should feel invisible.
-
-GOOD EXAMPLE
-
-User:
-I'm looking for another job.
-
-Assistant:
-That sounds like a great opportunity! I think you'll achieve your goal if you keep practicing your English. 😊
-
-GOOD EXAMPLE
-
-User:
-I watched a movie yesterday.
-
-Assistant:
-Nice! What was it about?
-
-GOOD EXAMPLE
-
-User:
-I'm nervous about my interview.
-
-Assistant:
-That's completely normal. I'm sure you'll achieve a great result. What position are you applying for?
-
-BAD EXAMPLE
-
-❌ Today we'll practice the word "opportunity."
-
-❌ Please repeat the word "achieve."
-
-❌ Here are two new words.
-
-The conversation must always feel natural, friendly and human.
-
-The student should never feel that vocabulary is being intentionally inserted.
-`;
-}
-
-  const fullSystemPrompt = `${systemPrompt}
-  
-  --- CURRENT SETTINGS ---
-  ${levelInstruction}
-  ${dialectInstruction}
-  ${vocabularyInstruction}
-  ${styleInstruction}
-  
-  ${modeInstruction}
-  MANDATORY: Always provide 2-3 "better_alternatives" even if the user is correct. 
-  Ensure these alternatives perfectly match the user's ${settings.level} English level.
-  
-  Correction Policy: ${correctionStrictness}
-  
-  CRITICAL JSON RULE: 
-  If "user_errors" is NOT empty, the "corrected" string MUST BE DIFFERENT from the input and reflect those fixes!
-  
-  ${SCORING_RULE}
-  
-  IMPORTANT: Return valid JSON with keys: 
-  {
-    "reply": "string",
-    "corrected": "string",
-    "is_correct": boolean,
-    "user_errors": [],
-    "better_alternatives": [],
-    "grammarScore": number
-  }`;
+  const systemPrompt = buildTutorPrompt({
+    level: settings.level,
+    voice: settings.voice,
+    speakingStyle: settings.speakingStyle,
+    vocabulary,
+    learnerProfile: settings.learnerProfile
+  });
 
   const validMessages = messages
     .filter(m => typeof m.content === 'string' && m.content.trim() !== '')
@@ -278,36 +69,53 @@ The student should never feel that vocabulary is being intentionally inserted.
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
-      messages: [{ role: 'system', content: fullSystemPrompt }, ...validMessages],
-      temperature: temp, 
+      messages: [{ role: 'system', content: systemPrompt }, ...validMessages],
+      temperature: CHAT_TEMPERATURE,
       response_format: { type: "json_object" }
     });
 
     const parsed = JSON.parse(completion.choices[0]?.message.content || "{}");
+    const userErrors = Array.isArray(parsed.user_errors)
+      ? parsed.user_errors.filter((e: any) => e && e.error_part && e.correction).slice(0, 3)
+      : [];
 
     let calculatedScore = parsed.grammarScore;
     if (typeof calculatedScore !== 'number') {
-        const errorCount = (parsed.user_errors || []).length;
-        calculatedScore = parsed.is_correct ? 100 : Math.max(0, 100 - (errorCount * 15));
+        calculatedScore = userErrors.length === 0 ? 100 : Math.max(0, 100 - (userErrors.length * 15));
     }
 
     return {
       corrected: parsed.corrected || '',
-      is_correct: parsed.is_correct ?? true,
+      is_correct: userErrors.length === 0,
       reply: parsed.reply || "Thinking...",
-      user_errors: parsed.user_errors || [],
-      better_alternatives: parsed.better_alternatives || [],
-      grammarScore: calculatedScore
+      user_errors: userErrors,
+      better_alternatives: Array.isArray(parsed.better_alternatives) ? parsed.better_alternatives.slice(0, 3) : [],
+      praise: typeof parsed.praise === 'string' ? parsed.praise.trim() : '',
+      grammarScore: calculatedScore,
+      new_vocabulary: Array.isArray(parsed.new_vocabulary)
+        ? parsed.new_vocabulary
+            .filter((v: any) => v && typeof v.word === 'string' && v.word.trim() && v.word.length <= 60)
+            .slice(0, 2)
+        : []
     };
 
   } catch (e) {
     console.error('AI ERROR:', e);
-    return { 
-        reply: 'Wait... connection glitch.', 
-        corrected: '', is_correct: true, user_errors: [], better_alternatives: [],
-        grammarScore: 100 
+    return {
+        reply: 'Wait... connection glitch.',
+        corrected: '', is_correct: true, user_errors: [], better_alternatives: [], praise: '',
+        grammarScore: 100, new_vocabulary: []
     };
   }
+}
+
+/** Убирает эмодзи и разметку, чтобы TTS не спотыкался. */
+export function cleanForSpeech(text: string): string {
+  return text
+    .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}]/gu, '')
+    .replace(/[*_~`#]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 export async function generateSpeech(text: string, voice: string, style: string = 'standard'): Promise<{ audioBuffer?: Buffer }> {
@@ -326,7 +134,7 @@ export async function generateSpeech(text: string, voice: string, style: string 
     const mp3 = await openai.audio.speech.create({
       model: 'tts-1',
       voice: selectedVoice as any,
-      input: text,
+      input: cleanForSpeech(text),
       speed: speed,
       response_format: 'mp3',
     });

@@ -46,7 +46,12 @@ export function generateMessageText(
     baseText = `💡 <i>${htmlDiff}</i>`;
   }
 
-  const streakSuffix = streakCount > 0 ? `\n\n🔥 <b>Streak: ${streakCount} days</b>` : '';
+  const usedWords: string[] = analysis.used_vocabulary || [];
+  const vocabLine = usedWords.length > 0
+    ? `\n\n🎯 Слово из словаря: <b>${usedWords.map(w => escapeHtml(w)).join(', ')}</b> — засчитано!`
+    : '';
+  const praiseLine = analysis.praise ? `\n\n🌟 <i>${escapeHtml(analysis.praise)}</i>` : '';
+  const streakSuffix = praiseLine + vocabLine + (streakCount > 0 ? `\n\n🔥 <b>Streak: ${streakCount} days</b>` : '');
 
   if (mode === 'simple') return baseText + streakSuffix;
 

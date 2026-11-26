@@ -1,44 +1,34 @@
 import express from 'express';
 import multer from 'multer';
-import OpenAI from 'openai';
+import { requireTelegramAuth } from '../middleware/telegramAuth.js';
+import { aiLimiter, aiDailyLimiter } from '../middleware/rateLimit.js';
+import { checkAudioLimit } from '../services/billingService.js';
+import { transcribeAudio } from '../services/aiTools.js';
 
 const router = express.Router();
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 } 
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-router.post('/transcribe', upload.single('audio'), async (req, res) => {
+router.post('/transcribe', requireTelegramAuth, aiLimiter, aiDailyLimiter, upload.single('audio'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No audio file received' });
     }
 
-    console.log(`🎤 Transcribing in-memory audio buffer...`);
+    // Тот же дневной лимит голосовых, что и в боте
+    const limit = await checkAudioLimit(req.userId!);
+    if (!limit.allowed) {
+      return res.status(402).json({ error: 'Audio limit reached', reason: limit.reason });
+    }
 
-    const audioFile = await OpenAI.toFile(
-      req.file.buffer, 
-      'voice.ogg', 
-      { type: 'audio/ogg' }
-    );
-
-    const transcription = await openai.audio.transcriptions.create({
-      file: audioFile,
-      model: 'whisper-1',
-      prompt: "Hello! This is a casual conversation in English. Please transcribe carefully."
-    });
-
-    console.log('✅ Transcription result:', transcription.text);
-    res.json({ text: transcription.text });
-
+    const text = await transcribeAudio(req.file.buffer);
+    res.json({ text });
   } catch (err: any) {
     console.error('❌ Transcription Error:', err);
-    res.status(500).json({ error: 'Failed to transcribe', details: err.message });
+    res.status(500).json({ error: 'Failed to transcribe' });
   }
 });
 

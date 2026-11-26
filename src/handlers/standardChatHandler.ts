@@ -1,11 +1,14 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { prisma } from '../lib/prisma.js';
 import { sessionStore } from '../lib/store.js';
-import { getChatResponse, generateSpeech } from '../services/ai.js';
+import { getChatResponse, generateSpeech, cleanForSpeech } from '../services/ai.js';
 import { generateDiffView, generateMessageText } from '../utils/textUtils.js';
 import { updateDailyStats } from '../services/statService.js';
 import { sendVoiceSafely } from '../services/audioService.js';
 import { isUserPremium } from '../services/billingService.js';
+import { pickVocabularyForChat, creditWordsUsedInMessage } from '../services/vocabularyService.js';
+import { buildAnalysisKeyboard } from './analysisKeyboard.js';
+import { maybeUpdateLearnerProfile } from '../services/learnerProfileService.js';
 
 export async function handleStandardChat(
     bot: TelegramBot, 
@@ -30,25 +33,29 @@ export async function handleStandardChat(
     const userSettings = { 
         level: user.level || 'A1', 
         voice: user.voice || 'alloy', 
-        speakingStyle: user.speakingStyle || 'standard' 
+        speakingStyle: user.speakingStyle || 'standard',
+        learnerProfile: user.learnerProfile || null
     };
     
-    const aiResponse = await getChatResponse(chatHistory, userSettings);
+    // Персональный словарь пользователя: бот естественно использует эти слова в разговоре
+    const vocabulary = await pickVocabularyForChat(chatId.toString()).catch(() => []);
+    const aiResponse = await getChatResponse(chatHistory, userSettings, vocabulary);
     let grammarScore = aiResponse.grammarScore ?? Math.max(0, 100 - ((aiResponse.user_errors?.length || 0) * 10));
 
-    // 🟢 1. СОХРАНЯЕМ СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ И АССИСТЕНТА В БД
-    if (prisma.message) {
+    // 🟢 1. СОХРАНЯЕМ ОТВЕТ АССИСТЕНТА (сообщение пользователя уже сохранено в messageHandler)
+    if (prisma.message && aiResponse.reply) {
         try {
-            await prisma.message.createMany({
-                data: [
-                    { userId: chatId.toString(), role: 'user', text: userText },
-                    ...(aiResponse.reply ? [{ userId: chatId.toString(), role: 'assistant', text: aiResponse.reply, grammarScore, grammarFixes: aiResponse.user_errors }] : [])
-                ]
+            await prisma.message.create({
+                data: { userId: chatId.toString(), role: 'assistant', text: aiResponse.reply, grammarScore, grammarFixes: aiResponse.user_errors }
             });
         } catch (e) {
             console.error("Message create error:", e);
         }
     }
+
+    // Слова из словаря, которые пользователь сам употребил, засчитываются в SRS
+    const usedWords = await creditWordsUsedInMessage(chatId.toString(), userText, aiResponse.user_errors)
+        .catch(e => { console.error('Vocab credit error:', e); return [] as string[]; });
 
     try {
         await updateDailyStats(chatId.toString(), audioDuration || 0, grammarScore || 0);
@@ -65,38 +72,29 @@ export async function handleStandardChat(
         better_alternatives: aiResponse.better_alternatives,
         reply: aiResponse.reply,
         grammarScore: grammarScore,
+        praise: aiResponse.praise,
+        used_vocabulary: usedWords,
+        new_vocabulary: aiResponse.new_vocabulary,
+        saved_vocab: [] as number[],
         _user_text_cache: userText,
         _streak_cache: streakToShow
     };
 
+    // Фоновое обновление «памяти» об ученике (не задерживает ответ)
+    void maybeUpdateLearnerProfile(chatId.toString());
+
     const hasPremium = await isUserPremium(chatId);
     const msgText = generateMessageText(userText, analysis, 'simple', streakToShow);
-    let row1 = [];
-
-    if (!analysis.is_perfect && analysis.user_errors?.length > 0) {
-        row1.push({ 
-            text: hasPremium ? 'Why?' : '🔒 Why?', 
-            callback_data: 'explain_mistakes' 
-        });
-    }
-    
-    if (analysis.better_alternatives?.length > 0) {
-        row1.push({ 
-            text: hasPremium ? 'Native style' : '🔒 Native style', 
-            callback_data: 'show_alternatives' 
-        });
-    }
-    
     const sentMsg = await bot.sendMessage(chatId, msgText, { 
         parse_mode: 'HTML', 
-        reply_markup: { inline_keyboard: [row1].filter(r => r.length > 0) } 
+        reply_markup: buildAnalysisKeyboard(analysis, hasPremium)
     });
     
-    sessionStore.set(`${chatId}_${sentMsg.message_id}`, analysis);
+    await sessionStore.set(`${chatId}_${sentMsg.message_id}`, analysis);
 
     await bot.sendChatAction(chatId, 'record_voice');
     let textToSpeak = aiResponse.reply || '';
-    if (textToSpeak) textToSpeak = textToSpeak.replace(/[*_~`]/g, '').substring(0, 797);
+    if (textToSpeak) textToSpeak = cleanForSpeech(textToSpeak).substring(0, 797);
 
     try {
         if (textToSpeak && textToSpeak.trim().length > 1) {

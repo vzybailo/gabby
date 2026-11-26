@@ -9,7 +9,7 @@ if (btnGetPremium) {
         btnGetPremium.innerHTML = '⏳ Загрузка...';
 
         try {
-            const response = await fetch(`/api/payment-link?plan=${plan}`);
+            const response = await apiFetch(`/api/payment-link?plan=${plan}`);
             const data = await response.json();
 
             if (!response.ok || !data.url) {

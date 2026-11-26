@@ -1,73 +1,44 @@
-# React + TypeScript + Vite
+# Say It — английский с ИИ-собеседником в Telegram
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Telegram-бот для разговорной практики английского и мини-приложение (Telegram Mini App) с профилем, личным словарём и тренировкой слов.
 
-Currently, two official plugins are available:
+## Что умеет
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Разговор в боте** — текстом или голосом. ИИ отвечает голосом, исправляет ошибки, предлагает более естественные варианты (Why? / Native style — Premium).
+- **Личный словарь** — ответьте (Reply) на сообщение бота словом, чтобы получить перевод и сохранить его, или нажмите «📌 Сохранить» под новыми словами из ответа бота.
+- **Активный словарь** — бот использует слова из словаря в разговоре, а слова, которые пользователь употребил сам, засчитываются в интервальное повторение.
+- **Тренировка** (мини-приложение) — пользователь вспоминает и вводит слово сам, оценка для SM-2 ставится автоматически.
+- **Напоминания** — о серии дней, о словах на повторение и еженедельный разбор частых ошибок.
+- **Premium** — оплата через Tribute.
 
-## React Compiler
+## Стек
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Node.js + TypeScript, Express, node-telegram-bot-api, Prisma + PostgreSQL, OpenAI (gpt-4o-mini, whisper-1, tts-1). Фронтенд мини-приложения — статический HTML/JS в `public/`.
 
-## Expanding the ESLint configuration
+## Запуск
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npx prisma migrate deploy
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Переменные окружения (`.env`)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Переменная | Назначение |
+|---|---|
+| `DATABASE_URL` | PostgreSQL |
+| `TELEGRAM_BOT_TOKEN` | токен бота; им же проверяется подпись initData мини-приложения |
+| `OPENAI_API_KEY` | OpenAI |
+| `BOT_USERNAME` | username бота для ссылок на мини-приложение |
+| `ADMIN_ID` | куда присылать отзывы |
+| `PORT` | порт сервера (по умолчанию 3001) |
+| `ALLOW_DEV_AUTH` | `true` — разрешить заголовок `x-dev-user-id` вместо initData (только не в production) |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Безопасность API
+
+Все эндпоинты мини-приложения требуют заголовок `Authorization: tma <initData>`. Сервер проверяет подпись Telegram и берёт id пользователя из неё, а не из запроса. Эндпоинты, которые обращаются к OpenAI, ограничены по частоте.
+
+## Деплой
+
+Пуш в `main` → GitHub Actions подключается к серверу, применяет миграции (`prisma migrate deploy`), собирает проект и перезапускает `pm2`.

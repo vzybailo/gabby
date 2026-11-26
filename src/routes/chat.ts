@@ -4,15 +4,19 @@ import { prisma } from '../lib/prisma.js';
 import { getChatResponse, generateSpeech } from '../services/ai.js'; 
 import { updateDailyStats } from '../services/statService.js';
 import { generateDiffView } from '../utils/textUtils.js';
+import { pickVocabularyForChat, creditWordsUsedInMessage } from '../services/vocabularyService.js';
+import { maybeUpdateLearnerProfile } from '../services/learnerProfileService.js';
 
 const router = Router();
 
 router.post('/', async (req, res) => {
   try {
-    const { userId, message } = req.body;
+    // userId берём только из проверенного initData, а не из тела запроса
+    const userId = req.userId!;
+    const message = String(req.body.message || '').slice(0, 2000);
 
-    if (!userId || !message) {
-      return res.status(400).json({ error: 'UserId and Message are required' });
+    if (!message.trim()) {
+      return res.status(400).json({ error: 'Message is required' });
     }
 
     const user = await prisma.user.upsert({
@@ -25,6 +29,7 @@ router.post('/', async (req, res) => {
         level: user.level || 'A1',
         voice: user.voice || 'alloy',          
         speakingStyle: user.speakingStyle || 'standard',
+        learnerProfile: user.learnerProfile || null,
     };
 
     await prisma.message.create({
@@ -42,61 +47,7 @@ router.post('/', async (req, res) => {
         content: m.text
     }));
 
-const now = new Date();
-
-// 1. Слова, которые уже пора повторять
-const reviewWords = await prisma.vocabularyItem.findMany({
-    where: {
-        userId,
-        repetition: {
-            lt: 5
-        },
-        nextReview: {
-            lte: now
-        }
-    },
-    orderBy: {
-        nextReview: 'asc'
-    },
-    take: 4,
-    select: {
-      id: true,
-      word: true,
-      translation: true,
-      definition: true,
-      context: true,
-      repetition: true
-    }
-});
-
-// 2. Остальные слова
-const remainingWords = await prisma.vocabularyItem.findMany({
-    where: {
-        userId,
-        repetition: {
-            lt: 5
-        },
-        id: {
-            notIn: reviewWords.map(w => w.id)
-        }
-    },
-    select: {
-        word: true,
-        translation: true,
-        repetition: true
-    }
-});
-
-// 3. Перемешиваем
-const randomWords = remainingWords
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.max(0, 6 - reviewWords.length));
-
-// 4. Финальный словарь
-const vocabulary = [
-    ...reviewWords,
-    ...randomWords
-];
+    const vocabulary = await pickVocabularyForChat(userId);
 
     const aiResponse = await getChatResponse(
         formattedHistory,
@@ -124,6 +75,11 @@ const vocabulary = [
 
     updateDailyStats(userId, 0, grammarScore).catch(err => console.error("Stats update failed:", err));
 
+    const usedWords = await creditWordsUsedInMessage(userId, message, aiResponse.user_errors)
+        .catch(err => { console.error('Vocab credit failed:', err); return [] as string[]; });
+
+    void maybeUpdateLearnerProfile(userId);
+
     const assistantMessage = {
       id: crypto.randomUUID(),
       role: 'assistant' as const,
@@ -134,7 +90,10 @@ const vocabulary = [
         diff_view: diffView,
         user_errors: aiResponse.user_errors,
         better_alternatives: aiResponse.better_alternatives,
-        grammarScore: grammarScore
+        grammarScore: grammarScore,
+        praise: aiResponse.praise,
+        used_vocabulary: usedWords,
+        new_vocabulary: aiResponse.new_vocabulary
       }
     };
 

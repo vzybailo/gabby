@@ -16,8 +16,11 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
             cd ~/gabby
             git pull origin main
             npm install
+            npx prisma generate
+            npx prisma migrate deploy
             npm run build
             pm2 restart sayit-bot

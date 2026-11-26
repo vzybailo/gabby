@@ -90,4 +90,22 @@ export async function handleSetupCallback(bot: TelegramBot, query: TelegramBot.C
         await bot.answerCallbackQuery(query.id);
         return;
     }
+
+    // Предложение сменить уровень (еженедельная проверка прогресса)
+    if (action.startsWith('level_accept_')) {
+        const level = action.replace('level_accept_', '');
+        if (!['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(level)) return bot.answerCallbackQuery(query.id);
+        await prisma.user.update({ where: { id: chatId }, data: { level } });
+        await bot.editMessageText(`✅ Готово! Теперь твой уровень — <b>${level}</b>. Продолжаем 💪`, {
+            chat_id: chatId, message_id: messageId, parse_mode: 'HTML'
+        });
+        await bot.answerCallbackQuery(query.id);
+        return;
+    }
+
+    if (action === 'level_keep') {
+        await bot.editMessageText('👌 Хорошо, оставляем текущий уровень.', { chat_id: chatId, message_id: messageId });
+        await bot.answerCallbackQuery(query.id);
+        return;
+    }
 }

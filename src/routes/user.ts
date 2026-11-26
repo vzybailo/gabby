@@ -1,64 +1,47 @@
 import { Router } from 'express';
-import { prisma } from '../lib/prisma.js'; 
+import { prisma } from '../lib/prisma.js';
+import { requireSelf } from '../middleware/telegramAuth.js';
+import { activeDates, calcStreak, calcBestStreak } from '../services/streakCalc.js';
 
+// Монтируется после requireTelegramAuth: req.userId уже проверен.
 const router = Router();
 
-router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-  if (!id) {
-    return res.status(400).json({ error: 'Missing user id' });
-  }
+router.get('/:id', requireSelf('id'), async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const id = req.params.id as string;
 
-  try {
-    let user = await prisma.user.findUnique({
-      where: { id },
-      include: { vocabulary: true } 
-    });
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id },
+            include: { dailyStats: true }
+        });
 
-    const now = new Date();
+        if (!user) return res.status(404).json({ error: 'User not found' });
 
-    if (!user) {
-      return res.json({
-        id: id,
-        first_name: "Student",
-        level: "A1",
-        streak: 0,
-        voice: "alloy",
-        speakingStyle: "standard",
-        mode: "chill",
-        dates: [],
-        isPremium: false 
-      });
+        const dates = activeDates(user.dailyStats);
+        const now = new Date();
+        const isPremiumActive = Boolean(user.isPremium && user.premiumUntil && user.premiumUntil > now);
+
+        return res.json({
+            id: user.id,
+            first_name: user.username || 'Student',
+            level: user.level || 'A1',
+            voice: user.voice,
+            speakingStyle: user.speakingStyle,
+            streak: calcStreak(dates, user.timezone || 'UTC', now),
+            dates: Array.from(dates),
+            isPremium: isPremiumActive,
+            premiumUntil: user.premiumUntil ? user.premiumUntil.toISOString() : null
+        });
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        return res.status(500).json({ error: 'Server error' });
     }
-
-    const stats = await prisma.dailyStats.findMany({
-      where: { userId: id },
-      select: { date: true }
-    });
-    
-    const dates = stats.map(s => s.date.toISOString().split('T')[0]);
-    const hasPremium = !!(user.isPremium && user.premiumUntil && user.premiumUntil > now);
-
-    res.json({
-      id: user.id,
-      first_name: user.username || "Student",
-      level: user.level || "A1", 
-      streak: user.streakCount,
-      voice: user.voice,
-      speakingStyle: user.speakingStyle,
-      dates: dates,
-      isPremium: hasPremium 
-    });
-
-  } catch (error) {
-    console.error("User fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch user" });
-  }
 });
 
-router.get('/:id/stats', async (req, res) => {
+router.get('/:id/stats', requireSelf('id'), async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
 
         const user = await prisma.user.findUnique({
             where: { id },
@@ -69,65 +52,17 @@ router.get('/:id/stats', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        // 🟢 Хелпер получения локальной даты YYYY-MM-DD
-        const toLocalDateStr = (d: Date | string): string => {
-            const dateObj = new Date(d);
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        };
+        const dates = activeDates(user.dailyStats);
+        const currentStreak = calcStreak(dates, user.timezone || 'UTC');
+        const bestStreak = calcBestStreak(dates);
 
-        // Собираем Set с локальными датами
-        const activeDatesSet = new Set<string>(
-            user.dailyStats
-                .filter((s: { messagesCount: number; audioMinutes: number; wordsLearned?: number; date: Date | string }) => 
-                    (s.messagesCount > 0 || (s.audioMinutes && s.audioMinutes > 0) || (s.wordsLearned && s.wordsLearned > 0)) && Boolean(s.date)
-                )
-                .map((s: { date: Date | string }): string => toLocalDateStr(s.date))
-        );
-
-        const today = new Date();
-        const todayStr = toLocalDateStr(today);
-        
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = toLocalDateStr(yesterday);
-
-        let currentStreak = 0;
-        let checkDate = new Date(today);
-
-        const hasToday = activeDatesSet.has(todayStr);
-        const hasYesterday = activeDatesSet.has(yesterdayStr);
-
-        if (hasToday || hasYesterday) {
-            // Если сегодня еще не занимался, но занимался вчера — считаем со вчера
-            if (!hasToday && hasYesterday) {
-                checkDate = yesterday;
-            }
-
-            while (activeDatesSet.has(toLocalDateStr(checkDate))) {
-                currentStreak++;
-                checkDate.setDate(checkDate.getDate() - 1); 
-            }
-        } else {
-            currentStreak = 0;
-        }
-
-        const totalWords = await prisma.vocabularyItem.count({
-            where: {
-                userId: id
-            }
-        });
-
-        const learnedWords = await prisma.vocabularyItem.count({
-            where: {
-                userId: id,
-                repetition: {
-                    gte: 5
-                }
-            }
-        });
+        const [totalWords, learnedWords, activeWords, dueWords] = await Promise.all([
+            prisma.vocabularyItem.count({ where: { userId: id } }),
+            prisma.vocabularyItem.count({ where: { userId: id, repetition: { gte: 5 } } }),
+            // Слова, которые пользователь сам употребил в разговоре
+            prisma.vocabularyItem.count({ where: { userId: id, usedInChatCount: { gt: 0 } } }),
+            prisma.vocabularyItem.count({ where: { userId: id, nextReview: { lte: new Date() } } })
+        ]);
 
         const totalAudioMinutes = user.dailyStats.reduce((sum, stat) => sum + (stat.audioMinutes || 0), 0);
 
@@ -144,17 +79,17 @@ router.get('/:id/stats', async (req, res) => {
 
         return res.json({
             streak: currentStreak,
+            bestStreak,
+            dueWords,
             totalMinutes: Math.round(totalAudioMinutes),
-
             learnedWords,
             totalWords,
-
+            activeWords,
             avgScore: avg7DaysScore
         });
-
     } catch (error) {
-        console.error("Error fetching stats:", error);
-        res.status(500).json({ error: "Failed to fetch stats" });
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ error: 'Failed to fetch stats' });
     }
 });
 

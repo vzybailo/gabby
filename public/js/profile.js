@@ -1,12 +1,9 @@
 const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-fetch('/api/settings', {
+apiFetch('/api/settings', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ 
-    userId: userId,
-    timezone: userTimezone 
-  })
+  body: JSON.stringify({ timezone: userTimezone })
 });
 
 function loadUserProfile() {
@@ -25,18 +22,6 @@ function loadUserProfile() {
   }
 }
 
-function updateStatsUI(data) {
-    document.getElementById('streakVal').innerText = data.streak || 0;
-    document.getElementById('avgScoreVal').innerText = (data.avgScore || 0) + '%';
-    document.getElementById('totalMinutesVal').innerText = data.totalMinutes || 0;
-    document.getElementById('wordsLearnedVal').innerText = data.wordsLearned || 0;
-
-    toggleDimmed('cardStreak', data.streak > 0);
-    toggleDimmed('cardGrammar', data.avgScore > 0);
-    toggleDimmed('cardMinutes', data.totalMinutes > 0);
-    toggleDimmed('cardWords', data.wordsLearned > 0);
-}
-
 async function loadData() {
   if (typeof loadUserProfile === 'function') {
     loadUserProfile();
@@ -47,10 +32,10 @@ async function loadData() {
 
   try {
     const [profileRes, statsRes] = await Promise.all([
-      fetch(`/api/user/${userId}?t=${Date.now()}`, {
+      apiFetch(`/api/user/${userId}?t=${Date.now()}`, {
         headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
       }),
-      fetch(`/api/user/${userId}/stats?t=${Date.now()}`, {
+      apiFetch(`/api/user/${userId}/stats?t=${Date.now()}`, {
         headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
       })
     ]);
@@ -97,50 +82,7 @@ async function loadData() {
       statsData = await statsRes.json();
     }
 
-    const streakVal = statsData.streak ?? profileData.streak ?? 0;
-    const minutesVal = statsData.totalMinutes ?? profileData.totalMinutes ?? 0;
-    const learnedWords = statsData.learnedWords ?? 0;
-    const totalWords = statsData.totalWords ?? 0;
-    const scoreVal = Math.round(statsData.avgScore ?? profileData.avgScore ?? 0);
-    const streakEl = document.getElementById('streakVal');
-
-    if (streakEl) {
-      streakEl.innerText = streakVal;
-    }
-
-    if (typeof toggleCardDimmed === 'function') {
-      toggleCardDimmed('cardStreak', streakVal > 0);
-    }
-
-    const minutesEl = document.getElementById('totalMinutesVal');
-
-    if (minutesEl) {
-      minutesEl.innerText = minutesVal;
-    }
-
-    if (typeof toggleCardDimmed === 'function') {
-      toggleCardDimmed('cardMinutes', minutesVal > 0);
-    }
-
-    const wordsEl = document.getElementById('wordsLearnedVal');
-
-    if (wordsEl) {
-      wordsEl.innerText = `${learnedWords}/${totalWords}`;
-    }
-
-    if (typeof toggleCardDimmed === 'function') {
-      toggleCardDimmed('cardWords', learnedWords > 0);
-    }
-
-    const scoreEl = document.getElementById('avgScoreVal');
-
-    if (scoreEl) {
-      scoreEl.innerText = scoreVal + '%';
-    }
-
-    if (typeof toggleCardDimmed === 'function') {
-      toggleCardDimmed('cardGrammar', scoreVal > 0);
-    }
+    renderProfileStats(statsData, profileData);
 
   if (
       isPremiumReturn &&
@@ -246,4 +188,93 @@ function setActiveOption(containerId, value) {
       c.classList.add('active'); 
     }
   });
+  if (typeof syncAccValue === 'function') syncAccValue(container);
+}
+
+function pluralRu(n, one, few, many) {
+  const n10 = n % 10, n100 = n % 100;
+  if (n10 === 1 && n100 !== 11) return one;
+  if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+  return many;
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
+
+function renderProfileStats(stats, profile) {
+  const streak = stats.streak ?? profile.streak ?? 0;
+  const best = stats.bestStreak ?? 0;
+  const minutes = stats.totalMinutes ?? 0;
+  const total = stats.totalWords ?? 0;
+  const learned = stats.learnedWords ?? 0;
+  const active = stats.activeWords ?? 0;
+  const due = stats.dueWords ?? 0;
+  const score = Math.round(stats.avgScore ?? 0);
+
+  // Серия: число + подпись, рекорд — второй строкой, только если он больше текущей серии
+  setText('streakVal', streak);
+  setText('streakTitle', pluralRu(streak, 'день подряд', 'дня подряд', 'дней подряд'));
+  setText('streakBest', best > streak
+    ? `Рекорд — ${best} ${pluralRu(best, 'день', 'дня', 'дней')}`
+    : streak > 0 ? 'Это твой рекорд 🎉' : 'Позанимайся сегодня, чтобы начать серию');
+  document.getElementById('cardStreak')?.classList.toggle('is-active', streak > 0);
+
+  setText('totalMinutesVal', minutes);
+
+  // Цвет точности несёт смысл: зелёный — хорошо, жёлтый — средне, красный — много ошибок
+  setText('avgScoreVal', score > 0 ? score + '%' : '—');
+  const scoreEl = document.getElementById('avgScoreVal');
+  if (scoreEl) {
+    scoreEl.classList.remove('good', 'mid', 'low');
+    if (score > 0) scoreEl.classList.add(score >= 85 ? 'good' : score >= 60 ? 'mid' : 'low');
+  }
+
+  setText('wordsLearnedVal', total);
+  setText('wordsTitle', active > 0
+    ? `${pluralRu(total, 'слово', 'слова', 'слов')} · ${active} в речи`
+    : pluralRu(total, 'слово', 'слова', 'слов'));
+
+  renderTodayCard({ streak, due, total });
+}
+
+// Одно главное действие на сегодня
+function renderTodayCard({ streak, due, total }) {
+  const card = document.getElementById('todayCard');
+  if (!card) return;
+
+  let icon, title, sub, action;
+  if (due > 0) {
+    icon = '🧠';
+    title = `${due} ${pluralRu(due, 'слово ждёт', 'слова ждут', 'слов ждут')} повторения`;
+    sub = 'Пара минут — и они останутся в памяти';
+    action = () => {
+      switchTab('vocab', document.querySelector('.nav-item[onclick*="vocab"]'));
+      setTimeout(startQuiz, 300);
+    };
+  } else if (streak === 0) {
+    icon = '🔥';
+    title = 'Начни новую серию';
+    sub = 'Вернись в чат и напиши боту пару фраз';
+    action = () => tg.close();
+  } else {
+    icon = '💬';
+    title = 'Продолжить практику';
+    sub = total > 0 ? 'Вернись в чат и используй слова из словаря' : 'Вернись в чат и поговори на любую тему';
+    action = () => tg.close();
+  }
+
+  setText('todayIcon', icon);
+  setText('todayTitle', title);
+  setText('todaySub', sub);
+  card.onclick = action;
+  card.classList.remove('hidden');
+}
+
+function openSubscriptionManagement() {
+  // Подписки Tribute управляются в его мини-приложении
+  const url = 'https://t.me/tribute/app';
+  if (tg.openTelegramLink) tg.openTelegramLink(url);
+  else window.open(url, '_blank');
 }

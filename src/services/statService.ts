@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import { activeDates, calcStreak } from './streakCalc.js';
 
 export async function updateDailyStats(
     userId: string, 
@@ -62,49 +63,13 @@ export async function updateDailyStats(
         }
     });
 
-    // 2. Считываем все активные даты пользователя
+    // 2. Пересчитываем серию по активным датам (общая функция для всего приложения)
     const allUserStats = await prisma.dailyStats.findMany({
-        where: { 
-            userId,
-            OR: [
-                { messagesCount: { gt: 0 } },
-                { audioMinutes: { gt: 0 } },
-                { wordsLearned: { gt: 0 } }
-            ]
-        },
-        select: { date: true }
+        where: { userId },
+        select: { date: true, messagesCount: true, audioMinutes: true, wordsLearned: true }
     });
 
-    const activeDatesSet = new Set(
-        allUserStats.map(s => s.date.toISOString().split('T')[0])
-    );
-
-    // Вчерашний день
-    const yesterdayDate = new Date(today);
-    yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
-    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-
-    let newStreak = 0;
-    let checkDate = new Date(today);
-
-    const hasToday = activeDatesSet.has(todayStr);
-    const hasYesterday = activeDatesSet.has(yesterdayStr);
-
-    if (hasToday || hasYesterday) {
-        if (!hasToday && hasYesterday) {
-            checkDate = yesterdayDate;
-        }
-
-        while (true) {
-            const cStr = checkDate.toISOString().split('T')[0];
-            if (activeDatesSet.has(cStr)) {
-                newStreak++;
-                checkDate.setUTCDate(checkDate.getUTCDate() - 1);
-            } else {
-                break;
-            }
-        }
-    }
+    const newStreak = calcStreak(activeDates(allUserStats), userTimezone, now);
 
     // 3. Сохраняем обновленные данные
     return await prisma.user.update({

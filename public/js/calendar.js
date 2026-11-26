@@ -1,5 +1,16 @@
 let userDates = new Set();
 let calDate = new Date();
+let calMode = 'week'; // по умолчанию — компактная полоса текущей недели
+
+function toggleCalendarMode() {
+  calMode = calMode === 'week' ? 'month' : 'week';
+  calDate = new Date();
+  const card = document.querySelector('.calendar-card');
+  if (card) card.classList.toggle('month-mode', calMode === 'month');
+  const toggle = document.getElementById('calToggle');
+  if (toggle) toggle.innerText = calMode === 'week' ? 'Весь месяц ▾' : 'Свернуть ▴';
+  renderCalendar();
+}
 
 function setUserDates(dates) {
   userDates = new Set(dates);
@@ -25,7 +36,7 @@ function renderCalendar() {
 
   const monthNameEl = document.getElementById('monthName');
   if (monthNameEl) {
-    monthNameEl.innerText = `${monthNames[month]} ${year}`;
+    monthNameEl.innerText = calMode === 'week' ? 'Эта неделя' : `${monthNames[month]} ${year}`;
   }
 
   ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => {
@@ -36,6 +47,11 @@ function renderCalendar() {
     el.style.textAlign = 'center';
     grid.appendChild(el);
   });
+
+  if (calMode === 'week') {
+    renderWeek(grid);
+    return;
+  }
 
   const lastDay = new Date(year, month + 1, 0).getDate();
   const prevMonthLastDay = new Date(year, month, 0).getDate();
@@ -81,6 +97,29 @@ function renderCalendar() {
       el.classList.add('today');
     }
 
+    grid.appendChild(el);
+  }
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function renderWeek(grid) {
+  const dates = new Set(Array.from(userDates || []).map(d => String(d).split('T')[0]));
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const el = document.createElement('div');
+    el.className = 'day';
+    el.innerText = d.getDate();
+    if (dates.has(dateKey(d))) el.classList.add('active');
+    if (dateKey(d) === dateKey(today)) el.classList.add('today');
+    if (d > today) el.classList.add('future');
     grid.appendChild(el);
   }
 }

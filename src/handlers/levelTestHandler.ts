@@ -1,9 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api';
-import axios from 'axios';
 import { prisma } from '../lib/prisma.js';
 import { userState } from '../lib/store.js';
+import { assessLevelText } from '../services/aiTools.js';
 
-const BACKEND_URL = process.env.SERVER_URL || 'http://localhost:3001';
 
 const VOICE_KEYBOARD = {
     inline_keyboard: [
@@ -15,14 +14,16 @@ const VOICE_KEYBOARD = {
 export async function handleLevelTest(bot: TelegramBot, chatId: string, userText: string) {
     console.log(`🔍 Анализ уровня для ${chatId}. Текст: "${userText}"`);
     try {
-        const res = await axios.post(`${BACKEND_URL}/api/assess-level`, { text: userText });
-        const result = res.data;
+        const result = await assessLevelText(userText);
         
         if (!result || !result.level) {
             throw new Error("Invalid API response");
         }
 
-        const detectedLevel = result.level;
+        // Модель иногда отвечает «A0» или «B1+» — приводим к допустимым уровням
+        const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+        const raw = String(result.level).toUpperCase().match(/[ABC][0-2]/)?.[0] || 'A1';
+        const detectedLevel = LEVELS.includes(raw) ? raw : (raw.startsWith('C') ? 'C1' : 'A1');
         
         await prisma.user.update({ where: { id: chatId }, data: { level: detectedLevel } });
         userState.set(chatId, 'IDLE'); 

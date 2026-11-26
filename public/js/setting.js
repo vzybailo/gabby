@@ -61,6 +61,15 @@ function updateActiveCard(el, containerId) {
   const container = containerId ? document.getElementById(containerId) : el.parentElement;
   container.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  syncAccValue(container);
+}
+
+// Показывает выбранное значение в заголовке закрытого пункта настроек
+function syncAccValue(container) {
+  const item = container.closest('.accordion-item') || container;
+  const valueEl = item.querySelector('.acc-value');
+  const active = item.querySelector('.option-card.active .option-title');
+  if (valueEl) valueEl.innerText = active ? active.innerText.replace('🔒', '').trim() : '';
 }
 
 let currentPreviewBtn = null;
@@ -106,10 +115,10 @@ function playVoicePreview(voice, btn, { forcePlay = false } = {}) {
 
 async function saveSetting(payload) {
   try {
-  await fetch('/api/settings', {
+  await apiFetch('/api/settings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: userId.toString(), ...payload })
+    body: JSON.stringify(payload)
   });
   } catch (e) { }
 }
@@ -118,10 +127,10 @@ async function sendFeedback() {
   const txt = document.getElementById('feedbackText').value;
   if (!txt) return;
 
-  await fetch('/api/feedback', {
+  await apiFetch('/api/feedback', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ userId: userId.toString(), text: txt })
+  body: JSON.stringify({ text: txt })
   });
 
   alert('Sent!');

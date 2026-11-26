@@ -22,12 +22,14 @@ export async function handleCallback(bot: TelegramBot, query: TelegramBot.Callba
         action.startsWith('preview_voice_') ||
         action === 'back_to_voices' ||
         action.startsWith('confirm_voice_') ||
-        action === 'start_test'
+        action === 'start_test' ||
+        action.startsWith('level_accept_') ||
+        action === 'level_keep'
     ) {
         return await handleSetupCallback(bot, query, action, chatId, messageId);
     }
 
-    if (action.startsWith('add_word_')) {
+    if (action.startsWith('add_word') || action.startsWith('save_vocab_')) {
         return await handleVocabularyCallback(bot, query, action, chatId, messageId);
     }
 

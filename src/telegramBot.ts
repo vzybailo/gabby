@@ -11,6 +11,7 @@ import { handleMessage } from './handlers/messageHandler.js';
 import { handleCallback } from './handlers/callbackHandler.js';
 import { handleStart } from './handlers/startHandler.js'; 
 import { initStreakReminder } from './cron/streakReminder.js';
+import { initLearningReminders } from './cron/learningReminders.js';
 
 
 checkDbConnection();
@@ -22,6 +23,7 @@ const TMP_DIR = path.resolve('./tmp');
 if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
 
 initStreakReminder(bot);
+initLearningReminders(bot);
 
 export const LEVEL_KEYBOARD = {
   inline_keyboard: [
