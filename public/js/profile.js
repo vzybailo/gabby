@@ -130,7 +130,8 @@ async function loadData() {
     const scoreEl = document.getElementById('avgScoreVal');
 
     if (scoreEl) {
-      scoreEl.innerText = '0%';
+      scoreEl.innerText = '—';
+      scoreEl.classList.remove('good', 'mid', 'low');
     }
 
   }
@@ -222,6 +223,7 @@ function renderProfileStats(stats, profile) {
   document.getElementById('cardStreak')?.classList.toggle('is-active', streak > 0);
 
   setText('totalMinutesVal', minutes);
+  setText('minutesTitle', pluralRu(minutes, 'минута', 'минуты', 'минут'));
 
   // Цвет точности несёт смысл: зелёный — хорошо, жёлтый — средне, красный — много ошибок
   setText('avgScoreVal', score > 0 ? score + '%' : '—');
@@ -232,9 +234,10 @@ function renderProfileStats(stats, profile) {
   }
 
   setText('wordsLearnedVal', total);
-  setText('wordsTitle', active > 0
-    ? `${pluralRu(total, 'слово', 'слова', 'слов')} · ${active} в речи`
-    : pluralRu(total, 'слово', 'слова', 'слов'));
+  setText('wordsTitle', pluralRu(total, 'слово', 'слова', 'слов'));
+  setText('wordsSub', learned > 0 ? `выучено ${learned}` : 'в словаре');
+
+  metricStats = { score, minutes, total, learned, active };
 
   renderTodayCard({ streak, due, total });
 }
@@ -277,4 +280,36 @@ function openSubscriptionManagement() {
   const url = 'https://t.me/tribute/app';
   if (tg.openTelegramLink) tg.openTelegramLink(url);
   else window.open(url, '_blank');
+}
+
+
+let metricStats = {};
+
+// Короткое объяснение метрики по нажатию — чтобы было понятно, что это за числа
+function explainMetric(kind) {
+  const m = metricStats;
+  const texts = {
+    grammar: {
+      title: 'Точность речи',
+      message: m.score > 0
+        ? `${m.score}% — средняя оценка грамматики твоих сообщений за последние 7 дней. 85% и выше — отлично, 60–84% — есть над чем поработать.`
+        : 'Средняя оценка грамматики твоих сообщений за последние 7 дней. Появится после первых сообщений боту.'
+    },
+    minutes: {
+      title: 'Минуты речи',
+      message: 'Общая длительность твоих голосовых сообщений боту. Именно голосом лучше всего тренируется разговорный английский.'
+    },
+    words: {
+      title: 'Словарь',
+      message: `Слов в твоём словаре: ${m.total || 0}. Выучено (5 успешных повторений подряд): ${m.learned || 0}.` +
+        (m.active ? ` Использовано тобой в разговоре: ${m.active}.` : '')
+    }
+  };
+  const t = texts[kind];
+  if (!t) return;
+  try {
+    tg.showPopup({ title: t.title, message: t.message, buttons: [{ type: 'ok' }] });
+  } catch (e) {
+    alert(`${t.title}\n\n${t.message}`);
+  }
 }

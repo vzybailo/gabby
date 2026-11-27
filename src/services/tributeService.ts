@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { miniAppButton } from '../lib/onboarding.js';
 import { prisma } from '../lib/prisma.js';
 import { bot } from '../telegramBot.js';
 
@@ -45,7 +46,7 @@ export function verifyTributeSignature(rawBody: Buffer, signature: string | unde
     });
 }
 
-const MINI_APP_PREMIUM_LINK = `https://t.me/${process.env.BOT_USERNAME || 'SpeakWithMeNowBot'}?startapp=premium`;
+
 
 const formatDate = (d: Date) =>
     d.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -107,7 +108,7 @@ async function activateSubscription(eventName: string, p: SubscriptionPayload) {
     await bot.sendMessage(userId, text, {
         parse_mode: 'HTML',
         reply_markup: {
-            inline_keyboard: [[{ text: '🚀 Открыть приложение', url: MINI_APP_PREMIUM_LINK }]]
+            inline_keyboard: [[miniAppButton('🚀 Открыть приложение', 'premium')]]
         }
     }).catch(err =>
         console.error('❌ Tribute: failed to notify user', userId, err.message)

@@ -2036,3 +2036,27 @@ div#premium-subscribe-view {
 .invite-row-icon { font-size: 18px; }
 .invite-row-text { flex: 1; }
 .invite-row svg { color: var(--text-dim); }
+
+/* Метрики кликабельны: по нажатию — объяснение */
+button.metric {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s var(--ease);
+}
+
+button.metric:active {
+  transform: scale(0.97);
+  background: var(--surface-press);
+}
+
+.metric-label {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.metric-sub {
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--text-faint);
+}

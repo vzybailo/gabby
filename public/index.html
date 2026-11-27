@@ -57,18 +57,21 @@
 
         <!-- Три метрики в одну строку -->
         <div class="metrics-row unified-width">
-            <div id="cardGrammar" class="metric">
-                <div id="avgScoreVal" class="metric-num">0%</div>
-                <div class="metric-label">грамматика</div>
-            </div>
-            <div id="cardMinutes" class="metric">
+            <button id="cardGrammar" class="metric" type="button" onclick="explainMetric('grammar')">
+                <div id="avgScoreVal" class="metric-num">—</div>
+                <div class="metric-label">точность речи</div>
+                <div class="metric-sub">за 7 дней</div>
+            </button>
+            <button id="cardMinutes" class="metric" type="button" onclick="explainMetric('minutes')">
                 <div id="totalMinutesVal" class="metric-num">0</div>
-                <div class="metric-label">минут</div>
-            </div>
-            <div id="cardWords" class="metric">
+                <div class="metric-label" id="minutesTitle">минут</div>
+                <div class="metric-sub">голосом</div>
+            </button>
+            <button id="cardWords" class="metric" type="button" onclick="explainMetric('words')">
                 <div id="wordsLearnedVal" class="metric-num">0</div>
                 <div class="metric-label" id="wordsTitle">слов</div>
-            </div>
+                <div class="metric-sub" id="wordsSub">в словаре</div>
+            </button>
         </div>
 
         <button class="invite-row unified-width" type="button" onclick="inviteFriends()">

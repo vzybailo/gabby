@@ -12,8 +12,9 @@ const user = tg.initDataUnsafe?.user;
 // Prisma stores User.id as a string — always send it as one
 const userId = user?.id ? String(user.id) : 'test_id';
 
-const isPremiumReturn = tg.initDataUnsafe?.start_param === 'premium';
-const startParam = tg.initDataUnsafe?.start_param || '';
+// Вкладка при открытии: из ссылки t.me/<bot>?startapp=<tab> или из кнопки web_app (…/?tab=<tab>)
+const startParam = tg.initDataUnsafe?.start_param || new URLSearchParams(location.search).get('tab') || '';
+const isPremiumReturn = startParam === 'premium';
 
 // Все запросы к API идут с подписанным initData — сервер сам определяет пользователя по нему.
 function apiFetch(url, options = {}) {

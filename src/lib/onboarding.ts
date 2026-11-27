@@ -3,8 +3,21 @@ import type TelegramBot from 'node-telegram-bot-api';
 import { escapeHtml } from '../utils/textUtils.js';
 
 const BOT_USERNAME = process.env.BOT_USERNAME || 'SpeakWithMeNowBot';
-export const MINI_APP_LINK = `https://t.me/${BOT_USERNAME}?startapp`;
-export const MINI_APP_VOCAB_LINK = `https://t.me/${BOT_USERNAME}?startapp=vocab`;
+
+// Адрес самого мини-приложения (сервер раздаёт public/). Кнопка web_app открывает его напрямую
+// и работает на любом клиенте, в отличие от ссылки t.me/<bot>?startapp, которой нужен
+// настроенный в BotFather «Main Mini App».
+const MINI_APP_URL = (process.env.MINI_APP_URL || process.env.SERVER_URL || '').replace(/\/+$/, '');
+
+export type MiniAppTab = 'vocab' | 'premium' | 'profile';
+
+/** Кнопка, открывающая мини-приложение (по возможности сразу на нужной вкладке). */
+export function miniAppButton(text: string, tab?: MiniAppTab): TelegramBot.InlineKeyboardButton {
+    if (MINI_APP_URL.startsWith('https://')) {
+        return { text, web_app: { url: `${MINI_APP_URL}/${tab ? `?tab=${tab}` : ''}` } };
+    }
+    return { text, url: `https://t.me/${BOT_USERNAME}?startapp${tab ? `=${tab}` : ''}` };
+}
 
 export const TRIAL_DAYS = 3;
 
@@ -30,7 +43,7 @@ export const welcomeNewKeyboard: TelegramBot.InlineKeyboardMarkup = {
 
 export const welcomeBackKeyboard: TelegramBot.InlineKeyboardMarkup = {
     inline_keyboard: [
-        [{ text: '📚 Словарь и прогресс', url: MINI_APP_LINK }],
+        [miniAppButton('📚 Словарь и прогресс')],
         [
             { text: '❓ Как пользоваться', callback_data: 'show_help' },
             { text: '⚙️ Настроить заново', callback_data: 'wizard_start' }
@@ -60,7 +73,7 @@ export const HELP_TEXT = `📖 <b>Как заниматься с Say It</b>
 /level — сменить уровень`;
 
 export const helpKeyboard: TelegramBot.InlineKeyboardMarkup = {
-    inline_keyboard: [[{ text: '📚 Открыть словарь', url: MINI_APP_VOCAB_LINK }]]
+    inline_keyboard: [[miniAppButton('📚 Открыть словарь', 'vocab')]]
 };
 
 /** Первый вопрос после настройки, чтобы новичку не пришлось придумывать, с чего начать. */

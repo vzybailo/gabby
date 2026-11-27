@@ -5,9 +5,15 @@ import { sessionStore } from '../lib/store.js';
 import { buildErrorDigest } from '../services/aiTools.js';
 import { escapeHtml } from '../utils/textUtils.js';
 import { localDateString } from '../services/streakCalc.js';
+import { miniAppButton } from '../lib/onboarding.js';
 
-const BOT_USERNAME = process.env.BOT_USERNAME || 'SpeakWithMeNowBot';
-const VOCAB_LINK = `https://t.me/${BOT_USERNAME}?startapp=vocab`;
+function pluralRu(n: number, one: string, few: string, many: string): string {
+    const n10 = n % 10, n100 = n % 100;
+    if (n10 === 1 && n100 !== 11) return one;
+    if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+    return many;
+}
+
 
 const REVIEW_REMINDER_HOUR = 12;      // местное время пользователя
 const REVIEW_MIN_DUE = 5;             // напоминаем, только если накопилось столько слов
@@ -42,8 +48,8 @@ async function sendReviewReminder(bot: TelegramBot, userId: string, now: Date) {
     if (due < REVIEW_MIN_DUE) return;
 
     await bot.sendMessage(userId,
-        `🧠 <b>${due} слов ждут повторения</b>\n\nПара минут сейчас — и они останутся в памяти надолго.`,
-        { parse_mode: 'HTML', reply_markup: { inline_keyboard: [[{ text: '🧠 Начать тренировку', url: VOCAB_LINK }]] } }
+        `🧠 <b>${due} ${pluralRu(due, 'слово ждёт', 'слова ждут', 'слов ждут')} повторения</b>\n\nПара минут сейчас — и они останутся в памяти надолго.`,
+        { parse_mode: 'HTML', reply_markup: { inline_keyboard: [[miniAppButton('🧠 Начать тренировку', 'vocab')]] } }
     );
     await prisma.user.update({ where: { id: userId }, data: { lastReviewReminderAt: now } });
 }
